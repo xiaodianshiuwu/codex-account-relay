@@ -1,0 +1,2774 @@
+{
+  "%@ · %@": {
+    "en": "%@ · %@",
+    "ja": "%@ · %@",
+    "zh-Hans": "%@ · %@",
+    "zh-Hant": "%@ · %@"
+  },
+  "%@ 同步失败：%@": {
+    "en": "%@ sync failed: %@",
+    "ja": "%@ の同期に失敗しました：%@",
+    "zh-Hans": "%@ 同步失败：%@",
+    "zh-Hant": "%@ 同步失敗：%@"
+  },
+  "%@ 当前额度已耗尽；请等待重置或先用 CLI 明确 --force。": {
+    "en": "%@ has exhausted its quota; wait for reset or use the CLI explicitly with --force.",
+    "ja": "%@ は利用枠を使い切っています。リセットを待つか、CLI で明示的に --force を指定してください。",
+    "zh-Hans": "%@ 当前额度已耗尽；请等待重置或先用 CLI 明确 --force。",
+    "zh-Hant": "%@ 目前額度已用盡；請等待重設，或先用 CLI 明確加上 --force。"
+  },
+  "%@ 用量已同步": {
+    "en": "%@ quota synced",
+    "ja": "%@ の利用枠を同期しました",
+    "zh-Hans": "%@ 用量已同步",
+    "zh-Hant": "%@ 額度已同步"
+  },
+  "%@ 需要重新登录": {
+    "en": "%@ needs to sign in again",
+    "ja": "%@ は再サインインが必要です",
+    "zh-Hans": "%@ 需要重新登录",
+    "zh-Hant": "%@ 需要重新登入"
+  },
+  "%@ 需要重新登录，暂时不能切换。": {
+    "en": "%@ needs to sign in again and cannot be switched to yet.",
+    "ja": "%@ は再サインインが必要なため、まだ切り替えられません。",
+    "zh-Hans": "%@ 需要重新登录，暂时不能切换。",
+    "zh-Hant": "%@ 需要重新登入，暫時無法切換。"
+  },
+  "%@。捕获后才能安全地切走并切回。": {
+    "en": "%@. Capture this account before switching away and back.",
+    "ja": "%@。安全に切り替えて戻るには、先にこのアカウントを取り込んでください。",
+    "zh-Hans": "%@。捕获后才能安全地切走并切回。",
+    "zh-Hant": "%@。擷取後才能安全地切換離開並切回。"
+  },
+  "%d 个已保存账号": {
+    "en": "%d saved accounts",
+    "ja": "保存済みアカウント %d 件",
+    "zh-Hans": "%d 个已保存账号",
+    "zh-Hant": "%d 個已儲存帳號"
+  },
+  "%d 个账号同步失败：%@": {
+    "en": "%d accounts failed to sync: %@",
+    "ja": "%d 件のアカウントの同期に失敗しました：%@",
+    "zh-Hans": "%d 个账号同步失败：%@",
+    "zh-Hant": "%d 個帳號同步失敗：%@"
+  },
+  "%d 个进程": {
+    "en": "%d processes",
+    "ja": "%d 個のプロセス",
+    "zh-Hans": "%d 个进程",
+    "zh-Hant": "%d 個程序"
+  },
+  "%d 分钟": {
+    "en": "%d min",
+    "ja": "%d分",
+    "zh-Hans": "%d 分钟",
+    "zh-Hant": "%d 分鐘"
+  },
+  "%d 天": {
+    "en": "%d days",
+    "ja": "%d日",
+    "zh-Hans": "%d 天",
+    "zh-Hant": "%d 天"
+  },
+  "%d 小时": {
+    "en": "%d hr",
+    "ja": "%d時間",
+    "zh-Hans": "%d 小时",
+    "zh-Hant": "%d 小時"
+  },
+  "%d 条 · 恢复原会话": {
+    "en": "%d sessions · restore original session",
+    "ja": "%d 件 · 元のセッションを復元",
+    "zh-Hans": "%d 条 · 恢复原会话",
+    "zh-Hant": "%d 筆 · 恢復原始工作階段"
+  },
+  "%d 轮 · %d 请求": {
+    "en": "%d turns · %d requests",
+    "ja": "%d ターン · %d リクエスト",
+    "zh-Hans": "%d 轮 · %d 请求",
+    "zh-Hant": "%d 輪 · %d 次請求"
+  },
+  "%d 项": {
+    "en": "%d items",
+    "ja": "%d 項目",
+    "zh-Hans": "%d 项",
+    "zh-Hant": "%d 項"
+  },
+  "(未命名会话)": {
+    "en": "(Untitled session)",
+    "ja": "（無題のセッション）",
+    "zh-Hans": "(未命名会话)",
+    "zh-Hant": "（未命名工作階段）"
+  },
+  "// 账号与会话接力": {
+    "en": "// Account & Session Handoff",
+    "ja": "// アカウントとセッションの引き継ぎ",
+    "zh-Hans": "// 账号与会话接力",
+    "zh-Hant": "// 帳號與工作階段接力"
+  },
+  "01 / 概览": {
+    "en": "01 / Overview",
+    "ja": "01 / 概要",
+    "zh-Hans": "01 / 概览",
+    "zh-Hant": "01 / 概覽"
+  },
+  "02 / 账号": {
+    "en": "02 / Accounts",
+    "ja": "02 / アカウント",
+    "zh-Hans": "02 / 账号",
+    "zh-Hant": "02 / 帳號"
+  },
+  "03 / 会话档案": {
+    "en": "03 / Sessions",
+    "ja": "03 / セッション",
+    "zh-Hans": "03 / 会话档案",
+    "zh-Hant": "03 / 工作階段檔案"
+  },
+  "04 / 诊断": {
+    "en": "04 / Diagnostics",
+    "ja": "04 / 診断",
+    "zh-Hans": "04 / 诊断",
+    "zh-Hant": "04 / 診斷"
+  },
+  "05 / 设置": {
+    "en": "05 / Settings",
+    "ja": "05 / 設定",
+    "zh-Hans": "05 / 设置",
+    "zh-Hant": "05 / 設定"
+  },
+  "06 / 系统信息": {
+    "en": "06 / System Info",
+    "ja": "06 / システム情報",
+    "zh-Hans": "06 / 系统信息",
+    "zh-Hant": "06 / 系統資訊"
+  },
+  "1 个进程": {
+    "en": "1 process",
+    "ja": "1 個のプロセス",
+    "zh-Hans": "1 个进程",
+    "zh-Hant": "1 個程序"
+  },
+  "1 周": {
+    "en": "1 week",
+    "ja": "1週間",
+    "zh-Hans": "1 周",
+    "zh-Hant": "1 週"
+  },
+  "1 周 · %@ %@": {
+    "en": "1 week · %@ %@",
+    "ja": "1週間 · %@ %@",
+    "zh-Hans": "1 周 · %@ %@",
+    "zh-Hant": "1 週 · %@ %@"
+  },
+  "5 小时": {
+    "en": "5 hours",
+    "ja": "5時間",
+    "zh-Hans": "5 小时",
+    "zh-Hant": "5 小時"
+  },
+  "5 小时 · %@ %@": {
+    "en": "5 hours · %@ %@",
+    "ja": "5時間 · %@ %@",
+    "zh-Hans": "5 小时 · %@ %@",
+    "zh-Hant": "5 小時 · %@ %@"
+  },
+  "5 小时%@ %@ · 1 周%@ %@": {
+    "en": "5 hours %@ %@ · 1 week %@ %@",
+    "ja": "5時間%@ %@ · 1週間%@ %@",
+    "zh-Hans": "5 小时%@ %@ · 1 周%@ %@",
+    "zh-Hant": "5 小時%@ %@ · 1 週%@ %@"
+  },
+  "5 小时额度": {
+    "en": "5-hour quota",
+    "ja": "5時間の利用枠",
+    "zh-Hans": "5 小时额度",
+    "zh-Hant": "5 小時額度"
+  },
+  "5小时%@ %.0f%%": {
+    "en": "5h %@ %.0f%%",
+    "ja": "5時間%@ %.0f%%",
+    "zh-Hans": "5小时%@ %.0f%%",
+    "zh-Hant": "5小時%@ %.0f%%"
+  },
+  "6–20 秒": {
+    "en": "6–20 seconds",
+    "ja": "6～20秒",
+    "zh-Hans": "6–20 秒",
+    "zh-Hant": "6–20 秒"
+  },
+  "< 5 秒": {
+    "en": "< 5 seconds",
+    "ja": "5秒未満",
+    "zh-Hans": "< 5 秒",
+    "zh-Hant": "< 5 秒"
+  },
+  "CLI 会拒绝切换（除非使用 --force）；建议先换一个有额度的账号。": {
+    "en": "The CLI will reject the switch unless --force is used; choose an account with quota instead.",
+    "ja": "CLI は --force なしでは切り替えを拒否します。利用枠のあるアカウントを選んでください。",
+    "zh-Hans": "CLI 会拒绝切换（除非使用 --force）；建议先换一个有额度的账号。",
+    "zh-Hant": "CLI 會拒絕切換（除非使用 --force）；建議先換一個有額度的帳號。"
+  },
+  "CLI 未返回 %@ 的用量结果": {
+    "en": "The CLI returned no quota result for %@",
+    "ja": "CLI が %@ の利用枠結果を返しませんでした",
+    "zh-Hans": "CLI 未返回 %@ 的用量结果",
+    "zh-Hant": "CLI 未回傳 %@ 的額度結果"
+  },
+  "CLI 版本": {
+    "en": "CLI version",
+    "ja": "CLI バージョン",
+    "zh-Hans": "CLI 版本",
+    "zh-Hant": "CLI 版本"
+  },
+  "CLI 默认会拒绝切换到该账号；等待重置或使用 --force。": {
+    "en": "The CLI will refuse to switch to this account; wait for reset or use --force.",
+    "ja": "CLI はこのアカウントへの切り替えを拒否します。リセットを待つか --force を使用してください。",
+    "zh-Hans": "CLI 默认会拒绝切换到该账号；等待重置或使用 --force。",
+    "zh-Hant": "CLI 預設會拒絕切換到該帳號；請等待重設或使用 --force。"
+  },
+  "ChatGPT 已重启并恢复会话（%d ms）": {
+    "en": "ChatGPT restarted and restored the session (%d ms)",
+    "ja": "ChatGPT を再起動し、セッションを復元しました（%d ms）",
+    "zh-Hans": "ChatGPT 已重启并恢复会话（%d ms）",
+    "zh-Hant": "ChatGPT 已重新啟動並恢復工作階段（%d ms）"
+  },
+  "ChatGPT 桌面 App": {
+    "en": "ChatGPT desktop app",
+    "ja": "ChatGPT デスクトップアプリ",
+    "zh-Hans": "ChatGPT 桌面 App",
+    "zh-Hant": "ChatGPT 桌面 App"
+  },
+  "ChatGPT 桌面 App 未运行": {
+    "en": "ChatGPT desktop app is not running",
+    "ja": "ChatGPT デスクトップアプリは実行されていません",
+    "zh-Hans": "ChatGPT 桌面 App 未运行",
+    "zh-Hant": "ChatGPT 桌面 App 未執行"
+  },
+  "ChatGPT 桌面 App 运行中": {
+    "en": "ChatGPT desktop app is running",
+    "ja": "ChatGPT デスクトップアプリは実行中です",
+    "zh-Hans": "ChatGPT 桌面 App 运行中",
+    "zh-Hant": "ChatGPT 桌面 App 執行中"
+  },
+  "Codex 数据": {
+    "en": "Codex data",
+    "ja": "Codex データ",
+    "zh-Hans": "Codex 数据",
+    "zh-Hant": "Codex 資料"
+  },
+  "Codex 未运行": {
+    "en": "Codex is not running",
+    "ja": "Codex は実行されていません",
+    "zh-Hans": "Codex 未运行",
+    "zh-Hant": "Codex 未執行"
+  },
+  "Codex 运行中": {
+    "en": "Codex is running",
+    "ja": "Codex は実行中です",
+    "zh-Hans": "Codex 运行中",
+    "zh-Hant": "Codex 執行中"
+  },
+  "English interface": {
+    "en": "English interface",
+    "ja": "英語インターフェース",
+    "zh-Hans": "英语界面",
+    "zh-Hant": "英文介面"
+  },
+  "Prompt Cache 按组织隔离，跨账号首轮不会命中。": {
+    "en": "Prompt cache is isolated by organization, so the first turn across accounts will not hit.",
+    "ja": "Prompt キャッシュは組織ごとに分離されるため、アカウントをまたぐ最初のターンではヒットしません。",
+    "zh-Hans": "Prompt Cache 按组织隔离，跨账号首轮不会命中。",
+    "zh-Hant": "Prompt Cache 依組織隔離，跨帳號首輪不會命中。"
+  },
+  "Relay 数据目录": {
+    "en": "Relay data directory",
+    "ja": "Relay データディレクトリ",
+    "zh-Hans": "Relay 数据目录",
+    "zh-Hant": "Relay 資料目錄"
+  },
+  "Token 统计": {
+    "en": "Token statistics",
+    "ja": "トークン統計",
+    "zh-Hans": "Token 统计",
+    "zh-Hant": "Token 統計"
+  },
+  "codex-relay 退出码 %d：%@": {
+    "en": "codex-relay exited with code %d: %@",
+    "ja": "codex-relay が終了コード %d で終了しました：%@",
+    "zh-Hans": "codex-relay 退出码 %d：%@",
+    "zh-Hant": "codex-relay 結束碼 %d：%@"
+  },
+  "refresh token 已失效或被撤销。请重新添加/登录后再切换。": {
+    "en": "The refresh token is invalid or revoked. Sign in again before switching.",
+    "ja": "refresh token が無効または取り消されています。再サインインしてから切り替えてください。",
+    "zh-Hans": "refresh token 已失效或被撤销。请重新添加/登录后再切换。",
+    "zh-Hant": "refresh token 已失效或被撤銷。請重新新增／登入後再切換。"
+  },
+  "refresh token 已失效，切换会失败；请先重新登录。": {
+    "en": "The refresh token is invalid and switching will fail; sign in again first.",
+    "ja": "refresh token が無効なため切り替えに失敗します。先に再サインインしてください。",
+    "zh-Hans": "refresh token 已失效，切换会失败；请先重新登录。",
+    "zh-Hant": "refresh token 已失效，切換會失敗；請先重新登入。"
+  },
+  "relay 仓库": {
+    "en": "Relay store",
+    "ja": "Relay ストア",
+    "zh-Hans": "relay 仓库",
+    "zh-Hant": "Relay 儲存庫"
+  },
+  "· 正在处理，请保持 ChatGPT 运行": {
+    "en": "· Working; keep ChatGPT running",
+    "ja": "· 処理中です。ChatGPT を実行したままにしてください",
+    "zh-Hans": "· 正在处理，请保持 ChatGPT 运行",
+    "zh-Hant": "· 正在處理，請保持 ChatGPT 執行"
+  },
+  "上次切换": {
+    "en": "Last switch",
+    "ja": "前回の切り替え",
+    "zh-Hans": "上次切换",
+    "zh-Hant": "上次切換"
+  },
+  "上次刷新失败": {
+    "en": "Last refresh failed",
+    "ja": "前回の更新に失敗しました",
+    "zh-Hans": "上次刷新失败",
+    "zh-Hant": "上次更新失敗"
+  },
+  "不会后台自动启停 ChatGPT；每次切换/重启/打开会话都要在确认框勾选，CLI 必须显式 --allow-chatgpt-restart。": {
+    "en": "ChatGPT is never started or stopped automatically in the background. Every switch, restart, or session open requires confirmation; the CLI requires an explicit --allow-chatgpt-restart.",
+    "ja": "ChatGPT をバックグラウンドで自動的に起動・終了することはありません。切り替え、再起動、セッションを開くたびに確認が必要で、CLI では --allow-chatgpt-restart を明示する必要があります。",
+    "zh-Hans": "不会后台自动启停 ChatGPT；每次切换/重启/打开会话都要在确认框勾选，CLI 必须显式 --allow-chatgpt-restart。",
+    "zh-Hant": "不會在背景自動啟動或結束 ChatGPT；每次切換、重新啟動或開啟工作階段都必須在確認框勾選，CLI 必須明確加上 --allow-chatgpt-restart。"
+  },
+  "不会退出或重启 ChatGPT，也不会修改账号凭据。": {
+    "en": "ChatGPT will not be quit or restarted, and account credentials will not be modified.",
+    "ja": "ChatGPT を終了・再起動せず、アカウント認証情報も変更しません。",
+    "zh-Hans": "不会退出或重启 ChatGPT，也不会修改账号凭据。",
+    "zh-Hant": "不會結束或重新啟動 ChatGPT，也不會修改帳號憑證。"
+  },
+  "不修改账号凭据": {
+    "en": "No credential changes",
+    "ja": "認証情報は変更しません",
+    "zh-Hans": "不修改账号凭据",
+    "zh-Hant": "不修改帳號憑證"
+  },
+  "不可用": {
+    "en": "Unavailable",
+    "ja": "利用不可",
+    "zh-Hans": "不可用",
+    "zh-Hant": "無法使用"
+  },
+  "主题": {
+    "en": "Theme",
+    "ja": "テーマ",
+    "zh-Hans": "主题",
+    "zh-Hant": "主題"
+  },
+  "亮色": {
+    "en": "Light",
+    "ja": "ライト",
+    "zh-Hans": "亮色",
+    "zh-Hant": "淺色"
+  },
+  "亮色档案": {
+    "en": "Light theme",
+    "ja": "ライトテーマ",
+    "zh-Hans": "亮色档案",
+    "zh-Hant": "淺色主題"
+  },
+  "仅打开会话": {
+    "en": "Open session only",
+    "ja": "セッションを開くだけ",
+    "zh-Hans": "仅打开会话",
+    "zh-Hant": "僅開啟工作階段"
+  },
+  "仅重启 ChatGPT": {
+    "en": "Restart ChatGPT only",
+    "ja": "ChatGPT のみ再起動",
+    "zh-Hans": "仅重启 ChatGPT",
+    "zh-Hant": "僅重新啟動 ChatGPT"
+  },
+  "仅重启 ChatGPT，不切换账号": {
+    "en": "Restart ChatGPT without switching accounts",
+    "ja": "ChatGPT のみを再起動し、アカウントは切り替えません",
+    "zh-Hans": "仅重启 ChatGPT，不切换账号",
+    "zh-Hant": "僅重新啟動 ChatGPT，不切換帳號"
+  },
+  "仓库": {
+    "en": "Stored",
+    "ja": "ストア",
+    "zh-Hans": "仓库",
+    "zh-Hant": "儲存庫"
+  },
+  "会先安全退出 ChatGPT；如果还有 Codex 轮次在跑，默认拒绝。": {
+    "en": "ChatGPT will be safely quit first; if a Codex turn is still running, the action is rejected by default.",
+    "ja": "最初に ChatGPT を安全に終了します。Codex のターンが実行中の場合は既定で拒否します。",
+    "zh-Hans": "会先安全退出 ChatGPT；如果还有 Codex 轮次在跑，默认拒绝。",
+    "zh-Hant": "會先安全結束 ChatGPT；如果還有 Codex 回合在執行，預設會拒絕。"
+  },
+  "会备份 auth.json 和 state，再写入目标凭据。": {
+    "en": "auth.json and state are backed up before writing the target credentials.",
+    "ja": "auth.json と state をバックアップしてから対象の認証情報を書き込みます。",
+    "zh-Hans": "会备份 auth.json 和 state，再写入目标凭据。",
+    "zh-Hant": "會備份 auth.json 和 state，再寫入目標憑證。"
+  },
+  "会话": {
+    "en": "Sessions",
+    "ja": "セッション",
+    "zh-Hans": "会话",
+    "zh-Hant": "工作階段"
+  },
+  "会话 ID": {
+    "en": "Session ID",
+    "ja": "セッション ID",
+    "zh-Hans": "会话 ID",
+    "zh-Hant": "工作階段 ID"
+  },
+  "会话 ID 已复制": {
+    "en": "Session ID copied",
+    "ja": "セッション ID をコピーしました",
+    "zh-Hans": "会话 ID 已复制",
+    "zh-Hant": "已複製工作階段 ID"
+  },
+  "会话信息": {
+    "en": "Session info",
+    "ja": "セッション情報",
+    "zh-Hans": "会话信息",
+    "zh-Hant": "工作階段資訊"
+  },
+  "会话接力": {
+    "en": "Session handoff",
+    "ja": "セッションの引き継ぎ",
+    "zh-Hans": "会话接力",
+    "zh-Hant": "工作階段接力"
+  },
+  "会话数据库": {
+    "en": "Session database",
+    "ja": "セッションデータベース",
+    "zh-Hans": "会话数据库",
+    "zh-Hant": "工作階段資料庫"
+  },
+  "会话记录内": {
+    "en": "In session records",
+    "ja": "セッション記録内",
+    "zh-Hans": "会话记录内",
+    "zh-Hant": "工作階段記錄內"
+  },
+  "会通过 CLI 向 ChatGPT 发送深链接；CLI 必须收到 --allow-chatgpt-restart。": {
+    "en": "A deep link is sent to ChatGPT through the CLI; the CLI must receive --allow-chatgpt-restart.",
+    "ja": "CLI 経由で ChatGPT にディープリンクを送信します。CLI には --allow-chatgpt-restart が必要です。",
+    "zh-Hans": "会通过 CLI 向 ChatGPT 发送深链接；CLI 必须收到 --allow-chatgpt-restart。",
+    "zh-Hant": "會透過 CLI 向 ChatGPT 傳送深層連結；CLI 必須收到 --allow-chatgpt-restart。"
+  },
+  "使用 K / M / B 简写，例如 1.2M。": {
+    "en": "Use K / M / B abbreviations, for example 1.2M.",
+    "ja": "K / M / B の短縮表記を使用します（例：1.2M）。",
+    "zh-Hans": "使用 K / M / B 简写，例如 1.2M。",
+    "zh-Hant": "使用 K / M / B 簡寫，例如 1.2M。"
+  },
+  "使用设备码登录（浏览器不方便打开时）": {
+    "en": "Use device-code sign-in when a browser is inconvenient",
+    "ja": "デバイスコードでサインイン（ブラウザを開きにくい場合）",
+    "zh-Hans": "使用设备码登录（浏览器不方便打开时）",
+    "zh-Hant": "使用裝置碼登入（瀏覽器不方便開啟時）"
+  },
+  "使用隔离 CODEX_HOME 登录，不撤销当前账号": {
+    "en": "Sign in with an isolated CODEX_HOME without revoking the current account session",
+    "ja": "隔離された CODEX_HOME でログインし、現在のアカウントのセッションを取り消しません",
+    "zh-Hans": "使用隔离 CODEX_HOME 登录，不撤销当前账号",
+    "zh-Hant": "使用隔離的 CODEX_HOME 登入，不撤銷目前帳號"
+  },
+  "例如：工作账号、个人账号": {
+    "en": "e.g. Work account, Personal account",
+    "ja": "例：仕事用、個人用",
+    "zh-Hans": "例如：工作账号、个人账号",
+    "zh-Hant": "例如：工作帳號、個人帳號"
+  },
+  "保存名称": {
+    "en": "Save name",
+    "ja": "名前を保存",
+    "zh-Hans": "保存名称",
+    "zh-Hant": "儲存名稱"
+  },
+  "保存头像配置失败": {
+    "en": "Failed to save avatar settings",
+    "ja": "アバター設定の保存に失敗しました",
+    "zh-Hans": "保存头像配置失败",
+    "zh-Hant": "儲存頭像設定失敗"
+  },
+  "先捕获当前账号，或添加另一个 ChatGPT 账号。": {
+    "en": "Capture the current account or add another ChatGPT account.",
+    "ja": "現在のアカウントを取り込むか、別の ChatGPT アカウントを追加してください。",
+    "zh-Hans": "先捕获当前账号，或添加另一个 ChatGPT 账号。",
+    "zh-Hant": "先擷取目前帳號，或新增另一個 ChatGPT 帳號。"
+  },
+  "全部账号": {
+    "en": "All accounts",
+    "ja": "すべてのアカウント",
+    "zh-Hans": "全部账号",
+    "zh-Hant": "所有帳號"
+  },
+  "全部通过": {
+    "en": "All checks passed",
+    "ja": "すべて合格",
+    "zh-Hans": "全部通过",
+    "zh-Hant": "全部通過"
+  },
+  "共享 daemon": {
+    "en": "Shared daemon",
+    "ja": "共有 daemon",
+    "zh-Hans": "共享 daemon",
+    "zh-Hant": "共用 daemon"
+  },
+  "关于": {
+    "en": "About",
+    "ja": "このアプリについて",
+    "zh-Hans": "关于",
+    "zh-Hant": "關於"
+  },
+  "关闭": {
+    "en": "Close",
+    "ja": "閉じる",
+    "zh-Hans": "关闭",
+    "zh-Hant": "關閉"
+  },
+  "内置 CLI": {
+    "en": "Bundled CLI",
+    "ja": "組み込み CLI",
+    "zh-Hans": "内置 CLI",
+    "zh-Hant": "內建 CLI"
+  },
+  "内置 Codex CLI": {
+    "en": "Embedded Codex CLI",
+    "ja": "内蔵 Codex CLI",
+    "zh-Hans": "内置 Codex CLI",
+    "zh-Hant": "內建 Codex CLI"
+  },
+  "内部别名": {
+    "en": "Internal alias",
+    "ja": "内部別名",
+    "zh-Hans": "内部别名",
+    "zh-Hant": "內部別名"
+  },
+  "准备中…": {
+    "en": "Preparing…",
+    "ja": "準備中…",
+    "zh-Hans": "准备中…",
+    "zh-Hant": "準備中…"
+  },
+  "准备切换…": {
+    "en": "Preparing switch…",
+    "ja": "切り替え準備中…",
+    "zh-Hans": "准备切换…",
+    "zh-Hant": "準備切換…"
+  },
+  "准备重启…": {
+    "en": "Preparing restart…",
+    "ja": "再起動準備中…",
+    "zh-Hans": "准备重启…",
+    "zh-Hant": "準備重新啟動…"
+  },
+  "凭据存储方式": {
+    "en": "Credential storage",
+    "ja": "認証情報の保存方法",
+    "zh-Hans": "凭据存储方式",
+    "zh-Hant": "憑證儲存方式"
+  },
+  "分析失败": {
+    "en": "Analysis failed",
+    "ja": "分析に失敗しました",
+    "zh-Hans": "分析失败",
+    "zh-Hant": "分析失敗"
+  },
+  "切换到": {
+    "en": "Switch to",
+    "ja": "切り替え先",
+    "zh-Hans": "切换到",
+    "zh-Hant": "切換到"
+  },
+  "切换到 %@ 并打开": {
+    "en": "Switch to %@ and open",
+    "ja": "%@ に切り替えて開く",
+    "zh-Hans": "切换到 %@ 并打开",
+    "zh-Hant": "切換到 %@ 並開啟"
+  },
+  "切换到 %@ 并重启 ChatGPT？": {
+    "en": "Switch to %@ and restart ChatGPT?",
+    "ja": "%@ に切り替えて ChatGPT を再起動しますか？",
+    "zh-Hans": "切换到 %@ 并重启 ChatGPT？",
+    "zh-Hant": "切換到 %@ 並重新啟動 ChatGPT？"
+  },
+  "切换到此账号并恢复": {
+    "en": "Switch to this account and restore",
+    "ja": "このアカウントに切り替えて復元",
+    "zh-Hans": "切换到此账号并恢复",
+    "zh-Hant": "切換到此帳號並恢復"
+  },
+  "切换后界面会立即更新；语言偏好会在下次启动时保持。": {
+    "en": "The interface updates immediately and the language preference is remembered.",
+    "ja": "切り替えるとすぐに反映され、次回起動時も言語設定が保持されます。",
+    "zh-Hans": "切换后界面会立即更新；语言偏好会在下次启动时保持。",
+    "zh-Hant": "切換後介面會立即更新；語言偏好會在下次啟動時保留。"
+  },
+  "切换外观": {
+    "en": "Switch appearance",
+    "ja": "外観を切り替え",
+    "zh-Hans": "切换外观",
+    "zh-Hant": "切換外觀"
+  },
+  "切换失败": {
+    "en": "Switch failed",
+    "ja": "切り替えに失敗しました",
+    "zh-Hans": "切换失败",
+    "zh-Hant": "切換失敗"
+  },
+  "切换并恢复": {
+    "en": "Switch and restore",
+    "ja": "切り替えて復元",
+    "zh-Hans": "切换并恢复",
+    "zh-Hant": "切換並恢復"
+  },
+  "切换暗色终端 / 亮色档案": {
+    "en": "Switch between dark and light themes",
+    "ja": "ダークテーマとライトテーマを切り替え",
+    "zh-Hans": "切换暗色终端 / 亮色档案",
+    "zh-Hant": "切換深色／淺色主題"
+  },
+  "切换期间不要操作 ChatGPT。": {
+    "en": "Do not interact with ChatGPT during the switch.",
+    "ja": "切り替え中は ChatGPT を操作しないでください。",
+    "zh-Hans": "切换期间不要操作 ChatGPT。",
+    "zh-Hant": "切換期間請勿操作 ChatGPT。"
+  },
+  "切换账号": {
+    "en": "Switch account",
+    "ja": "アカウントを切り替え",
+    "zh-Hans": "切换账号",
+    "zh-Hant": "切換帳號"
+  },
+  "切换过程中请勿操作 ChatGPT。通常需要 6–20 秒。": {
+    "en": "Do not interact with ChatGPT while switching. This usually takes 6–20 seconds.",
+    "ja": "切り替え中は ChatGPT を操作しないでください。通常 6～20 秒かかります。",
+    "zh-Hans": "切换过程中请勿操作 ChatGPT。通常需要 6–20 秒。",
+    "zh-Hant": "切換過程中請勿操作 ChatGPT。通常需要 6–20 秒。"
+  },
+  "切换通常需要 6–20 秒：校验账号 → 退出 App → 备份 → 写入凭据 → 重启 → 恢复会话。": {
+    "en": "Switching usually takes 6–20 seconds: verify account → quit app → back up → write credentials → restart → restore session.",
+    "ja": "切り替えには通常 6～20 秒かかります：アカウント確認 → App 終了 → バックアップ → 認証情報書き込み → 再起動 → セッション復元。",
+    "zh-Hans": "切换通常需要 6–20 秒：校验账号 → 退出 App → 备份 → 写入凭据 → 重启 → 恢复会话。",
+    "zh-Hant": "切換通常需要 6–20 秒：驗證帳號 → 結束 App → 備份 → 寫入憑證 → 重新啟動 → 恢復工作階段。"
+  },
+  "创建者": {
+    "en": "Created by",
+    "ja": "作成元",
+    "zh-Hans": "创建者",
+    "zh-Hant": "建立者"
+  },
+  "创建账号": {
+    "en": "Created by",
+    "ja": "作成アカウント",
+    "zh-Hans": "创建账号",
+    "zh-Hant": "建立帳號"
+  },
+  "别名": {
+    "en": "Alias",
+    "ja": "別名",
+    "zh-Hans": "别名",
+    "zh-Hant": "別名"
+  },
+  "别名仅用于内部识别和历史 CLI 命令；列表优先显示账号真实名称。实际身份按 chatgpt_account_id 匹配。": {
+    "en": "Aliases are for internal identification and legacy CLI commands. The list prioritizes the real account name; identity is matched by chatgpt_account_id.",
+    "ja": "別名は内部識別と従来の CLI コマンド用です。一覧では実際のアカウント名を優先し、身元は chatgpt_account_id で照合します。",
+    "zh-Hans": "别名仅用于内部识别和历史 CLI 命令；列表优先显示账号真实名称。实际身份按 chatgpt_account_id 匹配。",
+    "zh-Hant": "別名僅用於內部識別與歷史 CLI 指令；列表優先顯示帳號真實名稱。實際身分依 chatgpt_account_id 比對。"
+  },
+  "别名只能包含字母、数字、点、下划线和短横线，长度 1-32，且必须以字母或数字开头。": {
+    "en": "The alias may contain letters, numbers, dots, underscores, and hyphens (1–32 characters) and must start with a letter or number.",
+    "ja": "別名は英数字、ピリオド、アンダースコア、ハイフンのみ（1～32文字）で、英数字で始める必要があります。",
+    "zh-Hans": "别名只能包含字母、数字、点、下划线和短横线，长度 1-32，且必须以字母或数字开头。",
+    "zh-Hant": "別名只能包含字母、數字、點、底線和連字號，長度 1-32，且必須以字母或數字開頭。"
+  },
+  "别名无效": {
+    "en": "Invalid alias",
+    "ja": "別名が無効です",
+    "zh-Hans": "别名无效",
+    "zh-Hant": "別名無效"
+  },
+  "刷新": {
+    "en": "Refresh",
+    "ja": "更新",
+    "zh-Hans": "刷新",
+    "zh-Hant": "重新整理"
+  },
+  "刷新失败": {
+    "en": "Refresh failed",
+    "ja": "更新に失敗しました",
+    "zh-Hans": "刷新失败",
+    "zh-Hant": "重新整理失敗"
+  },
+  "刷新用量": {
+    "en": "Refresh quota",
+    "ja": "利用枠を更新",
+    "zh-Hans": "刷新用量",
+    "zh-Hant": "重新整理額度"
+  },
+  "刷新用量失败": {
+    "en": "Failed to refresh quota",
+    "ja": "利用枠の更新に失敗しました",
+    "zh-Hans": "刷新用量失败",
+    "zh-Hant": "重新整理額度失敗"
+  },
+  "刷新账号与会话": {
+    "en": "Refresh accounts and sessions",
+    "ja": "アカウントとセッションを更新",
+    "zh-Hans": "刷新账号与会话",
+    "zh-Hant": "重新整理帳號與工作階段"
+  },
+  "刷新账号用量": {
+    "en": "Refresh account quota",
+    "ja": "アカウントの利用枠を更新",
+    "zh-Hans": "刷新账号用量",
+    "zh-Hant": "重新整理帳號額度"
+  },
+  "刷新额度": {
+    "en": "Refresh quota",
+    "ja": "利用枠を更新",
+    "zh-Hans": "刷新额度",
+    "zh-Hant": "重新整理額度"
+  },
+  "剩余": {
+    "en": "remaining",
+    "ja": "残り",
+    "zh-Hans": "剩余",
+    "zh-Hant": "剩餘"
+  },
+  "剩余额度": {
+    "en": "Remaining quota",
+    "ja": "残りの利用枠",
+    "zh-Hans": "剩余额度",
+    "zh-Hant": "剩餘額度"
+  },
+  "加密推理项": {
+    "en": "Encrypted reasoning items",
+    "ja": "暗号化された推論項目",
+    "zh-Hans": "加密推理项",
+    "zh-Hant": "加密推理項目"
+  },
+  "加密推理项会原样回放，但服务端是否实际复用无法从客户端证明。": {
+    "en": "Encrypted reasoning items are replayed unchanged, but whether the server actually reuses them cannot be proven from the client.",
+    "ja": "暗号化された推論項目はそのまま再送されますが、サーバー側で実際に再利用されたかはクライアント側では確認できません。",
+    "zh-Hans": "加密推理项会原样回放，但服务端是否实际复用无法从客户端证明。",
+    "zh-Hant": "加密推理項目會原樣重送，但伺服器是否實際重用，用戶端無法證明。"
+  },
+  "压缩检查点": {
+    "en": "Compaction checkpoints",
+    "ja": "圧縮チェックポイント",
+    "zh-Hans": "压缩检查点",
+    "zh-Hant": "壓縮檢查點"
+  },
+  "压缩窗口": {
+    "en": "Compaction window",
+    "ja": "圧縮ウィンドウ",
+    "zh-Hans": "压缩窗口",
+    "zh-Hant": "壓縮視窗"
+  },
+  "取消": {
+    "en": "Cancel",
+    "ja": "キャンセル",
+    "zh-Hans": "取消",
+    "zh-Hant": "取消"
+  },
+  "取消登录": {
+    "en": "Cancel sign-in",
+    "ja": "サインインをキャンセル",
+    "zh-Hans": "取消登录",
+    "zh-Hant": "取消登入"
+  },
+  "另一条会话正在分析": {
+    "en": "Another session is being analyzed",
+    "ja": "別のセッションを分析中です",
+    "zh-Hans": "另一条会话正在分析",
+    "zh-Hant": "另一個工作階段正在分析"
+  },
+  "可用": {
+    "en": "Available",
+    "ja": "利用可能",
+    "zh-Hans": "可用",
+    "zh-Hant": "可用"
+  },
+  "可留空，自动使用 accountN": {
+    "en": "Leave blank to use accountN",
+    "ja": "空欄の場合は accountN を使用",
+    "zh-Hans": "可留空，自动使用 accountN",
+    "zh-Hant": "可留空，自動使用 accountN"
+  },
+  "同一 CODEX_HOME 只允许一个写者；检测到其他 Codex 进程时会拒绝切换。": {
+    "en": "Only one writer is allowed per CODEX_HOME; switching is refused when another Codex process is detected.",
+    "ja": "1つの CODEX_HOME に書き込めるのは1プロセスだけです。他の Codex プロセスを検出すると切り替えを拒否します。",
+    "zh-Hans": "同一 CODEX_HOME 只允许一个写者；检测到其他 Codex 进程时会拒绝切换。",
+    "zh-Hant": "同一個 CODEX_HOME 只允許一個寫入者；偵測到其他 Codex 程序時會拒絕切換。"
+  },
+  "同步": {
+    "en": "Sync",
+    "ja": "同期",
+    "zh-Hans": "同步",
+    "zh-Hant": "同步"
+  },
+  "同步 // %@": {
+    "en": "Sync time // %@",
+    "ja": "同期日時 // %@",
+    "zh-Hans": "同步 // %@",
+    "zh-Hant": "同步時間 // %@"
+  },
+  "同步失败": {
+    "en": "Sync failed",
+    "ja": "同期に失敗しました",
+    "zh-Hans": "同步失败",
+    "zh-Hant": "同步失敗"
+  },
+  "同步用量失败": {
+    "en": "Failed to sync quota",
+    "ja": "利用枠の同期に失敗しました",
+    "zh-Hans": "同步用量失败",
+    "zh-Hant": "同步額度失敗"
+  },
+  "名称不能为空": {
+    "en": "Name is required",
+    "ja": "名前を入力してください",
+    "zh-Hans": "名称不能为空",
+    "zh-Hant": "名稱不能為空"
+  },
+  "名称重复": {
+    "en": "Duplicate name",
+    "ja": "名前が重複しています",
+    "zh-Hans": "名称重复",
+    "zh-Hant": "名稱重複"
+  },
+  "后端网络": {
+    "en": "Backend network",
+    "ja": "バックエンドネットワーク",
+    "zh-Hans": "后端网络",
+    "zh-Hant": "後端網路"
+  },
+  "含推理": {
+    "en": "With reasoning",
+    "ja": "推論あり",
+    "zh-Hans": "含推理",
+    "zh-Hant": "含推理"
+  },
+  "命中": {
+    "en": "hit",
+    "ja": "ヒット",
+    "zh-Hans": "命中",
+    "zh-Hant": "命中"
+  },
+  "命令超时：%@": {
+    "en": "Command timed out: %@",
+    "ja": "コマンドがタイムアウトしました：%@",
+    "zh-Hans": "命令超时：%@",
+    "zh-Hant": "命令逾時：%@"
+  },
+  "图片文件": {
+    "en": "Images",
+    "ja": "画像ファイル",
+    "zh-Hans": "图片文件",
+    "zh-Hant": "圖片檔案"
+  },
+  "在 ChatGPT 中打开会话？": {
+    "en": "Open the session in ChatGPT?",
+    "ja": "ChatGPT でセッションを開きますか？",
+    "zh-Hans": "在 ChatGPT 中打开会话？",
+    "zh-Hant": "在 ChatGPT 中開啟工作階段？"
+  },
+  "在线": {
+    "en": "Online",
+    "ja": "オンライン",
+    "zh-Hans": "在线",
+    "zh-Hant": "線上"
+  },
+  "备份": {
+    "en": "Backups",
+    "ja": "バックアップ",
+    "zh-Hans": "备份",
+    "zh-Hant": "備份"
+  },
+  "复制 ID": {
+    "en": "Copy ID",
+    "ja": "ID をコピー",
+    "zh-Hans": "复制 ID",
+    "zh-Hant": "複製 ID"
+  },
+  "外观": {
+    "en": "Appearance",
+    "ja": "外観",
+    "zh-Hans": "外观",
+    "zh-Hant": "外觀"
+  },
+  "外观主题": {
+    "en": "Appearance",
+    "ja": "外観",
+    "zh-Hans": "外观主题",
+    "zh-Hant": "外觀主題"
+  },
+  "多账号 · 原会话接力 · 推理与缓存诊断": {
+    "en": "Multi-account · session handoff · reasoning and cache diagnostics",
+    "ja": "マルチアカウント · セッションの引き継ぎ · 推論とキャッシュの診断",
+    "zh-Hans": "多账号 · 原会话接力 · 推理与缓存诊断",
+    "zh-Hant": "多帳號 · 原工作階段接力 · 推理與快取診斷"
+  },
+  "失败": {
+    "en": "Fail",
+    "ja": "失敗",
+    "zh-Hans": "失败",
+    "zh-Hant": "失敗"
+  },
+  "失败会自动恢复备份并重启 ChatGPT。": {
+    "en": "On failure, the backup is restored and ChatGPT is restarted automatically.",
+    "ja": "失敗時はバックアップを復元し、ChatGPT を自動で再起動します。",
+    "zh-Hans": "失败会自动恢复备份并重启 ChatGPT。",
+    "zh-Hant": "失敗時會自動恢復備份並重新啟動 ChatGPT。"
+  },
+  "失败处理": {
+    "en": "Failure handling",
+    "ja": "失敗時の処理",
+    "zh-Hans": "失败处理",
+    "zh-Hant": "失敗處理"
+  },
+  "失败项": {
+    "en": "Failures",
+    "ja": "失敗",
+    "zh-Hans": "失败项",
+    "zh-Hant": "失敗項"
+  },
+  "头像已更新": {
+    "en": "Avatar updated",
+    "ja": "アバターを更新しました",
+    "zh-Hans": "头像已更新",
+    "zh-Hant": "頭像已更新"
+  },
+  "头像更新失败": {
+    "en": "Failed to update avatar",
+    "ja": "アバターの更新に失敗しました",
+    "zh-Hans": "头像更新失败",
+    "zh-Hant": "頭像更新失敗"
+  },
+  "好": {
+    "en": "OK",
+    "ja": "OK",
+    "zh-Hans": "好",
+    "zh-Hant": "好"
+  },
+  "如果 ChatGPT 未运行，macOS 会按需启动它。": {
+    "en": "If ChatGPT is not running, macOS will start it when needed.",
+    "ja": "ChatGPT が起動していない場合は、macOS が必要に応じて起動します。",
+    "zh-Hans": "如果 ChatGPT 未运行，macOS 会按需启动它。",
+    "zh-Hant": "如果 ChatGPT 未執行，macOS 會視需要啟動它。"
+  },
+  "安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。": {
+    "en": "Safety mode: the tool never starts or stops ChatGPT in the background. Every switch, restart, or session open requires confirmation and the CLI requires --allow-chatgpt-restart.",
+    "ja": "安全モード：ChatGPT をバックグラウンドで自動起動・終了しません。切り替え、再起動、セッションを開くたびに確認が必要で、CLI には --allow-chatgpt-restart の明示が必要です。",
+    "zh-Hans": "安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。",
+    "zh-Hant": "安全模式：工具不會在背景自動啟停 ChatGPT。每次切換/重新啟動/開啟工作階段都必須先確認，CLI 需明確加上 --allow-chatgpt-restart。"
+  },
+  "安全边界": {
+    "en": "Safety boundaries",
+    "ja": "安全上の制約",
+    "zh-Hans": "安全边界",
+    "zh-Hant": "安全邊界"
+  },
+  "安装、认证、进程、数据库、网络与切换记录": {
+    "en": "Installation, authentication, processes, databases, network, and switch history",
+    "ja": "インストール、認証、プロセス、データベース、ネットワーク、切り替え履歴",
+    "zh-Hans": "安装、认证、进程、数据库、网络与切换记录",
+    "zh-Hant": "安裝、認證、程序、資料庫、網路與切換記錄"
+  },
+  "完整数值": {
+    "en": "Full values",
+    "ja": "省略なしの数値",
+    "zh-Hans": "完整数值",
+    "zh-Hant": "完整數值"
+  },
+  "尚未运行诊断": {
+    "en": "Diagnostics have not run yet",
+    "ja": "診断はまだ実行されていません",
+    "zh-Hans": "尚未运行诊断",
+    "zh-Hant": "尚未執行診斷"
+  },
+  "工作目录": {
+    "en": "Working directory",
+    "ja": "作業ディレクトリ",
+    "zh-Hans": "工作目录",
+    "zh-Hant": "工作目錄"
+  },
+  "已使用": {
+    "en": "Used",
+    "ja": "使用済み",
+    "zh-Hans": "已使用",
+    "zh-Hant": "已使用"
+  },
+  "已切换到": {
+    "en": "Switched to",
+    "ja": "切り替えました",
+    "zh-Hans": "已切换到",
+    "zh-Hant": "已切換到"
+  },
+  "已切换到 %@（%@，%d ms）": {
+    "en": "Switched to %@ (%@, %d ms)",
+    "ja": "%@ に切り替えました（%@、%d ms）",
+    "zh-Hans": "已切换到 %@（%@，%d ms）",
+    "zh-Hant": "已切換到 %@（%@，%d ms）"
+  },
+  "已取消": {
+    "en": "Cancelled",
+    "ja": "キャンセルしました",
+    "zh-Hans": "已取消",
+    "zh-Hant": "已取消"
+  },
+  "已取消登录": {
+    "en": "Sign-in cancelled",
+    "ja": "サインインをキャンセルしました",
+    "zh-Hans": "已取消登录",
+    "zh-Hant": "已取消登入"
+  },
+  "已在 ChatGPT 中打开会话": {
+    "en": "Opened the session in ChatGPT",
+    "ja": "ChatGPT でセッションを開きました",
+    "zh-Hans": "已在 ChatGPT 中打开会话",
+    "zh-Hant": "已在 ChatGPT 中開啟工作階段"
+  },
+  "已复制": {
+    "en": "Copied",
+    "ja": "コピーしました",
+    "zh-Hans": "已复制",
+    "zh-Hant": "已複製"
+  },
+  "已恢复默认头像": {
+    "en": "Default avatar restored",
+    "ja": "既定のアバターに戻しました",
+    "zh-Hans": "已恢复默认头像",
+    "zh-Hant": "已恢復預設頭像"
+  },
+  "已打开 ChatGPT 最近会话": {
+    "en": "Opened the recent ChatGPT session",
+    "ja": "ChatGPT の最近のセッションを開きました",
+    "zh-Hans": "已打开 ChatGPT 最近会话",
+    "zh-Hant": "已開啟 ChatGPT 最近的工作階段"
+  },
+  "已用": {
+    "en": "used",
+    "ja": "使用済み",
+    "zh-Hans": "已用",
+    "zh-Hant": "已用"
+  },
+  "已用时 %d 秒": {
+    "en": "Elapsed %d s",
+    "ja": "経過時間 %d 秒",
+    "zh-Hans": "已用时 %d 秒",
+    "zh-Hant": "已用時 %d 秒"
+  },
+  "已经有账号使用「%@」，请换一个名称以便区分。": {
+    "en": "Another account already uses “%@”. Choose a different name.",
+    "ja": "「%@」は既に別のアカウントで使用されています。別の名前にしてください。",
+    "zh-Hans": "已经有账号使用「%@」，请换一个名称以便区分。",
+    "zh-Hant": "已經有帳號使用「%@」，請換一個名稱以便區分。"
+  },
+  "并重启 ChatGPT？": {
+    "en": "and restart ChatGPT?",
+    "ja": "して ChatGPT を再起動しますか？",
+    "zh-Hans": "并重启 ChatGPT？",
+    "zh-Hant": "並重新啟動 ChatGPT？"
+  },
+  "开始登录": {
+    "en": "Start sign-in",
+    "ja": "サインインを開始",
+    "zh-Hans": "开始登录",
+    "zh-Hant": "開始登入"
+  },
+  "异常": {
+    "en": "Error",
+    "ja": "異常",
+    "zh-Hans": "异常",
+    "zh-Hant": "異常"
+  },
+  "当前": {
+    "en": "Current",
+    "ja": "現在",
+    "zh-Hans": "当前",
+    "zh-Hant": "目前"
+  },
+  "当前分析完成后会自动读取这条会话；也可以稍后手动重试。": {
+    "en": "This session will load automatically when the current analysis finishes; you can also retry manually.",
+    "ja": "現在の分析が完了すると、このセッションを自動で読み込みます。後で手動で再試行することもできます。",
+    "zh-Hans": "当前分析完成后会自动读取这条会话；也可以稍后手动重试。",
+    "zh-Hant": "目前分析完成後會自動讀取這個工作階段；也可以稍後手動重試。"
+  },
+  "当前未登录 Codex": {
+    "en": "Not signed in to Codex",
+    "ja": "Codex にログインしていません",
+    "zh-Hans": "当前未登录 Codex",
+    "zh-Hant": "目前尚未登入 Codex"
+  },
+  "当前账号": {
+    "en": "Current account",
+    "ja": "現在",
+    "zh-Hans": "当前账号",
+    "zh-Hant": "目前帳號"
+  },
+  "当前账号创建": {
+    "en": "Created by active account",
+    "ja": "現在のアカウントで作成",
+    "zh-Hans": "当前账号创建",
+    "zh-Hant": "由目前帳號建立"
+  },
+  "当前账号尚未纳入仓库": {
+    "en": "This account is not in the account store yet",
+    "ja": "このアカウントはアカウント保管庫に未登録です",
+    "zh-Hans": "当前账号尚未纳入仓库",
+    "zh-Hant": "目前帳號尚未加入帳號庫"
+  },
+  "当前账号已捕获": {
+    "en": "Active account captured",
+    "ja": "現在のアカウントを取り込みました",
+    "zh-Hans": "当前账号已捕获",
+    "zh-Hant": "目前已擷取帳號"
+  },
+  "当前账号已捕获为 %@": {
+    "en": "Active account captured as %@",
+    "ja": "現在のアカウントを %@ として取り込みました",
+    "zh-Hans": "当前账号已捕获为 %@",
+    "zh-Hant": "目前已擷取帳號為 %@"
+  },
+  "当前额度已耗尽": {
+    "en": "Current quota is exhausted",
+    "ja": "現在の利用枠に達しました",
+    "zh-Hans": "当前额度已耗尽",
+    "zh-Hant": "目前額度已用完"
+  },
+  "当前：%@ · %@": {
+    "en": "Current: %@ · %@",
+    "ja": "現在：%@ · %@",
+    "zh-Hans": "当前：%@ · %@",
+    "zh-Hant": "目前：%@ · %@"
+  },
+  "影响 Token、缓存和推理等大数字的显示方式；简写只改变展示，不改变统计数据。": {
+    "en": "Controls how large Token, cache, and reasoning numbers are shown. Compact mode only changes display, not statistics.",
+    "ja": "Token、キャッシュ、推論などの大きな数値の表示方法を変更します。短縮表示は見た目だけで、統計値は変わりません。",
+    "zh-Hans": "影响 Token、缓存和推理等大数字的显示方式；简写只改变展示，不改变统计数据。",
+    "zh-Hant": "影響 Token、快取與推理等大數字的顯示方式；簡寫只改變顯示，不改變統計資料。"
+  },
+  "快捷操作": {
+    "en": "Quick actions",
+    "ja": "クイック操作",
+    "zh-Hans": "快捷操作",
+    "zh-Hant": "快速操作"
+  },
+  "总 Token（输入 + 输出）": {
+    "en": "Total tokens (input + output)",
+    "ja": "合計 Token（入力 + 出力）",
+    "zh-Hans": "总 Token（输入 + 输出）",
+    "zh-Hant": "總 Token（輸入 + 輸出）"
+  },
+  "恢复会话": {
+    "en": "Restore session",
+    "ja": "セッションを復元",
+    "zh-Hans": "恢复会话",
+    "zh-Hant": "恢復工作階段"
+  },
+  "恢复默认头像": {
+    "en": "Reset avatar",
+    "ja": "既定のアバターに戻す",
+    "zh-Hans": "恢复默认头像",
+    "zh-Hant": "恢復預設頭像"
+  },
+  "我确认现在打开 ChatGPT": {
+    "en": "I confirm that I want to open ChatGPT now",
+    "ja": "ChatGPT を今開くことに同意します",
+    "zh-Hans": "我确认现在打开 ChatGPT",
+    "zh-Hant": "我確認現在開啟 ChatGPT"
+  },
+  "我确认现在退出并重启 ChatGPT": {
+    "en": "I confirm that I want to quit and restart ChatGPT now",
+    "ja": "ChatGPT を終了して再起動することに同意します",
+    "zh-Hans": "我确认现在退出并重启 ChatGPT",
+    "zh-Hant": "我確認現在結束並重新啟動 ChatGPT"
+  },
+  "打开 ChatGPT 失败": {
+    "en": "Failed to open ChatGPT",
+    "ja": "ChatGPT を開けませんでした",
+    "zh-Hans": "打开 ChatGPT 失败",
+    "zh-Hant": "開啟 ChatGPT 失敗"
+  },
+  "打开 ChatGPT 最近会话？": {
+    "en": "Open the recent ChatGPT session?",
+    "ja": "ChatGPT の最近のセッションを開きますか？",
+    "zh-Hans": "打开 ChatGPT 最近会话？",
+    "zh-Hant": "開啟 ChatGPT 最近的工作階段？"
+  },
+  "打开 Codex Relay": {
+    "en": "Open Codex Relay",
+    "ja": "Codex Relay を開く",
+    "zh-Hans": "打开 Codex Relay",
+    "zh-Hant": "開啟 Codex Relay"
+  },
+  "打开使用文档": {
+    "en": "Open usage guide",
+    "ja": "使い方ドキュメントを開く",
+    "zh-Hans": "打开使用文档",
+    "zh-Hant": "開啟使用文件"
+  },
+  "打开凭据仓库": {
+    "en": "Open credential store",
+    "ja": "認証情報ストアを開く",
+    "zh-Hans": "打开凭据仓库",
+    "zh-Hant": "開啟憑證倉庫"
+  },
+  "打开完整文档": {
+    "en": "Open full documentation",
+    "ja": "ドキュメント全体を開く",
+    "zh-Hans": "打开完整文档",
+    "zh-Hant": "開啟完整文件"
+  },
+  "打开指定会话": {
+    "en": "Open selected session",
+    "ja": "指定したセッションを開く",
+    "zh-Hans": "打开指定会话",
+    "zh-Hant": "開啟指定工作階段"
+  },
+  "打开文档": {
+    "en": "Open documentation",
+    "ja": "ドキュメントを開く",
+    "zh-Hans": "打开文档",
+    "zh-Hant": "開啟文件"
+  },
+  "打开文档失败": {
+    "en": "Failed to open documentation",
+    "ja": "ドキュメントを開けませんでした",
+    "zh-Hans": "打开文档失败",
+    "zh-Hant": "開啟文件失敗"
+  },
+  "打开最近会话": {
+    "en": "Open the most recent session",
+    "ja": "最新のセッションを開く",
+    "zh-Hans": "打开最近会话",
+    "zh-Hant": "開啟最近的對話"
+  },
+  "打开目录失败": {
+    "en": "Failed to open directory",
+    "ja": "ディレクトリを開けませんでした",
+    "zh-Hans": "打开目录失败",
+    "zh-Hant": "開啟目錄失敗"
+  },
+  "找不到 codex-relay。请确认已运行 install.sh，或设置 CODEX_RELAY_BIN。": {
+    "en": "codex-relay was not found. Run install.sh or set CODEX_RELAY_BIN.",
+    "ja": "codex-relay が見つかりません。install.sh を実行するか、CODEX_RELAY_BIN を設定してください。",
+    "zh-Hans": "找不到 codex-relay。请确认已运行 install.sh，或设置 CODEX_RELAY_BIN。",
+    "zh-Hant": "找不到 codex-relay。請確認已執行 install.sh，或設定 CODEX_RELAY_BIN。"
+  },
+  "捕获失败": {
+    "en": "Capture failed",
+    "ja": "取り込みに失敗しました",
+    "zh-Hans": "捕获失败",
+    "zh-Hant": "擷取失敗"
+  },
+  "捕获当前账号": {
+    "en": "Capture active account",
+    "ja": "現在のアカウントを取り込む",
+    "zh-Hans": "捕获当前账号",
+    "zh-Hant": "擷取目前帳號"
+  },
+  "推理": {
+    "en": "Reasoning",
+    "ja": "推論",
+    "zh-Hans": "推理",
+    "zh-Hant": "推理"
+  },
+  "推理强度": {
+    "en": "Reasoning effort",
+    "ja": "推論の強度",
+    "zh-Hans": "推理强度",
+    "zh-Hant": "推理強度"
+  },
+  "推理输出": {
+    "en": "Reasoning output",
+    "ja": "推論出力",
+    "zh-Hans": "推理输出",
+    "zh-Hant": "推理輸出"
+  },
+  "推理项总数": {
+    "en": "Total reasoning items",
+    "ja": "推論項目の総数",
+    "zh-Hans": "推理项总数",
+    "zh-Hant": "推理項目總數"
+  },
+  "搜索标题、目录、ID": {
+    "en": "Search title, directory, ID",
+    "ja": "タイトル・ディレクトリ・ID を検索",
+    "zh-Hans": "搜索标题、目录、ID",
+    "zh-Hant": "搜尋標題、目錄、ID"
+  },
+  "操作": {
+    "en": "Action",
+    "ja": "操作",
+    "zh-Hans": "操作",
+    "zh-Hant": "操作"
+  },
+  "操作失败": {
+    "en": "Operation failed",
+    "ja": "操作に失敗しました",
+    "zh-Hans": "操作失败",
+    "zh-Hant": "操作失敗"
+  },
+  "操作摘要": {
+    "en": "Action summary",
+    "ja": "操作の概要",
+    "zh-Hans": "操作摘要",
+    "zh-Hant": "操作摘要"
+  },
+  "数字格式": {
+    "en": "Number format",
+    "ja": "数値の表示形式",
+    "zh-Hans": "数字格式",
+    "zh-Hant": "數字格式"
+  },
+  "数据与同步": {
+    "en": "Data & sync",
+    "ja": "データと同期",
+    "zh-Hans": "数据与同步",
+    "zh-Hant": "資料與同步"
+  },
+  "无推理": {
+    "en": "No reasoning",
+    "ja": "推論なし",
+    "zh-Hans": "无推理",
+    "zh-Hant": "無推理"
+  },
+  "无法启动 codex-relay：%@": {
+    "en": "Could not start codex-relay: %@",
+    "ja": "codex-relay を起動できません：%@",
+    "zh-Hans": "无法启动 codex-relay：%@",
+    "zh-Hant": "無法啟動 codex-relay：%@"
+  },
+  "无法解析 codex-relay 输出：%@": {
+    "en": "Could not parse codex-relay output: %@",
+    "ja": "codex-relay の出力を解析できません：%@",
+    "zh-Hans": "无法解析 codex-relay 输出：%@",
+    "zh-Hant": "無法解析 codex-relay 輸出：%@"
+  },
+  "无法读取图片文件。": {
+    "en": "Could not read the image file.",
+    "ja": "画像ファイルを読み込めません。",
+    "zh-Hans": "无法读取图片文件。",
+    "zh-Hant": "無法讀取圖片檔案。"
+  },
+  "无法转换为 PNG 图片。": {
+    "en": "Could not convert the image to PNG.",
+    "ja": "画像を PNG に変換できません。",
+    "zh-Hans": "无法转换为 PNG 图片。",
+    "zh-Hant": "無法轉換為 PNG 圖片。"
+  },
+  "日本語": {
+    "en": "日本語",
+    "ja": "日本語",
+    "zh-Hans": "日本語",
+    "zh-Hant": "日本語"
+  },
+  "日本語インターフェース": {
+    "en": "Japanese interface",
+    "ja": "日本語インターフェース",
+    "zh-Hans": "日语界面",
+    "zh-Hant": "日文介面"
+  },
+  "显示 5 小时 / 每周窗口已经消耗了多少。": {
+    "en": "Show how much of the 5-hour / weekly window has been used.",
+    "ja": "5時間枠／週間枠の使用量を表示します。",
+    "zh-Hans": "显示 5 小时 / 每周窗口已经消耗了多少。",
+    "zh-Hant": "顯示 5 小時／每週窗口已消耗多少。"
+  },
+  "显示名称": {
+    "en": "Display name",
+    "ja": "表示名",
+    "zh-Hans": "显示名称",
+    "zh-Hant": "顯示名稱"
+  },
+  "显示完整数字，例如 1,234,567。": {
+    "en": "Show full numbers, for example 1,234,567.",
+    "ja": "全桁で表示します（例：1,234,567）。",
+    "zh-Hans": "显示完整数字，例如 1,234,567。",
+    "zh-Hant": "顯示完整數字，例如 1,234,567。"
+  },
+  "显示还有多少可用额度，第一眼更直观。": {
+    "en": "Show how much quota remains at a glance.",
+    "ja": "残りの利用可能量をひと目で確認できます。",
+    "zh-Hans": "显示还有多少可用额度，第一眼更直观。",
+    "zh-Hant": "顯示還剩多少可用額度，一眼就能看懂。"
+  },
+  "暂无会话": {
+    "en": "No sessions yet",
+    "ja": "セッションはありません",
+    "zh-Hans": "暂无会话",
+    "zh-Hant": "尚無工作階段"
+  },
+  "暂无数据": {
+    "en": "No data",
+    "ja": "データはありません",
+    "zh-Hans": "暂无数据",
+    "zh-Hant": "尚無資料"
+  },
+  "暗色": {
+    "en": "Dark",
+    "ja": "ダーク",
+    "zh-Hans": "暗色",
+    "zh-Hant": "深色"
+  },
+  "暗色终端": {
+    "en": "Dark theme",
+    "ja": "ダークテーマ",
+    "zh-Hans": "暗色终端",
+    "zh-Hant": "深色主題"
+  },
+  "更换头像": {
+    "en": "Change avatar",
+    "ja": "アバターを変更",
+    "zh-Hans": "更换头像",
+    "zh-Hant": "更換頭像"
+  },
+  "更换头像…": {
+    "en": "Change avatar…",
+    "ja": "アバターを変更…",
+    "zh-Hans": "更换头像…",
+    "zh-Hant": "更換頭像…"
+  },
+  "更新时间": {
+    "en": "Updated",
+    "ja": "更新日時",
+    "zh-Hans": "更新时间",
+    "zh-Hant": "更新時間"
+  },
+  "最新会话": {
+    "en": "Latest session",
+    "ja": "最新のセッション",
+    "zh-Hans": "最新会话",
+    "zh-Hant": "最新工作階段"
+  },
+  "最近事件": {
+    "en": "Last event",
+    "ja": "最新イベント",
+    "zh-Hans": "最近事件",
+    "zh-Hant": "最近事件"
+  },
+  "最近会话": {
+    "en": "Recent sessions",
+    "ja": "最近のセッション",
+    "zh-Hans": "最近会话",
+    "zh-Hant": "最近的工作階段"
+  },
+  "最近刷新": {
+    "en": "Last refreshed",
+    "ja": "最終更新",
+    "zh-Hans": "最近刷新",
+    "zh-Hant": "最近更新"
+  },
+  "最近校验": {
+    "en": "Last verified",
+    "ja": "最終検証",
+    "zh-Hans": "最近校验",
+    "zh-Hant": "最近驗證"
+  },
+  "有效/可续期": {
+    "en": "Valid / refreshable",
+    "ja": "有効／更新可能",
+    "zh-Hans": "有效/可续期",
+    "zh-Hant": "有效／可續期"
+  },
+  "未刷新": {
+    "en": "Not refreshed",
+    "ja": "未更新",
+    "zh-Hans": "未刷新",
+    "zh-Hant": "尚未更新"
+  },
+  "未命名账号": {
+    "en": "Unnamed account",
+    "ja": "名前のないアカウント",
+    "zh-Hans": "未命名账号",
+    "zh-Hant": "未命名帳號"
+  },
+  "未归属": {
+    "en": "Unassigned",
+    "ja": "未割り当て",
+    "zh-Hans": "未归属",
+    "zh-Hant": "未歸屬"
+  },
+  "未找到": {
+    "en": "Not found",
+    "ja": "見つかりません",
+    "zh-Hans": "未找到",
+    "zh-Hant": "找不到"
+  },
+  "未检测到活动账号": {
+    "en": "No active account detected",
+    "ja": "使用中のアカウントがありません",
+    "zh-Hans": "未检测到活动账号",
+    "zh-Hant": "未偵測到使用中帳號"
+  },
+  "未登录 Codex": {
+    "en": "Not signed in to Codex",
+    "ja": "Codex にログインしていません",
+    "zh-Hans": "未登录 Codex",
+    "zh-Hant": "尚未登入 Codex"
+  },
+  "未知": {
+    "en": "Unknown",
+    "ja": "不明",
+    "zh-Hans": "未知",
+    "zh-Hant": "未知"
+  },
+  "未知错误": {
+    "en": "Unknown error",
+    "ja": "不明なエラー",
+    "zh-Hans": "未知错误",
+    "zh-Hant": "未知錯誤"
+  },
+  "未纳入账号仓库": {
+    "en": "Not in account store",
+    "ja": "アカウント保管庫に未登録",
+    "zh-Hans": "未纳入账号仓库",
+    "zh-Hant": "未加入帳號倉庫"
+  },
+  "未运行": {
+    "en": "Not running",
+    "ja": "停止中",
+    "zh-Hans": "未运行",
+    "zh-Hant": "未執行"
+  },
+  "末轮缓存命中率": {
+    "en": "Last-turn cache hit rate",
+    "ja": "最終キャッシュヒット率",
+    "zh-Hans": "末轮缓存命中率",
+    "zh-Hant": "末輪快取命中率"
+  },
+  "本地文件": {
+    "en": "Local file",
+    "ja": "ローカルファイル",
+    "zh-Hans": "本地文件",
+    "zh-Hant": "本機檔案"
+  },
+  "本工具不会在后台自动执行此操作。": {
+    "en": "This tool never performs this action automatically in the background.",
+    "ja": "このツールはバックグラウンドで自動実行しません。",
+    "zh-Hans": "本工具不会在后台自动执行此操作。",
+    "zh-Hant": "本工具不會在背景自動執行此操作。"
+  },
+  "来源": {
+    "en": "Source",
+    "ja": "ソース",
+    "zh-Hans": "来源",
+    "zh-Hant": "來源"
+  },
+  "查看全部": {
+    "en": "View all",
+    "ja": "すべて表示",
+    "zh-Hans": "查看全部",
+    "zh-Hant": "查看全部"
+  },
+  "查看创建账号、工作目录，并切换账号后继续同一会话。": {
+    "en": "View the creator, working directory, and continue the same session after switching accounts.",
+    "ja": "作成アカウント、作業ディレクトリを確認し、アカウント切り替え後に同じセッションを続行します。",
+    "zh-Hans": "查看创建账号、工作目录，并切换账号后继续同一会话。",
+    "zh-Hant": "查看建立帳號、工作目錄，並在切換帳號後繼續同一個工作階段。"
+  },
+  "查看额度、状态，并切换后恢复原会话。": {
+    "en": "View quota and status, then restore the original session after switching.",
+    "ja": "利用枠と状態を確認し、切り替え後に元のセッションを復元します。",
+    "zh-Hans": "查看额度、状态，并切换后恢复原会话。",
+    "zh-Hant": "查看額度、狀態，並在切換後恢復原始工作階段。"
+  },
+  "校验": {
+    "en": "Verify",
+    "ja": "検証",
+    "zh-Hans": "校验",
+    "zh-Hant": "驗證"
+  },
+  "校验 // %@": {
+    "en": "Verified at %@",
+    "ja": "検証日時 // %@",
+    "zh-Hans": "校验 // %@",
+    "zh-Hant": "驗證時間 // %@"
+  },
+  "桌面 App": {
+    "en": "Desktop app",
+    "ja": "デスクトップ App",
+    "zh-Hans": "桌面 App",
+    "zh-Hant": "桌面 App"
+  },
+  "桌面 App 通过官方支持的“替换 auth.json + 重启”切换，不做进程内凭据注入。": {
+    "en": "The desktop app switches via the supported “replace auth.json + restart” path; no in-process credential injection is used.",
+    "ja": "デスクトップ App は公式にサポートされた「auth.json を置換して再起動」で切り替え、プロセス内への認証情報注入は行いません。",
+    "zh-Hans": "桌面 App 通过官方支持的“替换 auth.json + 重启”切换，不做进程内凭据注入。",
+    "zh-Hant": "桌面 App 透過官方支援的「替換 auth.json + 重新啟動」切換，不做程序內憑證注入。"
+  },
+  "桌面版 %@": {
+    "en": "Desktop %@",
+    "ja": "デスクトップ版 %@",
+    "zh-Hans": "桌面版 %@",
+    "zh-Hant": "桌面版 %@"
+  },
+  "桌面进程": {
+    "en": "Desktop processes",
+    "ja": "デスクトッププロセス",
+    "zh-Hans": "桌面进程",
+    "zh-Hant": "桌面程序"
+  },
+  "检查详情": {
+    "en": "Check details",
+    "ja": "チェック詳細",
+    "zh-Hans": "检查详情",
+    "zh-Hant": "檢查詳情"
+  },
+  "检查项": {
+    "en": "Checks",
+    "ja": "チェック項目",
+    "zh-Hans": "检查项",
+    "zh-Hant": "檢查項目"
+  },
+  "概览": {
+    "en": "Overview",
+    "ja": "概要",
+    "zh-Hans": "概览",
+    "zh-Hant": "概覽"
+  },
+  "模型": {
+    "en": "Model",
+    "ja": "モデル",
+    "zh-Hans": "模型",
+    "zh-Hant": "模型"
+  },
+  "正在刷新账号用量": {
+    "en": "Refreshing account quotas",
+    "ja": "アカウントの利用枠を更新中",
+    "zh-Hans": "正在刷新账号用量",
+    "zh-Hant": "正在重新整理帳號額度"
+  },
+  "正在启动官方登录流程…": {
+    "en": "Starting the official sign-in flow…",
+    "ja": "公式のサインインフローを開始しています…",
+    "zh-Hans": "正在启动官方登录流程…",
+    "zh-Hant": "正在啟動官方登入流程…"
+  },
+  "正在打开 ChatGPT": {
+    "en": "Opening ChatGPT",
+    "ja": "ChatGPT を起動中",
+    "zh-Hans": "正在打开 ChatGPT",
+    "zh-Hant": "正在開啟 ChatGPT"
+  },
+  "正在读取缓存与推理数据…": {
+    "en": "Reading cache and reasoning data…",
+    "ja": "キャッシュと推論データを読み込み中…",
+    "zh-Hans": "正在读取缓存与推理数据…",
+    "zh-Hant": "正在讀取快取與推理資料…"
+  },
+  "此操作会向 ChatGPT 发送深链接；需要你明确确认。": {
+    "en": "This action sends a deep link to ChatGPT and requires your explicit confirmation.",
+    "ja": "この操作は ChatGPT にディープリンクを送信します。明示的な確認が必要です。",
+    "zh-Hans": "此操作会向 ChatGPT 发送深链接；需要你明确确认。",
+    "zh-Hant": "此操作會向 ChatGPT 傳送深層連結；需要你明確確認。"
+  },
+  "每周额度": {
+    "en": "Weekly quota",
+    "ja": "週間の利用枠",
+    "zh-Hans": "每周额度",
+    "zh-Hant": "每週額度"
+  },
+  "没有匹配的会话": {
+    "en": "No matching sessions",
+    "ja": "一致するセッションはありません",
+    "zh-Hans": "没有匹配的会话",
+    "zh-Hant": "沒有符合的工作階段"
+  },
+  "没有找到可分析的缓存数据": {
+    "en": "No analyzable cache data found",
+    "ja": "分析できるキャッシュデータがありません",
+    "zh-Hans": "没有找到可分析的缓存数据",
+    "zh-Hant": "找不到可分析的快取資料"
+  },
+  "活动账号": {
+    "en": "Active account",
+    "ja": "使用中のアカウント",
+    "zh-Hans": "活动账号",
+    "zh-Hant": "使用中帳號"
+  },
+  "活动账号每 10 秒同步；上次同步": {
+    "en": "Active account syncs every 10 seconds; last sync",
+    "ja": "使用中のアカウントは10秒ごとに同期。前回の同期",
+    "zh-Hans": "活动账号每 10 秒同步；上次同步",
+    "zh-Hant": "使用中帳號每 10 秒同步；上次同步"
+  },
+  "活动账号每 10 秒同步；上次同步 %@。": {
+    "en": "Active account syncs every 10 seconds; last sync %@.",
+    "ja": "使用中のアカウントは10秒ごとに同期。前回の同期 %@。",
+    "zh-Hans": "活动账号每 10 秒同步；上次同步 %@。",
+    "zh-Hant": "使用中帳號每 10 秒同步；上次同步 %@。"
+  },
+  "活动账号每 10 秒同步；启动时及每 2 分钟全量刷新。": {
+    "en": "Active account syncs every 10 seconds; full refresh on launch and every 2 minutes.",
+    "ja": "使用中のアカウントは10秒ごとに同期。起動時と2分ごとに全体更新します。",
+    "zh-Hans": "活动账号每 10 秒同步；启动时及每 2 分钟全量刷新。",
+    "zh-Hant": "使用中帳號每 10 秒同步；啟動時及每 2 分鐘完整更新。"
+  },
+  "浅色档案界面": {
+    "en": "Light theme interface",
+    "ja": "ライトテーマの画面",
+    "zh-Hans": "浅色档案界面",
+    "zh-Hant": "淺色主題介面"
+  },
+  "浏览器打开后，请选择要添加的那个 ChatGPT 账号。": {
+    "en": "After the browser opens, choose the ChatGPT account to add.",
+    "ja": "ブラウザが開いたら、追加する ChatGPT アカウントを選択してください。",
+    "zh-Hans": "浏览器打开后，请选择要添加的那个 ChatGPT 账号。",
+    "zh-Hant": "瀏覽器開啟後，請選擇要新增的 ChatGPT 帳號。"
+  },
+  "深色战术终端": {
+    "en": "Dark tactical theme",
+    "ja": "ダークタクティカルテーマ",
+    "zh-Hans": "深色战术终端",
+    "zh-Hant": "深色戰術主題"
+  },
+  "添加 ChatGPT 账号": {
+    "en": "Add ChatGPT account",
+    "ja": "ChatGPT アカウントを追加",
+    "zh-Hans": "添加 ChatGPT 账号",
+    "zh-Hant": "新增 ChatGPT 帳號"
+  },
+  "添加/重新登录": {
+    "en": "Add / sign in again",
+    "ja": "追加／再サインイン",
+    "zh-Hans": "添加/重新登录",
+    "zh-Hant": "新增／重新登入"
+  },
+  "添加另一个 ChatGPT 账号": {
+    "en": "Add another ChatGPT account",
+    "ja": "別の ChatGPT アカウントを追加",
+    "zh-Hans": "添加另一个 ChatGPT 账号",
+    "zh-Hant": "新增另一個 ChatGPT 帳號"
+  },
+  "添加账号": {
+    "en": "Add account",
+    "ja": "アカウントを追加",
+    "zh-Hans": "添加账号",
+    "zh-Hant": "新增帳號"
+  },
+  "添加账号失败": {
+    "en": "Failed to add account",
+    "ja": "アカウントの追加に失敗しました",
+    "zh-Hans": "添加账号失败",
+    "zh-Hant": "新增帳號失敗"
+  },
+  "清理残留临时目录": {
+    "en": "Clean up leftover temp directories",
+    "ja": "残留一時ディレクトリを整理",
+    "zh-Hans": "清理残留临时目录",
+    "zh-Hant": "清理殘留暫存目錄"
+  },
+  "点击“刷新用量”通过官方接口读取。": {
+    "en": "Click “Refresh quota” to read it through the official API.",
+    "ja": "「利用枠を更新」をクリックして公式 API から取得します。",
+    "zh-Hans": "点击“刷新用量”通过官方接口读取。",
+    "zh-Hant": "點擊「重新整理額度」透過官方介面讀取。"
+  },
+  "点击开始后会在浏览器打开官方登录页。请选择要添加的那个账号；建议使用无痕窗口，避免又登进当前账号。": {
+    "en": "A browser will open the official sign-in page. Choose the account to add; an incognito window is recommended to avoid signing in to the active account again.",
+    "ja": "開始するとブラウザで公式サインインページが開きます。追加するアカウントを選択してください。現在のアカウントに再度サインインしないよう、シークレットウィンドウを推奨します。",
+    "zh-Hans": "点击开始后会在浏览器打开官方登录页。请选择要添加的那个账号；建议使用无痕窗口，避免又登进当前账号。",
+    "zh-Hant": "點擊開始後會在瀏覽器開啟官方登入頁。請選擇要新增的帳號；建議使用無痕視窗，避免再次登入目前帳號。"
+  },
+  "点击更换或恢复头像": {
+    "en": "Click to change or reset the avatar",
+    "ja": "クリックしてアバターを変更・リセット",
+    "zh-Hans": "点击更换或恢复头像",
+    "zh-Hant": "點擊更換或恢復頭像"
+  },
+  "版本 %@": {
+    "en": "Version %@",
+    "ja": "バージョン %@",
+    "zh-Hans": "版本 %@",
+    "zh-Hant": "版本 %@"
+  },
+  "状态": {
+    "en": "Status",
+    "ja": "状態",
+    "zh-Hans": "状态",
+    "zh-Hant": "狀態"
+  },
+  "状态数据库": {
+    "en": "State database",
+    "ja": "状態データベース",
+    "zh-Hans": "状态数据库",
+    "zh-Hant": "狀態資料庫"
+  },
+  "状态文件": {
+    "en": "State file",
+    "ja": "状態ファイル",
+    "zh-Hans": "状态文件",
+    "zh-Hant": "狀態檔案"
+  },
+  "环境信息": {
+    "en": "Environment",
+    "ja": "環境情報",
+    "zh-Hans": "环境信息",
+    "zh-Hant": "環境資訊"
+  },
+  "用量同步失败": {
+    "en": "Quota sync failed",
+    "ja": "利用枠の同期に失敗しました",
+    "zh-Hans": "用量同步失败",
+    "zh-Hant": "額度同步失敗"
+  },
+  "界面语言": {
+    "en": "Language",
+    "ja": "表示言語",
+    "zh-Hans": "界面语言",
+    "zh-Hant": "介面語言"
+  },
+  "登录输出": {
+    "en": "Sign-in output",
+    "ja": "サインイン出力",
+    "zh-Hans": "登录输出",
+    "zh-Hant": "登入輸出"
+  },
+  "登录进行中…": {
+    "en": "Signing in…",
+    "ja": "サインイン中…",
+    "zh-Hans": "登录进行中…",
+    "zh-Hant": "登入進行中…"
+  },
+  "目标会话：%@": {
+    "en": "Target session: %@",
+    "ja": "対象セッション：%@",
+    "zh-Hans": "目标会话：%@",
+    "zh-Hant": "目標工作階段：%@"
+  },
+  "目标账号": {
+    "en": "Target account",
+    "ja": "対象アカウント",
+    "zh-Hans": "目标账号",
+    "zh-Hant": "目標帳號"
+  },
+  "目标账号需要重新登录": {
+    "en": "Target account needs to sign in again",
+    "ja": "対象アカウントは再サインインが必要です",
+    "zh-Hans": "目标账号需要重新登录",
+    "zh-Hant": "目標帳號需要重新登入"
+  },
+  "目标账号额度已耗尽": {
+    "en": "Target account quota exhausted",
+    "ja": "対象アカウントの利用枠に達しました",
+    "zh-Hans": "目标账号额度已耗尽",
+    "zh-Hant": "目標帳號額度已用盡"
+  },
+  "目标账号：%@": {
+    "en": "Target account: %@",
+    "ja": "対象アカウント：%@",
+    "zh-Hans": "目标账号：%@",
+    "zh-Hant": "目標帳號：%@"
+  },
+  "目标额度": {
+    "en": "Target quota",
+    "ja": "対象の利用枠",
+    "zh-Hans": "目标额度",
+    "zh-Hant": "目標額度"
+  },
+  "确认并继续": {
+    "en": "Confirm and continue",
+    "ja": "確認して続行",
+    "zh-Hans": "确认并继续",
+    "zh-Hant": "確認並繼續"
+  },
+  "窗口 %d": {
+    "en": "Window %d",
+    "ja": "第%dウィンドウ",
+    "zh-Hans": "窗口 %d",
+    "zh-Hant": "第 %d 個視窗"
+  },
+  "立即分析": {
+    "en": "Analyze now",
+    "ja": "今すぐ分析",
+    "zh-Hans": "立即分析",
+    "zh-Hant": "立即分析"
+  },
+  "立即同步": {
+    "en": "Sync now",
+    "ja": "今すぐ同期",
+    "zh-Hans": "立即同步",
+    "zh-Hant": "立即同步"
+  },
+  "简体中文": {
+    "en": "简体中文",
+    "ja": "简体中文",
+    "zh-Hans": "简体中文",
+    "zh-Hant": "简体中文"
+  },
+  "简体中文界面": {
+    "en": "Simplified Chinese interface",
+    "ja": "簡体字中国語インターフェース",
+    "zh-Hans": "简体中文界面",
+    "zh-Hant": "簡體中文介面"
+  },
+  "简写": {
+    "en": "Compact",
+    "ja": "短縮",
+    "zh-Hans": "简写",
+    "zh-Hant": "簡寫"
+  },
+  "系统": {
+    "en": "System",
+    "ja": "システム",
+    "zh-Hans": "系统",
+    "zh-Hant": "系統"
+  },
+  "系统状态": {
+    "en": "System status",
+    "ja": "システム状態",
+    "zh-Hans": "系统状态",
+    "zh-Hant": "系統狀態"
+  },
+  "累计 Token": {
+    "en": "Total tokens",
+    "ja": "累計トークン",
+    "zh-Hans": "累计 Token",
+    "zh-Hant": "累計 Token"
+  },
+  "累计缓存命中率": {
+    "en": "Overall cache hit rate",
+    "ja": "累計キャッシュヒット率",
+    "zh-Hans": "累计缓存命中率",
+    "zh-Hant": "累計快取命中率"
+  },
+  "繁體中文": {
+    "en": "繁體中文",
+    "ja": "繁體中文",
+    "zh-Hans": "繁體中文",
+    "zh-Hant": "繁體中文"
+  },
+  "繁體中文介面": {
+    "en": "Traditional Chinese interface",
+    "ja": "繁体字中国語インターフェース",
+    "zh-Hans": "繁体中文界面",
+    "zh-Hant": "繁體中文介面"
+  },
+  "缓存": {
+    "en": "Cached",
+    "ja": "キャッシュ",
+    "zh-Hans": "缓存",
+    "zh-Hant": "快取"
+  },
+  "缓存 Token": {
+    "en": "Cached tokens",
+    "ja": "キャッシュ済みトークン",
+    "zh-Hans": "缓存 Token",
+    "zh-Hant": "快取 Token"
+  },
+  "缓存与推理分析": {
+    "en": "Cache & reasoning analysis",
+    "ja": "キャッシュと推論の分析",
+    "zh-Hans": "缓存与推理分析",
+    "zh-Hant": "快取與推理分析"
+  },
+  "缓存与推理分析失败": {
+    "en": "Cache and reasoning analysis failed",
+    "ja": "キャッシュと推論の分析に失敗しました",
+    "zh-Hans": "缓存与推理分析失败",
+    "zh-Hant": "快取與推理分析失敗"
+  },
+  "自动恢复备份并重启 ChatGPT": {
+    "en": "Restore the backup and restart ChatGPT automatically",
+    "ja": "バックアップを復元し、ChatGPT を自動で再起動します",
+    "zh-Hans": "自动恢复备份并重启 ChatGPT",
+    "zh-Hant": "自動恢復備份並重新啟動 ChatGPT"
+  },
+  "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。": {
+    "en": "Custom names are saved in the account store and survive refresh and switching.",
+    "ja": "カスタム名はアカウント保管庫に保存され、更新や切り替え後も保持されます。",
+    "zh-Hans": "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。",
+    "zh-Hant": "自訂名稱會保存在帳號倉庫中，重新整理與切換後仍會保留。"
+  },
+  "警告": {
+    "en": "Warning",
+    "ja": "警告",
+    "zh-Hans": "警告",
+    "zh-Hant": "警告"
+  },
+  "警告项": {
+    "en": "Warnings",
+    "ja": "警告",
+    "zh-Hans": "警告项",
+    "zh-Hant": "警告項"
+  },
+  "计划": {
+    "en": "Plan",
+    "ja": "プラン",
+    "zh-Hans": "计划",
+    "zh-Hant": "方案"
+  },
+  "认证网络": {
+    "en": "Auth network",
+    "ja": "認証ネットワーク",
+    "zh-Hans": "认证网络",
+    "zh-Hant": "認證網路"
+  },
+  "让额度、数字和界面更符合你的使用习惯": {
+    "en": "Tune quota, numbers, and appearance to your workflow",
+    "ja": "利用枠・数値・外観を使いやすく調整します",
+    "zh-Hans": "让额度、数字和界面更符合你的使用习惯",
+    "zh-Hant": "讓額度、數字與介面更符合你的使用習慣"
+  },
+  "记录大小": {
+    "en": "Record size",
+    "ja": "記録サイズ",
+    "zh-Hans": "记录大小",
+    "zh-Hant": "記錄大小"
+  },
+  "设置": {
+    "en": "Settings",
+    "ja": "設定",
+    "zh-Hans": "设置",
+    "zh-Hant": "設定"
+  },
+  "诊断": {
+    "en": "Diagnostics",
+    "ja": "診断",
+    "zh-Hans": "诊断",
+    "zh-Hant": "診斷"
+  },
+  "诊断失败": {
+    "en": "Diagnostics failed",
+    "ja": "診断に失敗しました",
+    "zh-Hans": "诊断失败",
+    "zh-Hant": "診斷失敗"
+  },
+  "该账号尚未纳入账号仓库，切换前请先捕获。": {
+    "en": "Capture this account before switching to it.",
+    "ja": "このアカウントは保管庫に未登録です。切り替える前に取り込んでください。",
+    "zh-Hans": "该账号尚未纳入账号仓库，切换前请先捕获。",
+    "zh-Hant": "此帳號尚未加入帳號庫，切換前請先擷取。"
+  },
+  "该账号的 refresh token 已被撤销或失效。切换前请重新登录。": {
+    "en": "This account's refresh token is revoked or invalid. Sign in again before switching.",
+    "ja": "このアカウントの refresh token は取り消されたか無効です。切り替える前に再サインインしてください。",
+    "zh-Hans": "该账号的 refresh token 已被撤销或失效。切换前请重新登录。",
+    "zh-Hant": "此帳號的 refresh token 已被撤銷或失效。切換前請重新登入。"
+  },
+  "该账号需要重新登录": {
+    "en": "This account needs to sign in again",
+    "ja": "このアカウントは再サインインが必要です",
+    "zh-Hans": "该账号需要重新登录",
+    "zh-Hant": "此帳號需要重新登入"
+  },
+  "语言": {
+    "en": "Language",
+    "ja": "言語",
+    "zh-Hans": "语言",
+    "zh-Hant": "語言"
+  },
+  "请先在 ChatGPT/Codex 中登录，或添加账号。": {
+    "en": "Sign in to ChatGPT/Codex first, or add an account.",
+    "ja": "先に ChatGPT/Codex にサインインするか、アカウントを追加してください。",
+    "zh-Hans": "请先在 ChatGPT/Codex 中登录，或添加账号。",
+    "zh-Hant": "請先在 ChatGPT/Codex 中登入，或新增帳號。"
+  },
+  "请求": {
+    "en": "Requests",
+    "ja": "リクエスト",
+    "zh-Hans": "请求",
+    "zh-Hant": "請求"
+  },
+  "请输入一个容易辨认的账号名称。": {
+    "en": "Enter a name that is easy to recognize.",
+    "ja": "識別しやすいアカウント名を入力してください。",
+    "zh-Hans": "请输入一个容易辨认的账号名称。",
+    "zh-Hant": "請輸入一個容易辨識的帳號名稱。"
+  },
+  "读取于 %@": {
+    "en": "Loaded at %@",
+    "ja": "読み込み日時：%@",
+    "zh-Hans": "读取于 %@",
+    "zh-Hant": "讀取時間：%@"
+  },
+  "读取会话记录、加密推理项、压缩检查点和逐轮缓存命中率。": {
+    "en": "Reads the session log, encrypted reasoning items, compaction checkpoints, and per-turn cache hit rates.",
+    "ja": "セッション記録、暗号化された推論項目、圧縮チェックポイント、ターン別キャッシュヒット率を読み取ります。",
+    "zh-Hans": "读取会话记录、加密推理项、压缩检查点和逐轮缓存命中率。",
+    "zh-Hant": "讀取工作階段紀錄、加密推理項目、壓縮檢查點與逐輪快取命中率。"
+  },
+  "调整搜索或账号筛选，或先在 Codex 中开始一个会话。": {
+    "en": "Adjust the search or account filter, or start a session in Codex first.",
+    "ja": "検索やアカウント絞り込みを変更するか、先に Codex でセッションを開始してください。",
+    "zh-Hans": "调整搜索或账号筛选，或先在 Codex 中开始一个会话。",
+    "zh-Hant": "調整搜尋或帳號篩選，或先在 Codex 中開始工作階段。"
+  },
+  "账号": {
+    "en": "Accounts",
+    "ja": "アカウント",
+    "zh-Hans": "账号",
+    "zh-Hant": "帳號"
+  },
+  "账号 %@ 已添加": {
+    "en": "Account %@ added",
+    "ja": "アカウント %@ を追加しました",
+    "zh-Hans": "账号 %@ 已添加",
+    "zh-Hant": "帳號 %@ 已新增"
+  },
+  "账号 ID": {
+    "en": "Account ID",
+    "ja": "アカウント ID",
+    "zh-Hans": "账号 ID",
+    "zh-Hant": "帳號 ID"
+  },
+  "账号、额度与原会话接力状态": {
+    "en": "Account, quota, and original-session handoff status",
+    "ja": "アカウント、利用枠、元セッションの引き継ぎ状況",
+    "zh-Hans": "账号、额度与原会话接力状态",
+    "zh-Hant": "帳號、額度與原工作階段接力狀態"
+  },
+  "账号不可用": {
+    "en": "Account unavailable",
+    "ja": "アカウントを利用できません",
+    "zh-Hans": "账号不可用",
+    "zh-Hant": "帳號無法使用"
+  },
+  "账号仓库": {
+    "en": "Account store",
+    "ja": "アカウントストア",
+    "zh-Hans": "账号仓库",
+    "zh-Hant": "帳號儲存庫"
+  },
+  "账号信息": {
+    "en": "Account info",
+    "ja": "アカウント情報",
+    "zh-Hans": "账号信息",
+    "zh-Hant": "帳號資訊"
+  },
+  "账号凭据按 0600 保存，切换前自动备份；工具不打印 token。": {
+    "en": "Account credentials are stored with mode 0600 and backed up before switching; the tool never prints tokens.",
+    "ja": "アカウント認証情報は 0600 で保存され、切り替え前に自動バックアップされます。token は表示しません。",
+    "zh-Hans": "账号凭据按 0600 保存，切换前自动备份；工具不打印 token。",
+    "zh-Hant": "帳號憑證以 0600 儲存，切換前自動備份；工具不會列印 token。"
+  },
+  "账号别名": {
+    "en": "Account alias",
+    "ja": "アカウントの別名",
+    "zh-Hans": "账号别名",
+    "zh-Hant": "帳號別名"
+  },
+  "账号名称已更新": {
+    "en": "Account name updated",
+    "ja": "アカウント名を更新しました",
+    "zh-Hans": "账号名称已更新",
+    "zh-Hant": "帳號名稱已更新"
+  },
+  "账号用量已刷新": {
+    "en": "Account quota refreshed",
+    "ja": "アカウントの利用枠を更新しました",
+    "zh-Hans": "账号用量已刷新",
+    "zh-Hant": "帳號額度已重新整理"
+  },
+  "账号管理": {
+    "en": "Account management",
+    "ja": "アカウント管理",
+    "zh-Hans": "账号管理",
+    "zh-Hant": "帳號管理"
+  },
+  "账号认证": {
+    "en": "Account authentication",
+    "ja": "アカウント認証",
+    "zh-Hans": "账号认证",
+    "zh-Hant": "帳號認證"
+  },
+  "账号：": {
+    "en": "Account:",
+    "ja": "アカウント：",
+    "zh-Hans": "账号：",
+    "zh-Hant": "帳號："
+  },
+  "账号：%@": {
+    "en": "Account: %@",
+    "ja": "アカウント：%@",
+    "zh-Hans": "账号：%@",
+    "zh-Hant": "帳號：%@"
+  },
+  "跟随系统": {
+    "en": "System",
+    "ja": "システムに合わせる",
+    "zh-Hans": "跟随系统",
+    "zh-Hant": "跟隨系統"
+  },
+  "输入": {
+    "en": "Input",
+    "ja": "入力",
+    "zh-Hans": "输入",
+    "zh-Hant": "輸入"
+  },
+  "输出": {
+    "en": "Output",
+    "ja": "出力",
+    "zh-Hans": "输出",
+    "zh-Hant": "輸出"
+  },
+  "输出为空": {
+    "en": "No output",
+    "ja": "出力が空です",
+    "zh-Hans": "输出为空",
+    "zh-Hant": "輸出為空"
+  },
+  "运行中": {
+    "en": "Running",
+    "ja": "実行中",
+    "zh-Hans": "运行中",
+    "zh-Hant": "執行中"
+  },
+  "运行中（可能缓存旧账号）": {
+    "en": "Running (may be caching an old account)",
+    "ja": "実行中（古いアカウントがキャッシュされている可能性）",
+    "zh-Hans": "运行中（可能缓存旧账号）",
+    "zh-Hant": "執行中（可能快取舊帳號）"
+  },
+  "运行信息": {
+    "en": "Runtime",
+    "ja": "実行情報",
+    "zh-Hans": "运行信息",
+    "zh-Hant": "執行資訊"
+  },
+  "运行平台": {
+    "en": "Platform",
+    "ja": "実行環境",
+    "zh-Hans": "运行平台",
+    "zh-Hant": "執行平台"
+  },
+  "运行诊断": {
+    "en": "Run diagnostics",
+    "ja": "診断を実行",
+    "zh-Hans": "运行诊断",
+    "zh-Hant": "執行診斷"
+  },
+  "还没有账号": {
+    "en": "No accounts yet",
+    "ja": "アカウントがありません",
+    "zh-Hans": "还没有账号",
+    "zh-Hant": "尚無帳號"
+  },
+  "这是唯一会碰 ChatGPT 进程的操作，必须由你确认。": {
+    "en": "This is the only operation that controls the ChatGPT process. Your confirmation is required.",
+    "ja": "ChatGPT のプロセスを操作する唯一の操作です。必ず確認してください。",
+    "zh-Hans": "这是唯一会碰 ChatGPT 进程的操作，必须由你确认。",
+    "zh-Hant": "這是唯一會操作 ChatGPT 程序的動作，必須由你確認。"
+  },
+  "这条会话可能没有可读取的会话记录，或统计文件已被清理。": {
+    "en": "This session may have no readable record, or its statistics were cleaned up.",
+    "ja": "このセッションには読み取り可能な記録がないか、統計ファイルが削除されています。",
+    "zh-Hans": "这条会话可能没有可读取的会话记录，或统计文件已被清理。",
+    "zh-Hant": "此工作階段可能沒有可讀取的記錄，或統計檔案已被清除。"
+  },
+  "进程控制 / 确认": {
+    "en": "Process control / confirm",
+    "ja": "プロセス制御 / 確認",
+    "zh-Hans": "进程控制 / 确认",
+    "zh-Hant": "程序控制 / 確認"
+  },
+  "退出 Codex Relay": {
+    "en": "Quit Codex Relay",
+    "ja": "Codex Relay を終了",
+    "zh-Hans": "退出 Codex Relay",
+    "zh-Hant": "結束 Codex Relay"
+  },
+  "选择一个会话": {
+    "en": "Choose a session",
+    "ja": "セッションを選択",
+    "zh-Hans": "选择一个会话",
+    "zh-Hant": "選擇一個工作階段"
+  },
+  "选择一个账号": {
+    "en": "Choose an account",
+    "ja": "アカウントを選択",
+    "zh-Hans": "选择一个账号",
+    "zh-Hant": "選擇一個帳號"
+  },
+  "选择一张图片作为 %@ 的头像": {
+    "en": "Choose an image for %@'s avatar",
+    "ja": "%@ のアバター画像を選択",
+    "zh-Hans": "选择一张图片作为 %@ 的头像",
+    "zh-Hant": "選擇一張圖片作為 %@ 的頭像"
+  },
+  "选择一条原会话；切换后会重启 ChatGPT，并用目标账号打开同一会话。": {
+    "en": "Choose an original session. Switching restarts ChatGPT and opens the same session with the target account.",
+    "ja": "元のセッションを選択してください。切り替えると ChatGPT を再起動し、対象アカウントで同じセッションを開きます。",
+    "zh-Hans": "选择一条原会话；切换后会重启 ChatGPT，并用目标账号打开同一会话。",
+    "zh-Hant": "選擇一個原始工作階段；切換後會重新啟動 ChatGPT，並用目標帳號開啟同一個工作階段。"
+  },
+  "选择后会立即应用到主窗口、弹窗、状态颜色和设置页。": {
+    "en": "Applies immediately to the main window, sheets, status colors, and settings.",
+    "ja": "選択後、メインウィンドウ、シート、状態色、設定画面にすぐ反映されます。",
+    "zh-Hans": "选择后会立即应用到主窗口、弹窗、状态颜色和设置页。",
+    "zh-Hant": "選擇後會立即套用到主視窗、彈窗、狀態顏色與設定頁。"
+  },
+  "选择所有额度卡和进度条统一使用的显示方式。原始数据始终按「已使用百分比」读取，切换显示不会改变额度含义。": {
+    "en": "Choose how all quota cards and progress bars are displayed. Raw data is still read as used percent; changing the display does not change its meaning.",
+    "ja": "すべての利用枠カードとバーで使う表示方法を選択します。元データは「使用率」のままなので、表示を変えても意味は変わりません。",
+    "zh-Hans": "选择所有额度卡和进度条统一使用的显示方式。原始数据始终按「已使用百分比」读取，切换显示不会改变额度含义。",
+    "zh-Hant": "選擇所有額度卡與進度條統一使用的顯示方式。原始資料仍以「已使用百分比」讀取，切換顯示不會改變額度含義。"
+  },
+  "选择账号头像": {
+    "en": "Choose account avatar",
+    "ja": "アカウントのアバターを選択",
+    "zh-Hans": "选择账号头像",
+    "zh-Hant": "選擇帳號頭像"
+  },
+  "逐轮缓存": {
+    "en": "Per-turn cache",
+    "ja": "ターンごとのキャッシュ",
+    "zh-Hans": "逐轮缓存",
+    "zh-Hant": "逐輪快取"
+  },
+  "逐轮缓存 // 最近 %d 轮": {
+    "en": "Per-turn cache // last %d turns",
+    "ja": "ターン別キャッシュ // 直近 %d ターン",
+    "zh-Hans": "逐轮缓存 // 最近 %d 轮",
+    "zh-Hant": "逐輪快取 // 最近 %d 輪"
+  },
+  "逐轮缓存命中率": {
+    "en": "Per-turn cache hit rate",
+    "ja": "ターン別キャッシュヒット率",
+    "zh-Hans": "逐轮缓存命中率",
+    "zh-Hant": "逐輪快取命中率"
+  },
+  "通过": {
+    "en": "Pass",
+    "ja": "合格",
+    "zh-Hans": "通过",
+    "zh-Hant": "通過"
+  },
+  "邮箱": {
+    "en": "Email",
+    "ja": "メールアドレス",
+    "zh-Hans": "邮箱",
+    "zh-Hant": "電子郵件"
+  },
+  "部分账号同步失败": {
+    "en": "Some accounts failed to sync",
+    "ja": "一部のアカウントの同期に失敗しました",
+    "zh-Hans": "部分账号同步失败",
+    "zh-Hant": "部分帳號同步失敗"
+  },
+  "重启 ChatGPT 并恢复会话？": {
+    "en": "Restart ChatGPT and restore the session?",
+    "ja": "ChatGPT を再起動してセッションを復元しますか？",
+    "zh-Hans": "重启 ChatGPT 并恢复会话？",
+    "zh-Hant": "重新啟動 ChatGPT 並恢復工作階段？"
+  },
+  "重启失败": {
+    "en": "Restart failed",
+    "ja": "再起動に失敗しました",
+    "zh-Hans": "重启失败",
+    "zh-Hant": "重新啟動失敗"
+  },
+  "重启并恢复": {
+    "en": "Restart and restore",
+    "ja": "再起動して復元",
+    "zh-Hans": "重启并恢复",
+    "zh-Hant": "重新啟動並恢復"
+  },
+  "重启并恢复此会话": {
+    "en": "Restart and restore this session",
+    "ja": "再起動してこのセッションを復元",
+    "zh-Hans": "重启并恢复此会话",
+    "zh-Hant": "重新啟動並恢復此工作階段"
+  },
+  "重启并打开": {
+    "en": "Restart and open",
+    "ja": "再起動して開く",
+    "zh-Hans": "重启并打开",
+    "zh-Hant": "重新啟動並開啟"
+  },
+  "重命名": {
+    "en": "Rename",
+    "ja": "名前を変更",
+    "zh-Hans": "重命名",
+    "zh-Hant": "重新命名"
+  },
+  "重命名失败": {
+    "en": "Rename failed",
+    "ja": "名前の変更に失敗しました",
+    "zh-Hans": "重命名失败",
+    "zh-Hant": "重新命名失敗"
+  },
+  "重命名账号": {
+    "en": "Rename account",
+    "ja": "アカウント名を変更",
+    "zh-Hans": "重命名账号",
+    "zh-Hant": "重新命名帳號"
+  },
+  "重新分析": {
+    "en": "Analyze again",
+    "ja": "もう一度分析",
+    "zh-Hans": "重新分析",
+    "zh-Hant": "重新分析"
+  },
+  "重置": {
+    "en": "Reset",
+    "ja": "リセット",
+    "zh-Hans": "重置",
+    "zh-Hant": "重設"
+  },
+  "重置 // %@": {
+    "en": "Reset time // %@",
+    "ja": "リセット日時 // %@",
+    "zh-Hans": "重置 // %@",
+    "zh-Hant": "重設時間 // %@"
+  },
+  "重试": {
+    "en": "Retry",
+    "ja": "再試行",
+    "zh-Hans": "重试",
+    "zh-Hant": "重試"
+  },
+  "随 macOS 自动切换": {
+    "en": "Follow macOS automatically",
+    "ja": "macOS に自動で合わせる",
+    "zh-Hans": "随 macOS 自动切换",
+    "zh-Hant": "跟隨 macOS 自動切換"
+  },
+  "需要处理": {
+    "en": "Needs attention",
+    "ja": "対応が必要",
+    "zh-Hans": "需要处理",
+    "zh-Hant": "需要處理"
+  },
+  "需要重新登录": {
+    "en": "Sign in again",
+    "ja": "再サインインが必要",
+    "zh-Hans": "需要重新登录",
+    "zh-Hant": "需要重新登入"
+  },
+  "需重登": {
+    "en": "Sign in again",
+    "ja": "再サインイン",
+    "zh-Hans": "需重登",
+    "zh-Hant": "需重新登入"
+  },
+  "预计耗时": {
+    "en": "Estimated time",
+    "ja": "所要時間の目安",
+    "zh-Hans": "预计耗时",
+    "zh-Hant": "預計耗時"
+  },
+  "额度": {
+    "en": "Quota",
+    "ja": "利用枠",
+    "zh-Hans": "额度",
+    "zh-Hant": "額度"
+  },
+  "额度同步": {
+    "en": "Quota sync",
+    "ja": "利用枠の同期",
+    "zh-Hans": "额度同步",
+    "zh-Hant": "額度同步"
+  },
+  "额度同步失败：%@": {
+    "en": "Quota sync failed: %@",
+    "ja": "利用枠の同期に失敗しました：%@",
+    "zh-Hans": "额度同步失败：%@",
+    "zh-Hant": "額度同步失敗：%@"
+  },
+  "额度已耗尽": {
+    "en": "Quota exhausted",
+    "ja": "利用枠に達しました",
+    "zh-Hans": "额度已耗尽",
+    "zh-Hant": "額度已用完"
+  },
+  "额度显示": {
+    "en": "Quota display",
+    "ja": "利用枠の表示",
+    "zh-Hans": "额度显示",
+    "zh-Hant": "額度顯示"
+  },
+  "额度耗尽": {
+    "en": "Quota exhausted",
+    "ja": "利用枠に達しました",
+    "zh-Hans": "额度耗尽",
+    "zh-Hant": "額度用盡"
+  },
+  "首轮缓存命中率": {
+    "en": "First-turn cache hit rate",
+    "ja": "初回キャッシュヒット率",
+    "zh-Hans": "首轮缓存命中率",
+    "zh-Hant": "首輪快取命中率"
+  },
+  "首轮输入 Token": {
+    "en": "First-turn input tokens",
+    "ja": "初回入力トークン",
+    "zh-Hans": "首轮输入 Token",
+    "zh-Hant": "首輪輸入 Token"
+  },
+  "ChatGPT App 已退出": {
+    "zh-Hans": "ChatGPT App 已退出",
+    "zh-Hant": "ChatGPT App 已結束",
+    "en": "ChatGPT app quit",
+    "ja": "ChatGPT App を終了しました"
+  },
+  "Codex app-server 已就绪": {
+    "zh-Hans": "Codex app-server 已就绪",
+    "zh-Hant": "Codex app-server 已就緒",
+    "en": "Codex app-server is ready",
+    "ja": "Codex app-server の準備ができました"
+  },
+  "切换完成": {
+    "zh-Hans": "切换完成",
+    "zh-Hant": "切換完成",
+    "en": "Switch complete",
+    "ja": "切り替えが完了しました"
+  },
+  "可正常使用": {
+    "zh-Hans": "可正常使用",
+    "zh-Hant": "可正常使用",
+    "en": "Ready",
+    "ja": "正常に使用できます"
+  },
+  "总缓存": {
+    "zh-Hans": "总缓存",
+    "zh-Hant": "總快取",
+    "en": "Total cached",
+    "ja": "合計キャッシュ"
+  },
+  "末缓存": {
+    "zh-Hans": "末缓存",
+    "zh-Hant": "最後快取",
+    "en": "Last cached",
+    "ja": "最後のキャッシュ"
+  },
+  "正在启动 ChatGPT App": {
+    "zh-Hans": "正在启动 ChatGPT App",
+    "zh-Hant": "正在啟動 ChatGPT App",
+    "en": "Launching the ChatGPT app",
+    "ja": "ChatGPT App を起動しています"
+  },
+  "正在安全退出 ChatGPT App": {
+    "zh-Hans": "正在安全退出 ChatGPT App",
+    "zh-Hant": "正在安全結束 ChatGPT App",
+    "en": "Safely quitting the ChatGPT app",
+    "ja": "ChatGPT App を安全に終了しています"
+  },
+  "正在恢复原会话": {
+    "zh-Hans": "正在恢复原会话",
+    "zh-Hant": "正在恢復原始工作階段",
+    "en": "Restoring the original session",
+    "ja": "元のセッションを復元しています"
+  },
+  "正在确认没有执行中的轮次": {
+    "zh-Hans": "正在确认没有执行中的轮次",
+    "zh-Hant": "正在確認沒有執行中的回合",
+    "en": "Confirming no turn is currently running",
+    "ja": "実行中のターンがないことを確認しています"
+  },
+  "正在等待桌面界面就绪": {
+    "zh-Hans": "正在等待桌面界面就绪",
+    "zh-Hant": "正在等待桌面介面就緒",
+    "en": "Waiting for the desktop UI",
+    "ja": "デスクトップ UI の準備を待っています"
+  },
+  "首缓存": {
+    "zh-Hans": "首缓存",
+    "zh-Hant": "首次快取",
+    "en": "First cached",
+    "ja": "最初のキャッシュ"
+  },
+  "首输入": {
+    "zh-Hans": "首输入",
+    "zh-Hant": "首次輸入",
+    "en": "First input",
+    "ja": "最初の入力"
+  },
+  "%d 项失败 · %d 项警告": {
+    "zh-Hans": "%d 项失败 · %d 项警告",
+    "zh-Hant": "%d 項失敗 · %d 項警告",
+    "en": "%d failed · %d warnings",
+    "ja": "%d 件失敗 · %d 件警告"
+  },
+  "CLI 退出码 %d": {
+    "zh-Hans": "CLI 退出码 %d",
+    "zh-Hant": "CLI 退出碼 %d",
+    "en": "CLI exit code %d",
+    "ja": "CLI 終了コード %d"
+  },
+  "Thread ID": {
+    "zh-Hans": "Thread ID",
+    "zh-Hant": "Thread ID",
+    "en": "Thread ID",
+    "ja": "Thread ID"
+  },
+  "仅重启 ChatGPT 并恢复最近会话，不切换账号？": {
+    "zh-Hans": "仅重启 ChatGPT 并恢复最近会话，不切换账号？",
+    "zh-Hant": "僅重新啟動 ChatGPT 並恢復最近工作階段，不切換帳號？",
+    "en": "Restart ChatGPT and resume the most recent session without switching accounts?",
+    "ja": "アカウントを切り替えずに ChatGPT を再起動し、最新のセッションを再開しますか？"
+  },
+  "保存名称…": {
+    "zh-Hans": "保存名称…",
+    "zh-Hant": "儲存名稱…",
+    "en": "Save name…",
+    "ja": "名前を保存…"
+  },
+  "分析会话缓存…": {
+    "zh-Hans": "分析会话缓存…",
+    "zh-Hant": "分析工作階段快取…",
+    "en": "Analyze session cache…",
+    "ja": "セッションキャッシュを分析…"
+  },
+  "切换到该账号并重启 ChatGPT，随后恢复最近会话？": {
+    "zh-Hans": "切换到该账号并重启 ChatGPT，随后恢复最近会话？",
+    "zh-Hant": "切換到該帳號並重新啟動 ChatGPT，隨後恢復最近工作階段？",
+    "en": "Switch to this account, restart ChatGPT, and resume the most recent session?",
+    "ja": "このアカウントに切り替えて ChatGPT を再起動し、最新のセッションを再開しますか？"
+  },
+  "切换将替换 auth.json 并供新的 CLI 使用；不会重启 ChatGPT。": {
+    "zh-Hans": "切换将替换 auth.json 并供新的 CLI 使用；不会重启 ChatGPT。",
+    "zh-Hant": "切換將替換 auth.json 並供新的 CLI 使用；不會重新啟動 ChatGPT。",
+    "en": "The switch will replace auth.json for new CLI processes; ChatGPT will not be restarted.",
+    "ja": "切り替えると auth.json が置き換えられ、新しい CLI で使用されます。ChatGPT は再起動しません。"
+  },
+  "切换账号…": {
+    "zh-Hans": "切换账号…",
+    "zh-Hant": "切換帳號…",
+    "en": "Switch account…",
+    "ja": "アカウントを切り替え…"
+  },
+  "刷新额度…": {
+    "zh-Hans": "刷新额度…",
+    "zh-Hant": "重新整理額度…",
+    "en": "Refresh quota…",
+    "ja": "利用枠を更新…"
+  },
+  "启动登录…": {
+    "zh-Hans": "启动登录…",
+    "zh-Hant": "啟動登入…",
+    "en": "Start sign-in…",
+    "ja": "サインインを開始…"
+  },
+  "处理中…": {
+    "zh-Hans": "处理中…",
+    "zh-Hant": "處理中…",
+    "en": "Working…",
+    "ja": "処理中…"
+  },
+  "就绪": {
+    "zh-Hans": "就绪",
+    "zh-Hant": "就緒",
+    "en": "Ready",
+    "ja": "準備完了"
+  },
+  "我确认切换账号": {
+    "zh-Hans": "我确认切换账号",
+    "zh-Hant": "我確認切換帳號",
+    "en": "I confirm the account switch",
+    "ja": "アカウントの切り替えを確認しました"
+  },
+  "所有文件": {
+    "zh-Hans": "所有文件",
+    "zh-Hant": "所有檔案",
+    "en": "All files",
+    "ja": "すべてのファイル"
+  },
+  "未检测到桌面 App；请使用 CLI 或切换账号。": {
+    "zh-Hans": "未检测到桌面 App；请使用 CLI 或切换账号。",
+    "zh-Hant": "未偵測到桌面 App；請使用 CLI 或切換帳號。",
+    "en": "Desktop app not detected; use the CLI or switch accounts.",
+    "ja": "デスクトップ App が見つかりません。CLI を使用するか、アカウントを切り替えてください。"
+  },
+  "读取会话…": {
+    "zh-Hans": "读取会话…",
+    "zh-Hant": "讀取工作階段…",
+    "en": "Loading sessions…",
+    "ja": "セッションを読み込み中…"
+  },
+  "读取概览…": {
+    "zh-Hans": "读取概览…",
+    "zh-Hant": "讀取概覽…",
+    "en": "Reading overview…",
+    "ja": "概要を読み込み中…"
+  },
+  "读取账号…": {
+    "zh-Hans": "读取账号…",
+    "zh-Hant": "讀取帳號…",
+    "en": "Reading accounts…",
+    "ja": "アカウントを読み込み中…"
+  },
+  "账号别名（可留空自动生成）": {
+    "zh-Hans": "账号别名（可留空自动生成）",
+    "zh-Hant": "帳號別名（可留空自動產生）",
+    "en": "Account alias (leave blank to generate)",
+    "ja": "アカウント別名（空欄で自動生成）"
+  },
+  "运行诊断…": {
+    "zh-Hans": "运行诊断…",
+    "zh-Hant": "執行診斷…",
+    "en": "Run diagnostics…",
+    "ja": "診断を実行…"
+  },
+  "重启 ChatGPT…": {
+    "zh-Hans": "重启 ChatGPT…",
+    "zh-Hant": "重新啟動 ChatGPT…",
+    "en": "Restart ChatGPT…",
+    "ja": "ChatGPT を再起動…"
+  },
+  "重启完成": {
+    "zh-Hans": "重启完成",
+    "zh-Hant": "重新啟動完成",
+    "en": "Restart complete",
+    "ja": "再起動が完了しました"
+  },
+  "Tkinter 不可用": {
+    "zh-Hans": "Tkinter 不可用",
+    "zh-Hant": "Tkinter 無法使用",
+    "en": "Tkinter is unavailable",
+    "ja": "Tkinter を利用できません"
+  },
+  "打开账号管理": {
+    "zh-Hans": "打开账号管理",
+    "zh-Hant": "開啟帳號管理",
+    "en": "Open account management",
+    "ja": "アカウント管理を開く"
+  },
+  "切换账号并恢复": {
+    "zh-Hans": "切换账号并恢复",
+    "zh-Hant": "切換帳號並恢復",
+    "en": "Switch account and restore",
+    "ja": "アカウントを切り替えて復元"
+  },
+  "跨平台客户端设置会保存在 ~/.codex-relay/portable-ui.json。": {
+    "zh-Hans": "跨平台客户端设置会保存在 ~/.codex-relay/portable-ui.json。",
+    "zh-Hant": "跨平台用戶端設定會儲存在 ~/.codex-relay/portable-ui.json。",
+    "en": "Cross-platform client settings are stored in ~/.codex-relay/portable-ui.json.",
+    "ja": "クロスプラットフォームクライアントの設定は ~/.codex-relay/portable-ui.json に保存されます。"
+  },
+  "立即刷新用量": {
+    "zh-Hans": "立即刷新用量",
+    "zh-Hant": "立即重新整理用量",
+    "en": "Refresh usage now",
+    "ja": "利用枠を今すぐ更新"
+  },
+  "无法打开图形界面（无桌面环境或缺少显示服务）：%@": {
+    "zh-Hans": "无法打开图形界面（无桌面环境或缺少显示服务）：%@",
+    "zh-Hant": "無法開啟圖形介面（無桌面環境或缺少顯示服務）：%@",
+    "en": "Cannot open the graphical interface (no desktop environment or display service): %@",
+    "ja": "グラフィカルインターフェースを開けません（デスクトップ環境または表示サービスがありません）：%@"
+  },
+  "请使用纯 CLI：codex-relay status / list / sessions / usage / switch": {
+    "zh-Hans": "请使用纯 CLI：codex-relay status / list / sessions / usage / switch",
+    "zh-Hant": "請使用純 CLI：codex-relay status / list / sessions / usage / switch",
+    "en": "Use the CLI instead: codex-relay status / list / sessions / usage / switch",
+    "ja": "CLI を使用してください：codex-relay status / list / sessions / usage / switch"
+  },
+  "未找到文档": {
+    "zh-Hans": "未找到文档",
+    "zh-Hant": "找不到文件",
+    "en": "Documentation not found",
+    "ja": "ドキュメントが見つかりません"
+  }
+}

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+
+# Build outputs
+build/
+dist/
+dist-cli/
+*.spec
+*.whl
+*.app
+*.dmg
+*.pkg
+*.exe
+*.msi
+*.tar.gz
+
+# Local Codex / Relay data
+.codex/
+.codex-relay/
+auth.json
+credentials.json
+portable-ui.json
+state_*.sqlite
+thread_history_*.sqlite
+*.jsonl
+*.zst
+*.rollout
+*.log
+*.pem
+*.key
+*.p12
+
+# Local settings and screenshots
+.env
+.env.*
+.DS_Store
+*.local
+screenshots/
+*.png.tmp
+
+# Packaging metadata
+*.egg-info/

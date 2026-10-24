@@ -1,0 +1,30 @@
+[project]
+name = "codex-relay"
+version = "0.2.0"
+description = "Codex multi-account handoff with session continuity, reasoning replay and cache diagnostics"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Codex Relay contributors" }]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Operating System :: MacOS",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+codex-relay = "codex_relay.cli:main"
+codex-relay-gui = "codex_relay.portable_gui:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["codex_relay"]
+
+[tool.setuptools.package-data]
+codex_relay = ["resources/*.lproj/*.strings"]

@@ -1,0 +1,75 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip wheel . --no-deps -w dist-cli
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-wheel
+          path: dist-cli/*.whl
+
+  build-tk:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Tk on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk
+      - run: python -m pip install pyinstaller
+      - run: python tools/build_portable.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tk-${{ matrix.os }}
+          path: dist/CodexRelay*
+
+  build-macos-app:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build SwiftUI app
+        env:
+          CODEX_RELAY_GUI_APP: ${{ runner.temp }}/Codex Relay.app
+          CODEX_RELAY_OPEN_AFTER: "0"
+        run: |
+          cd desktop
+          ./build.sh
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Codex Relay.app" "$RUNNER_TEMP/CodexRelay-macOS.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: ${{ runner.temp }}/CodexRelay-macOS.zip
+
+  publish:
+    needs: [build-cli, build-tk, build-macos-app]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/**/*
+          generate_release_notes: true
