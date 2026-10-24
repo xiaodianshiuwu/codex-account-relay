@@ -34,9 +34,11 @@ macOS 原生版是首选桌面体验；Windows/Linux 的 Tk 客户端复用同�
 
 ## 安装
 
+最新版本与下载：[GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest)。
+
 ### 从 Release 安装
 
-Release 会提供：
+Release 提供：
 
 - `codex-relay-<version>-py3-none-any.whl`：独立 CLI。
 - macOS：`CodexRelay-<version>-macOS.app.zip`。
