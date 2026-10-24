@@ -1,38 +1,48 @@
 # Codex Relay
 
-Codex Relay 是一个 **Codex 多账号接力工具**：把不同 ChatGPT/Codex 账号的凭据隔离保存，切换时原子替换当前 `auth.json`，并尽量在同一个 thread 上继续原会话，保留 rollout、工具结果、压缩检查点和加密推理项。
+**一个账号切换后还能继续原来会话的 Codex 小工具。** 不用重新开 thread，不用手动搬上下文。
 
 [English](#english) · [日本語](#日本語) · [繁體中文](#繁體中文)
 
-它同时提供：
+## 3 步开始
 
-- **CLI / Headless**：三种系统都可用的 `codex-relay` 命令。
-- **macOS 原生桌面端**：SwiftUI 应用，包含概览、账号、会话、诊断、设置和菜单栏。
-- **Windows / Linux 桌面端**：共享 Python 核心的 Tkinter 客户端。
-- **四种界面语言**：简体中文、繁体中文、English、日本語。
+1. **准备 Codex**：先安装并登录 [Codex CLI](https://github.com/openai/codex)。如果已经能运行 `codex`，这一步可以跳过。
+2. **下载 Codex Relay**：到 [Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest) 选择你的系统，下载后打开/运行即可。
+3. **让它自己找 Codex**：打开桌面端，或在终端运行：
 
-> **验证状态**：macOS 已完成本机构建、自动化测试和主要界面验收；Windows/Linux 已提供源码、安装脚本、Tk 客户端、PyInstaller 入口和 CI 矩阵，但尚未在真实 Windows/Linux 主机上完成原生运行验收。请不要把 CI 配置或构建成功等同于目标平台已经验证。
+   ```sh
+   codex-relay setup
+   codex-relay doctor
+   ```
 
-## 核心能力
+   看到 `Doctor` 检查通过，就可以添加账号了。找不到 Codex 时，`setup` 会告诉你下一步，不会直接崩溃。
 
-- 账号凭据按账号隔离保存，文件权限为 `0600`；切换前自动备份，失败自动回滚。
-- 使用隔离的临时 `CODEX_HOME` 执行官方 `codex login`，不覆盖已有登录。
-- 按稳定的 `chatgpt_account_id` 匹配账号，不依赖邮箱或显示名称。
-- 支持恢复指定 thread，保留 rollout、工具结果和压缩检查点。
-- 提供额度、Token、缓存命中率、推理项、压缩和进程诊断。
-- 所有退出/重启 ChatGPT 的操作都需要显式确认，不会被后台静默执行。
-- 不修改 ChatGPT 网页端的 Electron cookie/session；只管理 Codex 使用的 `auth.json`。
+> **不需要**改源代码、手写配置文件或研究项目结构。默认自动发现；只有 Codex 装在非标准位置时，才需要手动指定一次。
 
-## 平台支持
+## 它适合谁
 
-| 环境 | 桌面客户端 | CLI | 验证状态 |
-|---|---|---|---|
-| macOS 14+ | SwiftUI（`desktop/`） | `codex-relay` | 本机实际构建、测试、主要界面验收 |
-| Windows 10/11 | Tkinter（`portable/`） | `codex-relay` | 源码、安装和构建入口已提供；待目标机验收 |
-| Linux | Tkinter（`portable/`） | `codex-relay` | 源码、Tk 依赖说明和构建入口已提供；待目标机验收 |
-| 无图形环境 / SSH | 不启动 GUI | `codex-relay` | CLI 路径可用；不依赖 Tk |
+- 有多个 ChatGPT/Codex 账号，想快速切换但不想丢当前 thread 的人。
+- 希望在切换前自动备份、失败能回滚，不想手动改 `auth.json` 的人。
+- 想在 macOS、Windows、Linux 或纯 SSH 环境里用同一套账号逻辑的人。
 
-macOS 原生版是首选桌面体验；Windows/Linux 的 Tk 客户端复用同一套账号、额度、会话和 CLI 逻辑。详见 [平台说明](docs/PLATFORMS.md)。
+## 你能得到什么
+
+- **原会话继续**：切换账号后恢复同一个 thread，rollout、工具结果、压缩检查点和加密 reasoning 项尽量保留。
+- **安全切换**：账号隔离保存；切换前备份，失败回滚；退出/重启 ChatGPT 必须明确确认。
+- **少折腾**：自动发现 Codex CLI 和数据目录；找不到时有清楚的手动设置入口。
+- **看得懂**：账号、额度、Token、缓存、推理、会话和进程诊断集中在一个界面/CLI。
+- **四种语言**：简体中文、繁體中文、English、日本語。
+
+## 平台与下载
+
+| 你的系统 | 推荐方式 | 下载文件 |
+|---|---|---|
+| macOS 14+ | 原生 SwiftUI App | `CodexRelay-<version>-macOS-SwiftUI.zip` |
+| Windows 10/11 | Tk 桌面端 | `CodexRelay-<version>-Windows-x86_64.exe` |
+| Linux | Tk 桌面端 | `CodexRelay-<version>-Linux-x86_64` |
+| 任意系统 / SSH | 独立 CLI | `codex_relay-<version>-py3-none-any.whl` |
+
+> **验证边界**：macOS 已完成本机实际构建、测试和主要界面验收；Windows/Linux 已有 CI 构建与自动化测试，但原生桌面交互仍需目标机人工验收。CI 通过不等于所有平台都已完整验证。
 
 ## 安装
 
@@ -42,10 +52,10 @@ macOS 原生版是首选桌面体验；Windows/Linux 的 Tk 客户端复用同�
 
 Release 提供：
 
-- `codex-relay-<version>-py3-none-any.whl`：独立 CLI。
-- macOS：`CodexRelay-<version>-macOS.app.zip`。
-- Windows：`CodexRelay-<version>-Windows.exe`。
-- Linux：`CodexRelay-<version>-Linux`（Tk 桌面）及 CLI wheel。
+- `codex_relay-<version>-py3-none-any.whl`：独立 CLI。
+- macOS：`CodexRelay-<version>-macOS-SwiftUI.zip`。
+- Windows：`CodexRelay-<version>-Windows-x86_64.exe`。
+- Linux：`CodexRelay-<version>-Linux-x86_64`（Tk 桌面）及 CLI wheel。
 
 下载对应产物后：
 
@@ -56,7 +66,7 @@ codex-relay setup
 codex-relay doctor
 ```
 
-macOS 解压 `.app.zip` 后拖入“应用程序”；Windows/Linux 直接运行对应可执行文件。**首次启动前请先确保已安装 Codex CLI；如果没有，应用会显示安装引导，也可以用 `codex-relay setup` 手动指定路径。**
+macOS 解压下载的 `.zip` 后，把 `Codex Relay.app` 拖入“应用程序”；Windows/Linux 直接运行对应可执行文件。**首次启动前请先确保已安装 Codex CLI；如果没有，应用会显示安装引导，也可以用 `codex-relay setup` 手动指定路径。**
 
 ### 从源码安装
 
@@ -215,6 +225,8 @@ python3 tools/i18n_audit.py --json
 
 ## English
 
+**Start in three steps:** (1) install and sign in to the Codex CLI; (2) download the release for your OS; (3) open the app, or run `codex-relay setup` and `codex-relay doctor` in a terminal. If Codex is already on your `PATH`, Relay finds it automatically.
+
 **Codex Relay** is a community-built, cross-platform handoff tool for Codex accounts. It stores each ChatGPT/Codex account in an isolated profile, atomically switches the active `auth.json`, and resumes the same thread whenever possible so rollout history, tool results, compaction checkpoints and encrypted reasoning items stay usable.
 
 ### What you get
@@ -301,6 +313,8 @@ Codex, ChatGPT and OpenAI are trademarks of their respective owners. This is not
 
 ## 日本語
 
+**3 ステップで開始：**（1）Codex CLI をインストールしてログイン、（2）お使いの OS 用の Release をダウンロード、（3）アプリを開くか、ターミナルで `codex-relay setup` と `codex-relay doctor` を実行。Codex が `PATH` にあれば自動検出されます。
+
 **Codex Relay** は、Codex の複数アカウントを切り替えるためのコミュニティ製クロスプラットフォームツールです。アカウントごとに認証情報を分離して保存し、`auth.json` をアトミックに切り替えたうえで、できるだけ同じ thread を再開します。rollout、ツール結果、圧縮チェックポイント、暗号化された reasoning item を維持できます。
 
 ### 主な機能
@@ -386,6 +400,8 @@ Codex、ChatGPT、OpenAI は各権利者の商標です。本プロジェクト�
 ---
 
 ## 繁體中文
+
+**3 個步驟開始：**（1）安裝並登入 Codex CLI；（2）下載符合你系統的 Release；（3）開啟 App，或在終端機執行 `codex-relay setup` 與 `codex-relay doctor`。如果 Codex 已在 `PATH`，Relay 會自動找到它。
 
 **Codex Relay** 是社群開發的 Codex 多帳號接力工具。它將每個 ChatGPT/Codex 帳號的認證資料隔離保存，以原子方式切換目前的 `auth.json`，並盡可能在同一條 thread 上繼續原會話，保留 rollout、工具結果、壓縮檢查點與加密 reasoning 項目。
 
