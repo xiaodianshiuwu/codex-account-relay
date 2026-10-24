@@ -61,7 +61,7 @@ Release 提供：
 
 ```sh
 # CLI（任意平台，需要 Python 3.9+）
-python3 -m pip install codex-relay-*.whl
+python3 -m pip install codex_relay-*.whl
 codex-relay setup
 codex-relay doctor
 ```
