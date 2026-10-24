@@ -2,6 +2,8 @@
 
 Codex Relay 是一个 **Codex 多账号接力工具**：把不同 ChatGPT/Codex 账号的凭据隔离保存，切换时原子替换当前 `auth.json`，并尽量在同一个 thread 上继续原会话，保留 rollout、工具结果、压缩检查点和加密推理项。
 
+[English](#english) · [日本語](#日本語) · [繁體中文](#繁體中文)
+
 它同时提供：
 
 - **CLI / Headless**：三种系统都可用的 `codex-relay` 命令。
@@ -207,6 +209,267 @@ python3 tools/i18n_audit.py --json
 ```
 
 见 [开发说明](docs/DEVELOPMENT.md)、[贡献指南](CONTRIBUTING.md) 和 [安全策略](SECURITY.md)。
+
+
+---
+
+## English
+
+**Codex Relay** is a community-built, cross-platform handoff tool for Codex accounts. It stores each ChatGPT/Codex account in an isolated profile, atomically switches the active `auth.json`, and resumes the same thread whenever possible so rollout history, tool results, compaction checkpoints and encrypted reasoning items stay usable.
+
+### What you get
+
+- A Python CLI that works without a GUI.
+- A native SwiftUI macOS app and a Tk desktop client for Windows/Linux.
+- Four UI languages: Simplified Chinese, Traditional Chinese, English and Japanese.
+- Quota, token, cache, reasoning and process diagnostics.
+- Explicit confirmation before quitting or restarting ChatGPT; no silent background restarts.
+
+### Platform status
+
+| Platform | Desktop client | Status |
+|---|---|---|
+| macOS 14+ | SwiftUI | Built and smoke-tested on macOS |
+| Windows 10/11 | Tk | Source, installer and CI build; native GUI acceptance still pending |
+| Linux | Tk | Source and CI build; native GUI acceptance still pending |
+| Headless/SSH | CLI only | Supported |
+
+Do not treat a successful CI build as proof that every native desktop interaction has been verified.
+
+### Install
+
+Download the latest release from [GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest), then choose the asset for your platform:
+
+- macOS SwiftUI: unzip `CodexRelay-*-macOS-SwiftUI.zip` and move the app to Applications.
+- Windows: run `CodexRelay-*-Windows-x86_64.exe`.
+- Linux: run `CodexRelay-*-Linux-x86_64` (Tk and a display server are required).
+- CLI on any platform: `python3 -m pip install codex_relay-*.whl`.
+
+From source:
+
+```sh
+git clone https://github.com/xiaodianshiuwu/codex-relay.git
+cd codex-relay
+./install.sh          # Windows: .\install.ps1
+codex-relay setup
+codex-relay doctor
+```
+
+### First run and Codex discovery
+
+Codex Relay looks for the Codex CLI in this order:
+
+1. `CODEX_RELAY_CODEX`.
+2. `~/.codex-relay/config.json` (`codex_binary`).
+3. `PATH`.
+4. Common installation directories.
+
+The Codex data directory is selected from `CODEX_HOME`, then the saved `codex_home`, then `~/.codex`.
+
+If automatic discovery fails, install Codex first. To pin a non-standard installation:
+
+```sh
+codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
+codex-relay setup --json
+```
+
+The path is validated and saved with user-only permissions. Clear it with `codex-relay setup --reset`. Existing `auth.json`, configuration and sessions are never overwritten by setup.
+
+### CLI quick start
+
+```sh
+codex-relay setup
+codex-relay doctor
+codex-relay add --capture personal
+codex-relay add work
+codex-relay list --refresh
+codex-relay switch work --dry-run
+codex-relay switch work --allow-chatgpt-restart
+codex-relay sessions
+codex-relay resume <thread-id> --account work --allow-chatgpt-restart
+```
+
+Read-only commands support `--json`. Use `--lang zh-Hans|zh-Hant|en|ja` to override the UI language.
+
+### Security
+
+Never commit `auth.json`, tokens, cookies, account emails, thread IDs or full session logs. If a credential is exposed, revoke/rotate it; deleting a file is not enough. See [SECURITY.md](SECURITY.md), [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Codex, ChatGPT and OpenAI are trademarks of their respective owners. This is not an official OpenAI product.
+
+---
+
+## 日本語
+
+**Codex Relay** は、Codex の複数アカウントを切り替えるためのコミュニティ製クロスプラットフォームツールです。アカウントごとに認証情報を分離して保存し、`auth.json` をアトミックに切り替えたうえで、できるだけ同じ thread を再開します。rollout、ツール結果、圧縮チェックポイント、暗号化された reasoning item を維持できます。
+
+### 主な機能
+
+- GUI を必要としない Python CLI。
+- macOS のネイティブ SwiftUI アプリと、Windows/Linux 向け Tk デスクトップクライアント。
+- 簡体字中国語、繁体字中国語、英語、日本語の 4 言語 UI。
+- クォータ、Token、キャッシュ、reasoning、プロセスの診断。
+- ChatGPT の終了・再起動前には必ず明示確認。バックグラウンドで勝手に再起動しません。
+
+### 対応状況
+
+| 環境 | デスクトップ | 状態 |
+|---|---|---|
+| macOS 14+ | SwiftUI | macOS でビルドとスモークテスト済み |
+| Windows 10/11 | Tk | ソース、インストーラー、CI ビルドあり。ネイティブ GUI の受け入れ確認は未完了 |
+| Linux | Tk | ソースと CI ビルドあり。ネイティブ GUI の受け入れ確認は未完了 |
+| ヘッドレス / SSH | CLI のみ | 対応 |
+
+CI のビルド成功は、すべてのネイティブ GUI 動作を検証済みという意味ではありません。
+
+### インストール
+
+[GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest) から環境に合うファイルをダウンロードします。
+
+- macOS SwiftUI: `CodexRelay-*-macOS-SwiftUI.zip` を展開して Applications に移動。
+- Windows: `CodexRelay-*-Windows-x86_64.exe` を実行。
+- Linux: `CodexRelay-*-Linux-x86_64` を実行（Tk と表示環境が必要）。
+- CLI: `python3 -m pip install codex_relay-*.whl`。
+
+ソースからインストールする場合:
+
+```sh
+git clone https://github.com/xiaodianshiuwu/codex-relay.git
+cd codex-relay
+./install.sh          # Windows: .\install.ps1
+codex-relay setup
+codex-relay doctor
+```
+
+### 初回セットアップと Codex の自動検出
+
+検出順序は次のとおりです。
+
+1. `CODEX_RELAY_CODEX` 環境変数。
+2. `~/.codex-relay/config.json` の `codex_binary`。
+3. `PATH` 上の `codex`。
+4. 一般的なインストール先。
+
+データディレクトリは `CODEX_HOME`、保存済みの `codex_home`、`~/.codex` の順で決定します。
+
+自動検出できない場合は、先に Codex CLI をインストールしてください。標準外の場所にある場合は次のように指定できます。
+
+```sh
+codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
+codex-relay setup --json
+```
+
+パスは検証後にユーザー専用権限で保存されます。設定を消すには `codex-relay setup --reset` を実行します。既存の `auth.json`、設定、セッションは setup では上書きされません。
+
+### CLI クイックスタート
+
+```sh
+codex-relay setup
+codex-relay doctor
+codex-relay add --capture personal
+codex-relay add work
+codex-relay list --refresh
+codex-relay switch work --dry-run
+codex-relay switch work --allow-chatgpt-restart
+codex-relay sessions
+codex-relay resume <thread-id> --account work --allow-chatgpt-restart
+```
+
+読み取り専用コマンドは `--json` に対応しています。UI 言語は `--lang zh-Hans|zh-Hant|en|ja` で切り替えられます。
+
+### セキュリティ
+
+`auth.json`、Token、Cookie、アカウントのメールアドレス、thread ID、完全なセッションログを Git にコミットしないでください。漏えいが疑われる場合は、ファイルを削除するだけでなく、必ず認証情報を失効・ローテーションしてください。詳細は [SECURITY.md](SECURITY.md)、[LICENSE](LICENSE)、[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
+
+Codex、ChatGPT、OpenAI は各権利者の商標です。本プロジェクトは OpenAI 公式製品ではありません。
+
+---
+
+## 繁體中文
+
+**Codex Relay** 是社群開發的 Codex 多帳號接力工具。它將每個 ChatGPT/Codex 帳號的認證資料隔離保存，以原子方式切換目前的 `auth.json`，並盡可能在同一條 thread 上繼續原會話，保留 rollout、工具結果、壓縮檢查點與加密 reasoning 項目。
+
+### 主要功能
+
+- 不需要圖形介面的 Python CLI。
+- macOS 原生 SwiftUI 應用程式，以及 Windows/Linux 的 Tk 桌面用戶端。
+- 四種介面語言：簡體中文、繁體中文、English、日本語。
+- 額度、Token、快取、reasoning 與程序診斷。
+- 結束或重新啟動 ChatGPT 前一定要求明確確認，不會在背景自行重啟。
+
+### 平台狀態
+
+| 環境 | 桌面用戶端 | 狀態 |
+|---|---|---|
+| macOS 14+ | SwiftUI | 已在 macOS 建置與煙霧測試 |
+| Windows 10/11 | Tk | 已提供原始碼、安裝程式與 CI 建置；原生 GUI 驗收尚未完成 |
+| Linux | Tk | 已提供原始碼與 CI 建置；原生 GUI 驗收尚未完成 |
+| 無圖形環境 / SSH | 僅 CLI | 支援 |
+
+CI 建置成功不等於所有原生 GUI 互動都已經驗證。
+
+### 安裝
+
+從 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest) 下載適合的檔案：
+
+- macOS SwiftUI：解壓縮 `CodexRelay-*-macOS-SwiftUI.zip`，將 App 拖到「應用程式」。
+- Windows：執行 `CodexRelay-*-Windows-x86_64.exe`。
+- Linux：執行 `CodexRelay-*-Linux-x86_64`（需要 Tk 與顯示環境）。
+- CLI：`python3 -m pip install codex_relay-*.whl`。
+
+從原始碼安裝：
+
+```sh
+git clone https://github.com/xiaodianshiuwu/codex-relay.git
+cd codex-relay
+./install.sh          # Windows: .\install.ps1
+codex-relay setup
+codex-relay doctor
+```
+
+### 首次啟動與 Codex 自動偵測
+
+偵測順序如下：
+
+1. `CODEX_RELAY_CODEX` 環境變數。
+2. `~/.codex-relay/config.json` 的 `codex_binary`。
+3. `PATH` 中的 `codex`。
+4. 常見安裝目錄。
+
+資料目錄依序使用 `CODEX_HOME`、已保存的 `codex_home`、`~/.codex`。
+
+若無法自動偵測，請先安裝 Codex CLI。若 Codex 安裝在非標準位置：
+
+```sh
+codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
+codex-relay setup --json
+```
+
+路徑會經驗證後以使用者專用權限保存；執行 `codex-relay setup --reset` 可清除。setup 不會覆寫既有 `auth.json`、設定或會話。
+
+### CLI 快速開始
+
+```sh
+codex-relay setup
+codex-relay doctor
+codex-relay add --capture personal
+codex-relay add work
+codex-relay list --refresh
+codex-relay switch work --dry-run
+codex-relay switch work --allow-chatgpt-restart
+codex-relay sessions
+codex-relay resume <thread-id> --account work --allow-chatgpt-restart
+```
+
+唯讀命令支援 `--json`。可用 `--lang zh-Hans|zh-Hant|en|ja` 覆寫介面語言。
+
+### 安全性
+
+請勿將 `auth.json`、Token、Cookie、帳號電子郵件、thread ID 或完整會話日誌提交到 Git。若憑證可能外洩，請立即撤銷/輪換，而不是只刪除檔案。詳見 [SECURITY.md](SECURITY.md)、[LICENSE](LICENSE) 與 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+Codex、ChatGPT、OpenAI 為其各自權利人的商標；本專案不是 OpenAI 官方產品。
+
+---
 
 ## 许可证
 
