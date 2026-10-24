@@ -40,10 +40,29 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y python3-tk
       - run: python -m pip install pyinstaller
       - run: python tools/build_portable.py
+      - name: Package Tk artifact
+        shell: python
+        run: |
+          import os, pathlib, shutil, sys, zipfile
+          root = pathlib.Path("dist")
+          out = pathlib.Path("release"); out.mkdir(exist_ok=True)
+          ref = os.environ["GITHUB_REF_NAME"]
+          if sys.platform == "win32":
+              name = f"CodexRelay-{ref}-Windows-x86_64.exe"
+              shutil.copy2(root / "CodexRelay.exe", out / name)
+          elif sys.platform == "darwin":
+              name = f"CodexRelay-{ref}-macOS-arm64"
+              shutil.copy2(root / "CodexRelay", out / name)
+              with zipfile.ZipFile(out / f"CodexRelay-{ref}-macOS-arm64.app.zip", "w", zipfile.ZIP_DEFLATED) as z:
+                  for item in (root / "CodexRelay.app").rglob("*"):
+                      z.write(item, item.relative_to(root))
+          else:
+              name = f"CodexRelay-{ref}-Linux-x86_64"
+              shutil.copy2(root / "CodexRelay", out / name)
       - uses: actions/upload-artifact@v4
         with:
           name: tk-${{ matrix.os }}
-          path: dist/CodexRelay*
+          path: release/*
 
   build-macos-app:
     runs-on: macos-latest
@@ -56,11 +75,11 @@ jobs:
         run: |
           cd desktop
           ./build.sh
-          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Codex Relay.app" "$RUNNER_TEMP/CodexRelay-macOS.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Codex Relay.app" "$RUNNER_TEMP/CodexRelay-${GITHUB_REF_NAME}-macOS-SwiftUI.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: ${{ runner.temp }}/CodexRelay-macOS.zip
+          path: ${{ runner.temp }}/CodexRelay-*-macOS-SwiftUI.zip
 
   publish:
     needs: [build-cli, build-tk, build-macos-app]
@@ -69,7 +88,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: release-assets
+      - name: Flatten release assets
+        run: |
+          find release-assets -type f -exec cp {} release-assets/ \;
       - uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/**/*
+          files: release-assets/*
           generate_release_notes: true
