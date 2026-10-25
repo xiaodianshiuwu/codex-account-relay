@@ -56,6 +56,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          name: macos-app
           path: release-assets
       - name: Flatten release assets
         run: |
