@@ -107,6 +107,8 @@ codex-relay resume --last --account work --desktop --allow-chatgpt-restart
 
 ## 用量与自动接力
 
+> SwiftUI App 运行期间会在应用内执行自动续跑；退出 App 后停止。以下命令用于内部 CLI 调试。
+
 ```sh
 codex-relay usage
 codex-relay usage --all
