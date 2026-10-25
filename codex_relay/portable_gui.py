@@ -34,6 +34,7 @@ except ImportError:  # pragma: no cover - exercised on minimal CI images
 from . import __version__
 from .i18n import Translator, format_number, normalize_language, system_language
 from .store import Store, default_paths
+from .auto_config import load_auto_settings, save_auto_settings
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -206,6 +207,7 @@ class PortableApp:
         _ACTIVE_LANGUAGE = self.localizer.language
         self._generation = 0
         self.store = Store(default_paths())
+        self.auto_settings = load_auto_settings()
         self.accounts: List[Dict[str, Any]] = []
         self.sessions: List[Dict[str, Any]] = []
         self.status: Dict[str, Any] = {}
@@ -217,6 +219,7 @@ class PortableApp:
         self._build_ui()
         self.show_page("overview")
         self.refresh_overview()
+        self.root.after(60_000, self._auto_refresh_accounts)
 
     def t(self, key: str) -> str:
         return self.localizer(key)
@@ -519,6 +522,36 @@ class PortableApp:
                                bg=p["panel"], fg=p["text"], selectcolor=p["panel2"],
                                activebackground=p["panel"], activeforeground=p["text"],
                                font=("Helvetica", 10), command=self.apply_settings).pack(side="left", padx=(0, 14))
+        auto = self.auto_settings
+        self.auto_enabled_var = tk.BooleanVar(value=bool(auto.get("enabled")))
+        self.auto_prompt_var = tk.StringVar(value=str(auto.get("prompt") or self.t("继续")))
+        self.auto_remaining_var = tk.StringVar(value=str(auto.get("remaining_threshold", 10)))
+        auto_card = tk.Frame(page, bg=p["panel"], highlightthickness=1, highlightbackground=p["line"])
+        auto_card.pack(fill="x", pady=5)
+        tk.Label(auto_card, text=self.t("自动续跑"), bg=p["panel"], fg=p["text"],
+                 font=("Helvetica", 12, "bold"), anchor="w").pack(fill="x", padx=12, pady=(9, 3))
+        tk.Checkbutton(auto_card, text=self.t("启用自动续跑"), variable=self.auto_enabled_var,
+                       bg=p["panel"], fg=p["text"], selectcolor=p["panel2"],
+                       activebackground=p["panel"], activeforeground=p["text"],
+                       font=("Helvetica", 10), anchor="w").pack(fill="x", padx=12)
+        prompt_line = tk.Frame(auto_card, bg=p["panel"])
+        prompt_line.pack(fill="x", padx=12, pady=(6, 3))
+        tk.Label(prompt_line, text=self.t("续跑提示词"), bg=p["panel"], fg=p["muted"],
+                 font=("Helvetica", 10), anchor="w").pack(side="left")
+        tk.Entry(prompt_line, textvariable=self.auto_prompt_var, bg=p["panel2"], fg=p["text"],
+                 insertbackground=p["text"], relief="flat", font=("Helvetica", 10)).pack(
+                     side="left", fill="x", expand=True, padx=(8, 0))
+        remaining_line = tk.Frame(auto_card, bg=p["panel"])
+        remaining_line.pack(fill="x", padx=12, pady=(3, 3))
+        tk.Label(remaining_line, text=self.t("剩余额度阈值（%）"), bg=p["panel"], fg=p["muted"],
+                 font=("Helvetica", 10), anchor="w").pack(side="left")
+        tk.Entry(remaining_line, textvariable=self.auto_remaining_var, width=8, bg=p["panel2"], fg=p["text"],
+                 insertbackground=p["text"], relief="flat", font=("Helvetica", 10)).pack(side="left", padx=(8, 0))
+        tk.Label(auto_card, text=self.t("由 codex-relay auto 守护使用；切换会重启 ChatGPT，需显式确认。"),
+                 bg=p["panel"], fg=p["muted"], font=("Helvetica", 9), anchor="w",
+                 wraplength=700, justify="left").pack(fill="x", padx=12, pady=(2, 0))
+        self._button(auto_card, "保存自动续跑设置", self.save_auto_settings_ui).pack(anchor="w", padx=12, pady=8)
+
         self._button(page, "立即刷新用量", self.refresh_usage).pack(anchor="w", pady=8)
         self._button(page, "打开凭据仓库", self.open_store).pack(anchor="w")
         return page
@@ -551,6 +584,26 @@ class PortableApp:
         self.show_page("settings")
         if hasattr(self, "status_label"):
             self.status_label.configure(text=self.t("就绪"), fg=self._palette()["muted"])
+
+    def save_auto_settings_ui(self) -> None:
+        try:
+            remaining = float(self.auto_remaining_var.get().strip())
+        except ValueError:
+            messagebox.showerror("Codex Relay", self.t("剩余额度阈值必须是数字"))
+            return
+        if not 0 <= remaining <= 100:
+            messagebox.showerror("Codex Relay", self.t("剩余额度阈值必须在 0 到 100 之间"))
+            return
+        prompt = self.auto_prompt_var.get().strip()
+        save_auto_settings(
+            {
+                "enabled": bool(self.auto_enabled_var.get()),
+                "prompt": prompt,
+                "remaining_threshold": remaining,
+            }
+        )
+        self.auto_settings = load_auto_settings()
+        self.status_label.configure(text=self.t("自动续跑设置已保存"), fg=self._palette()["accent"])
 
     def open_store(self) -> None:
         path = self.store.paths.relay_home
@@ -648,19 +701,44 @@ class PortableApp:
             return f"{label}: {percent} ({self.t('剩余') if mode == 'remaining' else self.t('已用')})"
         return "  ·  ".join([one("primary", self.t("5 小时")), one("secondary", self.t("1 周"))])
 
+    def _set_accounts(self, accounts: List[Dict[str, Any]]) -> None:
+        """Replace the account list while preserving the selected account."""
+        previous_id = (self.selected_account or {}).get("id")
+        previous_alias = (self.selected_account or {}).get("alias")
+        self.accounts = accounts
+        self.account_list.delete(0, "end")
+        for account in self.accounts:
+            name = account.get("display_name") or account.get("name") or account.get("alias") or "-"
+            self.account_list.insert("end", f"{name}  ·  {account.get('email') or '-'}")
+        if not self.accounts:
+            self.selected_account = None
+            return
+        selected_index = 0
+        for index, account in enumerate(self.accounts):
+            if previous_id and account.get("id") == previous_id:
+                selected_index = index
+                break
+            if not previous_id and previous_alias and account.get("alias") == previous_alias:
+                selected_index = index
+                break
+        self.account_list.selection_clear(0, "end")
+        self.account_list.selection_set(selected_index)
+        self.select_account()
+
     def refresh_accounts(self) -> None:
         def work() -> Any:
-            return _cli_json(["list", "--json"], timeout=30)
+            # Refresh every profile, not just the selected one. The previous
+            # implementation read the cached list, so an inactive account's
+            # reset quota stayed stale until it was clicked.
+            return _cli_json(["list", "--refresh", "--json"], timeout=180)
         def done(result: Any) -> None:
-            self.accounts = result.get("profiles", [])
-            self.account_list.delete(0, "end")
-            for account in self.accounts:
-                name = account.get("display_name") or account.get("name") or account.get("alias") or "-"
-                self.account_list.insert("end", f"{name}  ·  {account.get('email') or '-'}")
-            if self.accounts:
-                self.account_list.selection_set(0)
-                self.select_account()
+            self._set_accounts(result.get("profiles", []))
         self.async_call(self.t("读取账号…"), work, done)
+
+    def _auto_refresh_accounts(self) -> None:
+        if not self.busy:
+            self.refresh_accounts()
+        self.root.after(60_000, self._auto_refresh_accounts)
 
     def select_account(self) -> None:
         selection = self.account_list.curselection()
@@ -899,11 +977,18 @@ class PortableApp:
         self.session_detail.insert("end", "\n".join(lines))
 
     def refresh_usage(self) -> None:
-        self.async_call(
-            self.t("刷新额度…"),
-            lambda: _cli_json(["usage", "--json"], timeout=180),
-            lambda result: self.refresh_overview() if result else None,
-        )
+        def work() -> Any:
+            # `usage --all` refreshes every profile. `usage` alone targets only
+            # the active account and was the source of the stale-list bug.
+            return _cli_json(["usage", "--all", "--json"], timeout=240)
+
+        def done(result: Any) -> None:
+            if not result:
+                return
+            self._set_accounts(result.get("profiles", []))
+            self.refresh_overview()
+
+        self.async_call(self.t("刷新额度…"), work, done)
 
     def refresh_doctor(self) -> None:
         # `doctor --json` exits 1 when a check fails but still prints the

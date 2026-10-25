@@ -7,7 +7,7 @@
 ## 3 步开始
 
 1. **准备 Codex**：先安装并登录 [Codex CLI](https://github.com/openai/codex)。如果已经能运行 `codex`，这一步可以跳过。
-2. **下载 Codex Relay**：到 [Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest) 选择你的系统，下载后打开/运行即可。
+2. **下载 Codex Relay**：到 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 选择你的系统，下载后打开/运行即可。
 3. **让它自己找 Codex**：打开桌面端，或在终端运行：
 
    ```sh
@@ -30,6 +30,7 @@
 - **原会话继续**：切换账号后恢复同一个 thread，rollout、工具结果、压缩检查点和加密 reasoning 项尽量保留。
 - **安全切换**：账号隔离保存；切换前备份，失败回滚；退出/重启 ChatGPT 必须明确确认。
 - **少折腾**：自动发现 Codex CLI 和数据目录；找不到时有清楚的手动设置入口。
+- **自动续跑**：剩余额度低于阈值时切换账号，并向原 thread 发送可自定义的续跑提示词。
 - **看得懂**：账号、额度、Token、缓存、推理、会话和进程诊断集中在一个界面/CLI。
 - **四种语言**：简体中文、繁體中文、English、日本語。
 
@@ -46,7 +47,7 @@
 
 ## 安装
 
-最新版本与下载：[GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest)。
+最新版本与下载：[GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest)。
 
 ### 从 Release 安装
 
@@ -71,7 +72,7 @@ macOS 解压下载的 `.zip` 后，把 `Codex Relay.app` 拖入“应用程序�
 ### 从源码安装
 
 ```sh
-git clone https://github.com/xiaodianshiuwu/codex-relay.git
+git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
 cd codex-relay
 
 # macOS / Linux
@@ -183,6 +184,24 @@ codex-relay resume <thread-id> --account work --allow-chatgpt-restart
 
 默认不会自动重启 ChatGPT。`switch --cli` / `switch --none` 可以在没有桌面 App 或不允许进程控制的环境中使用；自动化脚本必须显式传递 `--allow-chatgpt-restart`，并自行确保没有其他 Codex 进程共享同一 `CODEX_HOME`。
 
+## 自动续跑
+
+当当前账号的剩余额度低于阈值时，自动切换到仍有额度的账号，并在原 thread 上继续执行。提示词和阈值都可以自定义：
+
+```sh
+# 先看计划，不切换、不重启、不发送提示词
+codex-relay auto --once --remaining-threshold 10 --prompt "继续完成当前任务，不要重做已完成部分" --dry-run
+
+# 确认后启动守护（会重启 ChatGPT，必须显式确认）
+codex-relay auto --enable --remaining-threshold 10 --prompt "继续完成当前任务，不要重做已完成部分" --interval 60 --allow-chatgpt-restart --yes
+```
+
+- 首次启动守护加 `--enable`（或先在桌面设置页勾选“启用自动续跑”）；设置写入 `~/.codex-relay/auto.json`，之后守护会读取这个开关。
+- `--remaining-threshold 10`：剩余额度低于 10% 时准备切换；默认值可在 GUI 设置页修改。
+- `--prompt "..."`：切换成功后通过官方 `codex exec resume` 发到原 thread；留空表示只切号、不续跑。
+- 默认提示词是“继续”；设置保存在 `~/.codex-relay/auto.json`，与 GUI 设置共用。
+- 守护仍然需要显式 `--allow-chatgpt-restart --yes`，不会在后台静默重启 ChatGPT。
+
 ## CLI
 
 ```sh
@@ -250,7 +269,7 @@ Do not treat a successful CI build as proof that every native desktop interactio
 
 ### Install
 
-Download the latest release from [GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest), then choose the asset for your platform:
+Download the latest release from [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest), then choose the asset for your platform:
 
 - macOS SwiftUI: unzip `CodexRelay-*-macOS-SwiftUI.zip` and move the app to Applications.
 - Windows: run `CodexRelay-*-Windows-x86_64.exe`.
@@ -260,7 +279,7 @@ Download the latest release from [GitHub Releases](https://github.com/xiaodiansh
 From source:
 
 ```sh
-git clone https://github.com/xiaodianshiuwu/codex-relay.git
+git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
 cd codex-relay
 ./install.sh          # Windows: .\install.ps1
 codex-relay setup
@@ -303,6 +322,17 @@ codex-relay resume <thread-id> --account work --allow-chatgpt-restart
 
 Read-only commands support `--json`. Use `--lang zh-Hans|zh-Hant|en|ja` to override the UI language.
 
+### Auto-continue
+
+When the remaining quota falls below a threshold, Relay can switch to another usable account and send a custom continuation prompt to the original thread:
+
+```sh
+codex-relay auto --once --remaining-threshold 10 --prompt "Continue the current task; do not redo completed work" --dry-run
+codex-relay auto --enable --remaining-threshold 10 --prompt "Continue the current task; do not redo completed work" --interval 60 --allow-chatgpt-restart --yes
+```
+
+Settings live in `~/.codex-relay/auto.json` and are shared with the desktop settings page. The daemon still requires explicit `--allow-chatgpt-restart --yes`.
+
 ### Security
 
 Never commit `auth.json`, tokens, cookies, account emails, thread IDs or full session logs. If a credential is exposed, revoke/rotate it; deleting a file is not enough. See [SECURITY.md](SECURITY.md), [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
@@ -338,7 +368,7 @@ CI のビルド成功は、すべてのネイティブ GUI 動作を検証済み
 
 ### インストール
 
-[GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest) から環境に合うファイルをダウンロードします。
+[GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) から環境に合うファイルをダウンロードします。
 
 - macOS SwiftUI: `CodexRelay-*-macOS-SwiftUI.zip` を展開して Applications に移動。
 - Windows: `CodexRelay-*-Windows-x86_64.exe` を実行。
@@ -348,7 +378,7 @@ CI のビルド成功は、すべてのネイティブ GUI 動作を検証済み
 ソースからインストールする場合:
 
 ```sh
-git clone https://github.com/xiaodianshiuwu/codex-relay.git
+git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
 cd codex-relay
 ./install.sh          # Windows: .\install.ps1
 codex-relay setup
@@ -391,6 +421,17 @@ codex-relay resume <thread-id> --account work --allow-chatgpt-restart
 
 読み取り専用コマンドは `--json` に対応しています。UI 言語は `--lang zh-Hans|zh-Hant|en|ja` で切り替えられます。
 
+### 自動継続
+
+残り枠がしきい値を下回ったら、別の使用可能なアカウントへ切り替え、元の thread にカスタムの継続プロンプトを送れます：
+
+```sh
+codex-relay auto --once --remaining-threshold 10 --prompt "現在のタスクを続行し、完了済みの作業はやり直さないでください" --dry-run
+codex-relay auto --enable --remaining-threshold 10 --prompt "現在のタスクを続行し、完了済みの作業はやり直さないでください" --interval 60 --allow-chatgpt-restart --yes
+```
+
+設定は `~/.codex-relay/auto.json` に保存され、デスクトップの設定ページと共有されます。デーモンには引き続き明示的な `--allow-chatgpt-restart --yes` が必要です。
+
 ### セキュリティ
 
 `auth.json`、Token、Cookie、アカウントのメールアドレス、thread ID、完全なセッションログを Git にコミットしないでください。漏えいが疑われる場合は、ファイルを削除するだけでなく、必ず認証情報を失効・ローテーションしてください。詳細は [SECURITY.md](SECURITY.md)、[LICENSE](LICENSE)、[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
@@ -426,7 +467,7 @@ CI 建置成功不等於所有原生 GUI 互動都已經驗證。
 
 ### 安裝
 
-從 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-relay/releases/latest) 下載適合的檔案：
+從 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下載適合的檔案：
 
 - macOS SwiftUI：解壓縮 `CodexRelay-*-macOS-SwiftUI.zip`，將 App 拖到「應用程式」。
 - Windows：執行 `CodexRelay-*-Windows-x86_64.exe`。
@@ -436,7 +477,7 @@ CI 建置成功不等於所有原生 GUI 互動都已經驗證。
 從原始碼安裝：
 
 ```sh
-git clone https://github.com/xiaodianshiuwu/codex-relay.git
+git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
 cd codex-relay
 ./install.sh          # Windows: .\install.ps1
 codex-relay setup
@@ -478,6 +519,17 @@ codex-relay resume <thread-id> --account work --allow-chatgpt-restart
 ```
 
 唯讀命令支援 `--json`。可用 `--lang zh-Hans|zh-Hant|en|ja` 覆寫介面語言。
+
+### 自動續跑
+
+當目前帳號的剩餘額度低於閾值時，可以切換到仍有額度的帳號，並將自訂續跑提示詞送到原 thread：
+
+```sh
+codex-relay auto --once --remaining-threshold 10 --prompt "繼續目前任務，不要重做已完成的部分" --dry-run
+codex-relay auto --enable --remaining-threshold 10 --prompt "繼續目前任務，不要重做已完成的部分" --interval 60 --allow-chatgpt-restart --yes
+```
+
+設定保存在 `~/.codex-relay/auto.json`，與桌面設定頁共用。守護仍需要明確加上 `--allow-chatgpt-restart --yes`。
 
 ### 安全性
 

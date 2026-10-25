@@ -96,6 +96,7 @@ def python_sources() -> Iterable[pathlib.Path]:
         ROOT / "codex_relay" / "cli.py",
         ROOT / "codex_relay" / "doctor.py",
         ROOT / "codex_relay" / "usage.py",
+        ROOT / "codex_relay" / "auto_continue.py",
     ]
     return [path for path in paths if path.exists()]
 

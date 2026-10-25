@@ -16,6 +16,8 @@ from typing import Any, Dict, List, Optional
 
 from . import __version__, codex_env
 from .config import load_config, save_config
+from .auto_config import auto_path, load_auto_settings
+from .auto_continue import continue_thread
 from .appserver import login_in_isolated_home
 from .authfile import auth_summary, validate_auth
 from .doctor import check_title, run_doctor
@@ -970,20 +972,30 @@ def cmd_usage(args: argparse.Namespace, store: Store) -> int:
 
 
 # ------------------------------------------------------------------------ auto
+def _used_threshold(args: argparse.Namespace) -> float:
+    """Return the used-percent threshold from the explicit or remaining value."""
+    if getattr(args, "threshold", None) is not None:
+        return max(0.0, min(100.0, float(args.threshold)))
+    remaining = getattr(args, "remaining_threshold", 10.0)
+    return max(0.0, min(100.0, 100.0 - float(remaining)))
+
+
 def _auto_once(store: Store, args: argparse.Namespace) -> int:
     current = store.current_profile()
     if not current:
         raise RelayError(t("当前账号未纳入账号仓库；请先 add --capture"))
     refresh_usage(store, current, timeout=args.timeout)
     used = max_used_percent(current.get("usage"))
+    threshold = _used_threshold(args)
     exhausted = bool((current.get("usage") or {}).get("rate_limit_reached_type"))
-    if used < args.threshold and not exhausted:
+    if used < threshold and not exhausted:
         result = {
             "action": "none",
             "reason": "below-threshold",
             "active": current.get("alias"),
             "max_used_percent": used,
-            "threshold": args.threshold,
+            "threshold": threshold,
+            "remaining_threshold": getattr(args, "remaining_threshold", None),
         }
         if args.json:
             _print_json(result)
@@ -992,7 +1004,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
                 "{alias} 用量 {percent}% 未达到阈值 {threshold}%",
                 alias=current.get("alias"),
                 percent=_pct_value(used, 0),
-                threshold=args.threshold,
+                threshold=threshold,
             ))
         return EXIT_NOTHING
 
@@ -1019,7 +1031,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
             print(t("跳过 {alias}: {error}", alias=candidate.get("alias"), error=tx(str(exc))), file=sys.stderr)
             continue
         usage = candidate.get("usage") or {}
-        if max_used_percent(usage) >= args.threshold or usage.get("rate_limit_reached_type"):
+        if max_used_percent(usage) >= threshold or usage.get("rate_limit_reached_type"):
             print(
                 t(
                     "跳过 {alias}: 已用 {percent}%",
@@ -1046,7 +1058,9 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
         "from": current.get("alias"),
         "to": target.get("alias"),
         "used_percent": used,
-        "threshold": args.threshold,
+        "threshold": threshold,
+        "remaining_threshold": getattr(args, "remaining_threshold", None),
+        "prompt_length": len(str(getattr(args, "prompt", "") or "")),
         "idle": idle,
         "dry_run": args.dry_run,
     }
@@ -1076,7 +1090,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
             print(t("自动接力会重启 ChatGPT，已默认禁用。"))
             print(t("确认要自动重启请显式加 --allow-chatgpt-restart --yes。"))
         return EXIT_BLOCKED
-    switch(
+    switch_result = switch(
         store,
         SwitchOptions(
             target=str(target.get("alias")),
@@ -1089,16 +1103,76 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
         ),
     )
     plan["action"] = "switched"
+    plan["thread_id"] = switch_result.get("thread_id")
+    prompt = str(getattr(args, "prompt", "") or "")
+    if prompt.strip() and plan.get("thread_id"):
+        try:
+            continue_thread(
+                str(plan["thread_id"]),
+                prompt,
+                timeout=float(getattr(args, "continue_timeout", 300.0)),
+            )
+            plan["continued"] = True
+        except RelayError as exc:
+            plan["continued"] = False
+            plan["continue_error"] = tx(str(exc))
+    elif prompt.strip():
+        plan["continued"] = False
+        plan["continue_error"] = t("没有可续跑的会话")
+    else:
+        plan["continued"] = False
     if args.json:
         _print_json(plan)
     else:
         print(t("已自动切换: {from} → {to}", **{"from": current.get("alias"), "to": target.get("alias")}))
-    return EXIT_OK
+        if plan.get("continued"):
+            print(t("已发送续跑提示词"))
+        elif plan.get("continue_error"):
+            print(t("续跑失败：{error}", error=plan["continue_error"]), file=sys.stderr)
+    # A switch without a resumable thread is still a successful switch; the
+    # caller gets a clear warning instead of a false failure.
+    return EXIT_OK if plan.get("continued") or not prompt.strip() or not plan.get("thread_id") else EXIT_ERROR
 
 
 def cmd_auto(args: argparse.Namespace, store: Store) -> int:
+    settings = load_auto_settings()
+    if getattr(args, "enable", False):
+        from .auto_config import save_auto_settings
+        # Persist the settings the user just supplied. A freshly enabled
+        # daemon should continue by default; an explicit --prompt "" still
+        # overrides this for the current invocation below.
+        prompt_value = getattr(args, "prompt", None)
+        if prompt_value is None:
+            prompt_value = settings.get("prompt") or t("继续")
+        enabled_values = {"enabled": True, "prompt": str(prompt_value)}
+        if getattr(args, "remaining_threshold", None) is not None:
+            enabled_values["remaining_threshold"] = float(args.remaining_threshold)
+        if getattr(args, "interval", None) is not None:
+            enabled_values["interval"] = float(args.interval)
+        save_auto_settings(enabled_values)
+        settings = load_auto_settings()
+    explicit_threshold = getattr(args, "threshold", None) is not None
+    explicit_remaining = getattr(args, "remaining_threshold", None) is not None
+    if explicit_threshold and explicit_remaining:
+        raise RelayError(t("--threshold 与 --remaining-threshold 只能指定一个"))
+    if getattr(args, "prompt", None) is None:
+        # An explicit empty prompt in an existing auto.json disables
+        # continuation; only a missing file gets the friendly default.
+        args.prompt = str(settings.get("prompt") or "")
+        if not args.prompt and not auto_path().exists():
+            args.prompt = t("继续")
+    if not explicit_threshold and not explicit_remaining:
+        args.remaining_threshold = float(settings.get("remaining_threshold", 10.0))
+    elif explicit_threshold:
+        args.remaining_threshold = None
+    if getattr(args, "interval", None) is None:
+        args.interval = float(settings.get("interval", 60.0))
+    if getattr(args, "strategy", None) is None:
+        args.strategy = str(settings.get("strategy", "best"))
     if args.once:
         return _auto_once(store, args)
+    if not settings.get("enabled"):
+        raise RelayError(t("自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true"))
     if not args.allow_chatgpt_restart or not args.yes:
         raise RelayError(t(
             "自动接力守护会重启 ChatGPT，已默认禁用。"
@@ -1515,10 +1589,13 @@ def build_parser(translator_: Optional[Translator] = None) -> argparse.ArgumentP
     _add_help(auto, tr)
     _add_lang(auto, tr, suppress=True)
     auto.add_argument("--once", action="store_true")
-    auto.add_argument("--threshold", type=float, default=95.0)
-    auto.add_argument("--strategy", choices=["next", "best"], default="next")
-    auto.add_argument("--interval", type=float, default=60.0)
-    auto.add_argument("--timeout", type=float, default=90.0)
+    auto.add_argument("--enable", action="store_true", help=tr.t("写入配置并启用自动续跑守护"))
+    auto.add_argument("--threshold", type=float, default=None, help=tr.t("已用额度达到多少百分比时切换（与 --remaining-threshold 二选一）"))
+    auto.add_argument("--remaining-threshold", type=float, default=None, help=tr.t("剩余额度低于多少百分比时切换"))
+    auto.add_argument("--prompt", default=None, help=tr.t("切换后发送到原会话的续跑提示词；空字符串表示不续跑"))
+    auto.add_argument("--continue-timeout", type=float, default=300.0, help=tr.t("续跑命令超时秒数"))
+    auto.add_argument("--strategy", choices=["next", "best"], default=None)
+    auto.add_argument("--interval", type=float, default=None)
     auto.add_argument("--dry-run", action="store_true")
     auto.add_argument("--force", action="store_true")
     auto.add_argument(

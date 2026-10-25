@@ -90,6 +90,7 @@ final class AppModel: ObservableObject {
     @Published var accountFilter: String?
     @Published var isRefreshing = false
     @Published var isRefreshingUsage = false
+    private var pendingFullUsageRefresh = false
     @Published var isRefreshingDoctor = false
     @Published var usageSyncError: String?
     @Published var lastUsageSync: Date?
@@ -210,15 +211,15 @@ final class AppModel: ObservableObject {
             }
         }
         // Keep the active account's quota close to real time without spawning
-        // a second app-server. A 10s cadence is cheap and makes the UI track
-        // real usage closely; non-active accounts refresh on selection or via
-        // the full manual refresh.
+        // a second app-server. Non-active accounts are refreshed by the full
+        // pass below; the cadence is short enough that a quota reset is visible
+        // without manually clicking each account.
         usageTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.refreshActiveUsage(auto: true)
             }
         }
-        fullUsageTimer = Timer.scheduledTimer(withTimeInterval: 120, repeats: true) { [weak self] _ in
+        fullUsageTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.refreshUsage(silent: true)
             }
@@ -383,9 +384,21 @@ final class AppModel: ObservableObject {
     }
 
     func refreshUsage(silent: Bool = false) async {
-        guard !isRefreshingUsage, !isSwitching, !isAdding, !isOpeningProcess else { return }
+        guard !isSwitching, !isAdding, !isOpeningProcess else { return }
+        if isRefreshingUsage {
+            // Active-account polling can overlap the 30s full pass. Queue one
+            // retry instead of dropping the pass and leaving other rows stale.
+            pendingFullUsageRefresh = true
+            return
+        }
         isRefreshingUsage = true
-        defer { isRefreshingUsage = false }
+        defer {
+            isRefreshingUsage = false
+            if pendingFullUsageRefresh {
+                pendingFullUsageRefresh = false
+                Task { @MainActor in await self.refreshUsage(silent: true) }
+            }
+        }
         let backend = self.backend
         do {
             let refreshed = try await detached { try backend.listAccounts(refresh: true) }
@@ -816,7 +829,7 @@ final class AppModel: ObservableObject {
             NSWorkspace.shared.open(local)
             return
         }
-        if let remote = URL(string: "https://github.com/xiaodianshiuwu/codex-relay#readme") {
+        if let remote = URL(string: "https://github.com/xiaodianshiuwu/codex-account-relay#readme") {
             NSWorkspace.shared.open(remote)
         } else {
             presentError(L10n.text("打开文档失败"), L10n.text("未找到文档"))

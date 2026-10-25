@@ -50,6 +50,11 @@ struct AccountsView: View {
         .onChange(of: model.selectedAccountID) { _, _ in
             Task { await model.refreshSelectedUsageIfNeeded() }
         }
+        .onAppear {
+            // Refresh every profile, not only the selected row; the list is
+            // shared by the whole page and an inactive account may have reset.
+            Task { await model.refreshUsage(silent: true) }
+        }
     }
 
     private var header: some View {

@@ -135,19 +135,22 @@ codex-relay usage
 codex-relay usage --all
 codex-relay usage --all --json
 codex-relay auto --once --dry-run                    # 只给建议，不执行
+codex-relay auto --once --remaining-threshold 10 --prompt "继续" --dry-run  # 预览阈值和续跑提示词
 codex-relay auto --once --threshold 95 --allow-chatgpt-restart --yes  # 明确允许自动重启
 ```
 
 - 活动账号使用只读 HTTP 用量接口，不启动第二个 app-server，避免 refresh token 竞态。
 - 非活动账号通过隔离官方 app-server 刷新；刷新后的 token 会立即写回。
 - `auto` 默认只建议；不加 `--allow-chatgpt-restart --yes` 不会重启 ChatGPT。
+- `--remaining-threshold` 按剩余额度切换（默认 10%）；`--threshold` 按已用额度切换，两者二选一。
+- 切换成功后，`--prompt` 会通过官方 `codex exec resume` 发到原 thread；留空则只切号。设置保存在 `~/.codex-relay/auto.json`，GUI 设置页与 CLI 共用。
 - 检测到活动轮次时阻止切换；确认可中断时加 `--force`。
 - 退出码：0 已切换/演练成功，2 无需切换，3 被活动轮次或进程控制策略阻止，1 错误。
 
 常驻守护：
 
 ```sh
-codex-relay auto --threshold 95 --interval 60
+codex-relay auto --enable --remaining-threshold 10 --prompt "继续" --interval 60 --allow-chatgpt-restart --yes
 ```
 
 ## 跨平台桌面 GUI（Windows / Linux / macOS fallback）

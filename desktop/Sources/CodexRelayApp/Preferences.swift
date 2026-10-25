@@ -82,6 +82,9 @@ final class AppPreferences: ObservableObject {
         static let numberFormat = "relay.numberFormat"
         static let appearance = "relay.appearance"
         static let language = "relay.language"
+        static let autoEnabled = "relay.autoEnabled"
+        static let autoPrompt = "relay.autoPrompt"
+        static let autoRemaining = "relay.autoRemaining"
     }
 
     private let defaults = UserDefaults.standard
@@ -105,6 +108,24 @@ final class AppPreferences: ObservableObject {
         }
     }
 
+    /// These values are mirrored to ~/.codex-relay/auto.json so the CLI
+    /// `codex-relay auto` daemon and the desktop settings use one source of
+    /// truth. They contain no credentials.
+    @Published var autoContinueEnabled: Bool {
+        didSet { defaults.set(autoContinueEnabled, forKey: Keys.autoEnabled); persistAutoSettings() }
+    }
+    @Published var autoContinuePrompt: String {
+        didSet { defaults.set(autoContinuePrompt, forKey: Keys.autoPrompt); persistAutoSettings() }
+    }
+    @Published var autoRemainingThreshold: Double {
+        didSet {
+            let clamped = min(100, max(0, autoRemainingThreshold))
+            if clamped != autoRemainingThreshold { autoRemainingThreshold = clamped; return }
+            defaults.set(autoRemainingThreshold, forKey: Keys.autoRemaining)
+            persistAutoSettings()
+        }
+    }
+
     init() {
         let quotaRaw = defaults.string(forKey: Keys.quotaDisplay)
         let numberRaw = defaults.string(forKey: Keys.numberFormat)
@@ -114,12 +135,62 @@ final class AppPreferences: ObservableObject {
         numberFormatMode = NumberFormatMode(rawValue: numberRaw ?? "") ?? .full
         appearance = RelayAppearance(rawValue: appearanceRaw ?? "") ?? .dark
         language = AppLanguage(rawValue: languageRaw ?? "") ?? .systemDefault
+        let auto = AutoSettingsFile.load()
+        autoContinueEnabled = defaults.object(forKey: Keys.autoEnabled) as? Bool ?? auto.enabled
+        autoContinuePrompt = defaults.string(forKey: Keys.autoPrompt) ?? (auto.prompt.isEmpty ? L10n.text("继续") : auto.prompt)
+        autoRemainingThreshold = defaults.object(forKey: Keys.autoRemaining) as? Double ?? auto.remainingThreshold
         L10n.language = language
         AppAppearance.apply(appearance)
     }
 
     var preferredColorScheme: ColorScheme? {
         appearance.colorScheme
+    }
+
+    private func persistAutoSettings() {
+        guard autoContinuePrompt.count <= 4000 else { return }
+        AutoSettingsFile(
+            enabled: autoContinueEnabled,
+            prompt: autoContinuePrompt,
+            remainingThreshold: autoRemainingThreshold,
+            interval: 60,
+            strategy: "best"
+        ).save()
+    }
+}
+
+private struct AutoSettingsFile: Codable {
+    var enabled: Bool
+    var prompt: String
+    var remainingThreshold: Double
+    var interval: Double
+    var strategy: String
+
+    enum CodingKeys: String, CodingKey {
+        case enabled, prompt, interval, strategy
+        case remainingThreshold = "remaining_threshold"
+    }
+
+    static var url: URL {
+        FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".codex-relay", isDirectory: true)
+            .appendingPathComponent("auto.json")
+    }
+
+    static func load() -> AutoSettingsFile {
+        guard let data = try? Data(contentsOf: url),
+              let value = try? JSONDecoder().decode(AutoSettingsFile.self, from: data) else {
+            return AutoSettingsFile(enabled: false, prompt: "", remainingThreshold: 10, interval: 60, strategy: "best")
+        }
+        return value
+    }
+
+    func save() {
+        let directory = Self.url.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        guard let data = try? JSONEncoder().encode(self) else { return }
+        try? data.write(to: Self.url, options: [.atomic])
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: Self.url.path)
     }
 }
 

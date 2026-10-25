@@ -59,6 +59,12 @@
     "zh-Hans": "--last 与显式会话 ID 不能同时使用",
     "zh-Hant": "--last 與明確的工作階段 ID 不能同時使用"
   },
+  "--threshold 与 --remaining-threshold 只能指定一个": {
+    "en": "Specify only one of --threshold and --remaining-threshold.",
+    "ja": "--threshold と --remaining-threshold はどちらか一方だけ指定してください。",
+    "zh-Hans": "--threshold 与 --remaining-threshold 只能指定一个",
+    "zh-Hant": "--threshold 與 --remaining-threshold 只能指定一個"
+  },
   "5 小时 {primary} · 1 周 {secondary}": {
     "en": "5h {primary} · 1w {secondary}",
     "ja": "5時間 {primary} · 1週間 {secondary}",
@@ -76,6 +82,18 @@
     "ja": "App は起動しましたが、app-server が 45 秒以内に準備完了しませんでした",
     "zh-Hans": "App 已启动，但 app-server 未在 45 秒内就绪",
     "zh-Hant": "App 已啟動，但 app-server 未在 45 秒內就緒"
+  },
+  "AppleScript 退出失败，尝试发送终止信号": {
+    "en": "AppleScript quit failed; trying to send a termination signal.",
+    "ja": "AppleScript による終了に失敗したため、終了シグナルを送信します。",
+    "zh-Hans": "AppleScript 退出失败，尝试发送终止信号",
+    "zh-Hant": "AppleScript 結束失敗，嘗試傳送終止訊號。"
+  },
+  "AppleScript 退出超时：{error}": {
+    "en": "AppleScript quit timed out: {error}",
+    "ja": "AppleScript の終了がタイムアウトしました：{error}",
+    "zh-Hans": "AppleScript 退出超时：{error}",
+    "zh-Hant": "AppleScript 結束逾時：{error}"
   },
   "CLI": {
     "en": "CLI",
@@ -136,6 +154,12 @@
     "ja": "Codex のマルチアカウント引き継ぎ：元のセッションの復元、コンテキストと推論状態の継承、キャッシュと利用枠の診断。",
     "zh-Hans": "Codex 多账号接力：原会话恢复、上下文/推理状态继承、缓存与用量诊断。",
     "zh-Hant": "Codex 多帳號接力：原工作階段還原、上下文／推理狀態繼承、快取與用量診斷。"
+  },
+  "Codex 数据目录：{path}": {
+    "en": "Codex data directory: {path}",
+    "ja": "Codex データディレクトリ：{path}",
+    "zh-Hans": "Codex 数据目录：{path}",
+    "zh-Hant": "Codex 資料目錄：{path}"
   },
   "Refresh token": {
     "en": "Refresh token",
@@ -485,6 +509,12 @@
     "zh-Hans": "共享 daemon: {status}",
     "zh-Hant": "共用 daemon：{status}"
   },
+  "其他 Codex 进程仍在运行：{listing}（--force）": {
+    "en": "Other Codex processes are still running: {listing} (--force)",
+    "ja": "他の Codex プロセスがまだ実行中です：{listing}（--force）",
+    "zh-Hans": "其他 Codex 进程仍在运行：{listing}（--force）",
+    "zh-Hant": "其他 Codex 程序仍在執行：{listing}（--force）"
+  },
   "其他进程": {
     "en": "Other process",
     "ja": "その他のプロセス",
@@ -509,6 +539,12 @@
     "zh-Hans": "写入后 auth.json 身份与目标账号不一致",
     "zh-Hant": "寫入後 auth.json 身分與目標帳號不一致"
   },
+  "写入配置并启用自动续跑守护": {
+    "en": "Persist the setting and enable the auto-continue daemon.",
+    "ja": "設定を保存して自動継続デーモンを有効にします。",
+    "zh-Hans": "写入配置并启用自动续跑守护",
+    "zh-Hant": "寫入設定並啟用自動續跑守護"
+  },
   "凭据 account_id 与元数据不一致": {
     "en": "Credential account_id does not match the metadata",
     "ja": "認証情報の account_id がメタデータと一致しません",
@@ -527,11 +563,29 @@
     "zh-Hans": "切换前最后一轮:",
     "zh-Hant": "切換前最後一輪："
   },
+  "切换前没有 auth.json，已移除新写入的文件": {
+    "en": "There was no auth.json before the switch; the newly written file was removed.",
+    "ja": "切り替え前に auth.json がなかったため、新しく書き込んだファイルを削除しました。",
+    "zh-Hans": "切换前没有 auth.json，已移除新写入的文件",
+    "zh-Hant": "切換前沒有 auth.json，已移除新寫入的檔案。"
+  },
+  "切换后发送到原会话的续跑提示词；空字符串表示不续跑": {
+    "en": "Prompt sent to the original thread after switching; an empty string disables continuation.",
+    "ja": "切り替え後に元の thread へ送る継続プロンプト。空文字なら継続しません。",
+    "zh-Hans": "切换后发送到原会话的续跑提示词；空字符串表示不续跑",
+    "zh-Hant": "切換後傳送到原會話的續跑提示詞；空字串表示不續跑"
+  },
   "切换后第一轮:": {
     "en": "First turn after the switch:",
     "ja": "切り替え後の最初のターン：",
     "zh-Hans": "切换后第一轮:",
     "zh-Hant": "切換後第一輪："
+  },
+  "切换失败：{error}": {
+    "en": "Switch failed: {error}",
+    "ja": "切り替えに失敗しました：{error}",
+    "zh-Hans": "切换失败：{error}",
+    "zh-Hant": "切換失敗：{error}"
   },
   "切换账号并（桌面模式）重启 App、恢复原会话": {
     "en": "Switch accounts and, in desktop mode, restart the app and restore the original session",
@@ -605,11 +659,23 @@
     "zh-Hans": "刷新 {alias} ...",
     "zh-Hant": "重新整理 {alias} ..."
   },
+  "刷新后的凭据账号身份发生变化：{original} -> {refreshed}；已拒绝写回。": {
+    "en": "The refreshed credentials changed account identity: {original} -> {refreshed}; write-back was refused.",
+    "ja": "更新後の認証情報でアカウント ID が変化しました：{original} -> {refreshed}。書き戻しを拒否しました。",
+    "zh-Hans": "刷新后的凭据账号身份发生变化：{original} -> {refreshed}；已拒绝写回。",
+    "zh-Hant": "重新整理後的憑證帳號身分發生變化：{original} -> {refreshed}；已拒絕寫回。"
+  },
   "刷新用量: {alias} ...": {
     "en": "Refreshing usage: {alias} ...",
     "ja": "使用量を更新中：{alias} ...",
     "zh-Hans": "刷新用量: {alias} ...",
     "zh-Hant": "重新整理用量：{alias} ..."
+  },
+  "剩余额度低于多少百分比时切换": {
+    "en": "Switch when remaining quota falls below this percentage.",
+    "ja": "残り枠がこの割合を下回ったら切り替えます。",
+    "zh-Hans": "剩余额度低于多少百分比时切换",
+    "zh-Hant": "剩餘額度低於多少百分比時切換"
   },
   "加密推理项: {count} 个 · {size}": {
     "en": "Encrypted reasoning items: {count} · {size}",
@@ -731,6 +797,18 @@
     "zh-Hans": "命令超时（{seconds}s）：{command}",
     "zh-Hant": "指令逾時（{seconds}s）：{command}"
   },
+  "回滚时启动 App 失败：{error}": {
+    "en": "Failed to launch the app during rollback: {error}",
+    "ja": "ロールバック中の App 起動に失敗しました：{error}",
+    "zh-Hans": "回滚时启动 App 失败：{error}",
+    "zh-Hant": "回滾時啟動 App 失敗：{error}"
+  },
+  "回滚：{notes}": {
+    "en": "Rollback: {notes}",
+    "ja": "ロールバック：{notes}",
+    "zh-Hans": "回滚：{notes}",
+    "zh-Hant": "回滾：{notes}"
+  },
   "备份: {path}": {
     "en": "Backup: {path}",
     "ja": "バックアップ：{path}",
@@ -748,6 +826,12 @@
     "ja": "ChatGPT App を安全に再起動してセッションを復元",
     "zh-Hans": "安全重启 ChatGPT App 并恢复会话",
     "zh-Hant": "安全重新啟動 ChatGPT App 並還原工作階段"
+  },
+  "安装说明：https://github.com/openai/codex": {
+    "en": "Installation guide: https://github.com/openai/codex",
+    "ja": "インストールガイド：https://github.com/openai/codex",
+    "zh-Hans": "安装说明：https://github.com/openai/codex",
+    "zh-Hant": "安裝說明：https://github.com/openai/codex"
   },
   "对比切换前后首轮缓存与输入 token": {
     "en": "Compare first-turn cache and input tokens before and after a switch",
@@ -767,6 +851,18 @@
     "zh-Hans": "尚未创建状态文件",
     "zh-Hant": "尚未建立狀態檔案"
   },
+  "尚未替换 auth.json，无需回滚": {
+    "en": "auth.json was not replaced; no rollback is needed.",
+    "ja": "auth.json はまだ置き換えられていないため、ロールバックは不要です。",
+    "zh-Hans": "尚未替换 auth.json，无需回滚",
+    "zh-Hant": "尚未替換 auth.json，無需回滾。"
+  },
+  "尚未替换 auth.json；已重新启动 ChatGPT App": {
+    "en": "auth.json was not replaced; ChatGPT App was restarted.",
+    "ja": "auth.json は置き換えず、ChatGPT App を再起動しました。",
+    "zh-Hans": "尚未替换 auth.json；已重新启动 ChatGPT App",
+    "zh-Hant": "尚未替換 auth.json；已重新啟動 ChatGPT App。"
+  },
   "已中断": {
     "en": "Interrupted",
     "ja": "中断しました",
@@ -778,6 +874,12 @@
     "ja": "アカウントを保存しました：{alias} · {email} [{plan}]",
     "zh-Hans": "已保存账号: {alias} · {email} [{plan}]",
     "zh-Hant": "已儲存帳號：{alias} · {email} [{plan}]"
+  },
+  "已停止共享 app-server daemon：{note}": {
+    "en": "Stopped the shared app-server daemon: {note}",
+    "ja": "共有 app-server daemon を停止しました：{note}",
+    "zh-Hans": "已停止共享 app-server daemon：{note}",
+    "zh-Hant": "已停止共享 app-server daemon：{note}"
   },
   "已切换: {from} → {to} ({email})": {
     "en": "Switched: {from} → {to} ({email})",
@@ -791,6 +893,12 @@
     "zh-Hans": "已删除账号 {alias}",
     "zh-Hant": "已刪除帳號 {alias}"
   },
+  "已发送续跑提示词": {
+    "en": "Continuation prompt sent.",
+    "ja": "継続プロンプトを送信しました。",
+    "zh-Hans": "已发送续跑提示词",
+    "zh-Hant": "已傳送續跑提示詞"
+  },
   "已取消（未触碰 ChatGPT）": {
     "en": "Cancelled (ChatGPT was not touched)",
     "ja": "キャンセルしました（ChatGPT には触れていません）",
@@ -802,6 +910,12 @@
     "ja": "現在の auth.json を同期しました → {alias}（{email}、refresh {time}）",
     "zh-Hans": "已同步当前 auth.json → {alias} ({email}, refresh {time})",
     "zh-Hant": "已同步目前 auth.json → {alias}（{email}，refresh {time}）"
+  },
+  "已向桌面 Codex 进程 {pid} 发送终止请求": {
+    "en": "Sent a termination request to desktop Codex process {pid}.",
+    "ja": "デスクトップ Codex プロセス {pid} に終了要求を送信しました。",
+    "zh-Hans": "已向桌面 Codex 进程 {pid} 发送终止请求",
+    "zh-Hant": "已向桌面 Codex 程序 {pid} 傳送終止請求。"
   },
   "已在桌面 App 打开会话 {thread_id}": {
     "en": "Opened session {thread_id} in the desktop app",
@@ -821,11 +935,35 @@
     "zh-Hans": "已导出 {alias} 到 {path}（0600，包含 refresh token）",
     "zh-Hant": "已匯出 {alias} 到 {path}（0600，包含 refresh token）"
   },
+  "已强制结束进程 {pid}": {
+    "en": "Force-ended process {pid}.",
+    "ja": "プロセス {pid} を強制終了しました。",
+    "zh-Hans": "已强制结束进程 {pid}",
+    "zh-Hant": "已強制結束程序 {pid}。"
+  },
+  "已恢复切换前的 auth.json": {
+    "en": "Restored the previous auth.json.",
+    "ja": "切り替え前の auth.json を復元しました。",
+    "zh-Hans": "已恢复切换前的 auth.json",
+    "zh-Hant": "已還原切換前的 auth.json。"
+  },
+  "已恢复切换前的 state.json": {
+    "en": "Restored the previous state.json.",
+    "ja": "切り替え前の state.json を復元しました。",
+    "zh-Hans": "已恢复切换前的 state.json",
+    "zh-Hant": "已還原切換前的 state.json。"
+  },
   "已打开会话 {thread_id}": {
     "en": "Opened session {thread_id}",
     "ja": "セッション {thread_id} を開きました",
     "zh-Hans": "已打开会话 {thread_id}",
     "zh-Hant": "已開啟工作階段 {thread_id}"
+  },
+  "已找到 Codex CLI：{path}": {
+    "en": "Found Codex CLI: {path}",
+    "ja": "Codex CLI が見つかりました：{path}",
+    "zh-Hans": "已找到 Codex CLI：{path}",
+    "zh-Hant": "已找到 Codex CLI：{path}"
   },
   "已找到账号 {alias}": {
     "en": "Found account {alias}",
@@ -838,6 +976,18 @@
     "ja": "一時ディレクトリを削除しました",
     "zh-Hans": "已清理残留临时目录",
     "zh-Hant": "已清理殘留暫存目錄"
+  },
+  "已清除手动 Codex 配置，将重新使用自动发现。": {
+    "en": "Manual Codex settings cleared; automatic discovery will be used again.",
+    "ja": "手動 Codex 設定を削除しました。自動検出に戻ります。",
+    "zh-Hans": "已清除手动 Codex 配置，将重新使用自动发现。",
+    "zh-Hant": "已清除手動 Codex 設定，將重新使用自動偵測。"
+  },
+  "已用额度达到多少百分比时切换（与 --remaining-threshold 二选一）": {
+    "en": "Switch when used quota reaches this percentage (mutually exclusive with --remaining-threshold).",
+    "ja": "使用済み枠がこの割合に達したら切り替えます（--remaining-threshold とは排他）。",
+    "zh-Hans": "已用额度达到多少百分比时切换（与 --remaining-threshold 二选一）",
+    "zh-Hant": "已用額度達到多少百分比時切換（與 --remaining-threshold 二選一）"
   },
   "已禁止擅自{action} ChatGPT。只有在你明确确认后，才允许执行重启/退出；CLI 请加 --allow-chatgpt-restart，GUI 请在确认框勾选。": {
     "en": "Refused to {action} ChatGPT without explicit confirmation. Only restart/quit after you confirm; add --allow-chatgpt-restart in the CLI, or tick the checkbox in the GUI.",
@@ -869,6 +1019,12 @@
     "zh-Hans": "已重命名: {alias}",
     "zh-Hant": "已重新命名：{alias}"
   },
+  "已重新启动 ChatGPT App": {
+    "en": "ChatGPT App was restarted.",
+    "ja": "ChatGPT App を再起動しました。",
+    "zh-Hans": "已重新启动 ChatGPT App",
+    "zh-Hant": "已重新啟動 ChatGPT App。"
+  },
   "建议将 ~/.codex-relay 设为 0700": {
     "en": "Set ~/.codex-relay to mode 0700",
     "ja": "~/.codex-relay を 0700 に設定してください",
@@ -893,11 +1049,23 @@
     "zh-Hans": "当前 auth.json 尚未纳入 relay 管理；切换时会自动捕获",
     "zh-Hant": "目前 auth.json 尚未納入 relay 管理；切換時會自動擷取"
   },
+  "当前 config.toml 设置 cli_auth_credentials_store=keyring；本工具需要 auth.json。请改为 file 后重试。": {
+    "en": "config.toml sets cli_auth_credentials_store=keyring; this tool requires auth.json. Change it to file and retry.",
+    "ja": "config.toml で cli_auth_credentials_store=keyring が設定されています。このツールには auth.json が必要です。file に変更して再試行してください。",
+    "zh-Hans": "当前 config.toml 设置 cli_auth_credentials_store=keyring；本工具需要 auth.json。请改为 file 后重试。",
+    "zh-Hant": "目前 config.toml 設定 cli_auth_credentials_store=keyring；本工具需要 auth.json。請改為 file 後重試。"
+  },
   "当前 config.toml 设置 cli_auth_credentials_store=keyring；本工具需要 auth.json。请改为 file（或 auto 且确认回退到 file）后重试。": {
     "en": "config.toml sets cli_auth_credentials_store=keyring; this tool needs auth.json. Change it to file (or auto with a confirmed file fallback) and try again.",
     "ja": "config.toml で cli_auth_credentials_store=keyring が設定されています。このツールは auth.json を必要とします。file（または file へのフォールバックを確認した auto）に変更して再試行してください。",
     "zh-Hans": "当前 config.toml 设置 cli_auth_credentials_store=keyring；本工具需要 auth.json。请改为 file（或 auto 且确认回退到 file）后重试。",
     "zh-Hant": "目前 config.toml 設定 cli_auth_credentials_store=keyring；本工具需要 auth.json。請改為 file（或 auto 並確認回退到 file）後重試。"
+  },
+  "当前有活动轮次，实际执行会被阻止：{detail}": {
+    "en": "An active turn is present; execution would be blocked: {detail}",
+    "ja": "現在アクティブなターンがあるため、実行はブロックされます：{detail}",
+    "zh-Hans": "当前有活动轮次，实际执行会被阻止：{detail}",
+    "zh-Hant": "目前有活動輪次，實際執行會被阻止：{detail}"
   },
   "当前未登录 Codex。": {
     "en": "Not signed in to Codex.",
@@ -971,6 +1139,18 @@
     "zh-Hans": "或使用 `codex-relay add <别名>` 登录另一个账号。",
     "zh-Hant": "或使用 `codex-relay add <別名>` 登入另一個帳號。"
   },
+  "手动指定 Codex 数据目录（默认 ~/.codex）": {
+    "en": "Manually specify the Codex data directory (default ~/.codex)",
+    "ja": "Codex データディレクトリを手動指定（既定 ~/.codex）",
+    "zh-Hans": "手动指定 Codex 数据目录（默认 ~/.codex）",
+    "zh-Hant": "手動指定 Codex 資料目錄（預設 ~/.codex）"
+  },
+  "手动指定 codex 可执行文件路径": {
+    "en": "Manually specify the codex executable path",
+    "ja": "codex 実行ファイルのパスを手動指定",
+    "zh-Hans": "手动指定 codex 可执行文件路径",
+    "zh-Hant": "手動指定 codex 執行檔路徑"
+  },
   "打开": {
     "en": "open",
     "ja": "オープン",
@@ -996,8 +1176,8 @@
     "zh-Hant": "找不到 codex CLI，請先安裝 Codex"
   },
   "找不到 codex CLI，请先安装 Codex 或设置 CODEX_RELAY_CODEX": {
-    "en": "Codex CLI not found; install Codex or set CODEX_RELAY_CODEX",
-    "ja": "codex CLI が見つかりません。Codex をインストールするか CODEX_RELAY_CODEX を設定してください",
+    "en": "Codex CLI was not found. Install Codex or set CODEX_RELAY_CODEX.",
+    "ja": "Codex CLI が見つかりません。Codex をインストールするか CODEX_RELAY_CODEX を設定してください。",
     "zh-Hans": "找不到 codex CLI，请先安装 Codex 或设置 CODEX_RELAY_CODEX",
     "zh-Hant": "找不到 codex CLI，請先安裝 Codex 或設定 CODEX_RELAY_CODEX"
   },
@@ -1018,6 +1198,18 @@
     "ja": "現在の auth.json の最新トークンを有効なアカウントストアへ書き戻す",
     "zh-Hans": "把当前 auth.json 的最新 token 写回活动账号仓库",
     "zh-Hant": "將目前 auth.json 的最新 token 寫回使用中帳號倉庫"
+  },
+  "指定的 Codex CLI 不存在或不是文件：{path}": {
+    "en": "The specified Codex CLI does not exist or is not a file: {path}",
+    "ja": "指定された Codex CLI が存在しないか、ファイルではありません：{path}",
+    "zh-Hans": "指定的 Codex CLI 不存在或不是文件：{path}",
+    "zh-Hant": "指定的 Codex CLI 不存在或不是檔案：{path}"
+  },
+  "指定的 Codex 数据目录不存在：{path}": {
+    "en": "The specified Codex data directory does not exist: {path}",
+    "ja": "指定された Codex データディレクトリが存在しません：{path}",
+    "zh-Hans": "指定的 Codex 数据目录不存在：{path}",
+    "zh-Hant": "指定的 Codex 資料目錄不存在：{path}"
   },
   "捕获当前 auth.json，不打开浏览器": {
     "en": "Capture the current auth.json without opening a browser",
@@ -1205,6 +1397,12 @@
     "zh-Hans": "未找到 ChatGPT/Codex 桌面 App",
     "zh-Hant": "找不到 ChatGPT/Codex 桌面 App"
   },
+  "未找到 Codex CLI。请先安装 Codex，或用 --codex <路径> 指定可执行文件。": {
+    "en": "Codex CLI was not found. Install Codex, or specify the executable with --codex <path>.",
+    "ja": "Codex CLI が見つかりません。Codex をインストールするか、--codex <パス> で実行ファイルを指定してください。",
+    "zh-Hans": "未找到 Codex CLI。请先安装 Codex，或用 --codex <路径> 指定可执行文件。",
+    "zh-Hant": "找不到 Codex CLI。請先安裝 Codex，或用 --codex <路徑> 指定執行檔。"
+  },
   "未找到可启动的桌面 App": {
     "en": "No launchable desktop app was found",
     "ja": "起動可能なデスクトップ App が見つかりません",
@@ -1295,6 +1493,12 @@
     "zh-Hans": "桌面",
     "zh-Hant": "桌面"
   },
+  "桌面 App 正在运行；--force 将只替换文件，运行中的 App 不会被热切换": {
+    "en": "The desktop app is running; --force will only replace files and will not hot-switch the running app.",
+    "ja": "デスクトップ App が実行中です。--force はファイルの置き換えのみを行い、実行中の App をホットスイッチしません。",
+    "zh-Hans": "桌面 App 正在运行；--force 将只替换文件，运行中的 App 不会被热切换",
+    "zh-Hant": "桌面 App 正在執行；--force 只會替換檔案，不會熱切換執行中的 App。"
+  },
   "桌面 App 正在运行；--no-restart 下无法安全替换 auth.json": {
     "en": "The desktop app is running; auth.json cannot be replaced safely with --no-restart",
     "ja": "デスクトップ App が実行中です。--no-restart では auth.json を安全に置き換えられません",
@@ -1373,6 +1577,12 @@
     "zh-Hans": "检测到可能正在执行的轮次，未切换：",
     "zh-Hant": "偵測到可能正在執行的輪次，未切換："
   },
+  "检测并保存 Codex CLI/数据目录": {
+    "en": "Detect and save the Codex CLI/data directory",
+    "ja": "Codex CLI とデータディレクトリを検出して保存",
+    "zh-Hans": "检测并保存 Codex CLI/数据目录",
+    "zh-Hant": "偵測並儲存 Codex CLI/資料目錄"
+  },
   "模式": {
     "en": "Mode",
     "ja": "モード",
@@ -1414,6 +1624,12 @@
     "ja": "他に利用可能なアカウントがありません",
     "zh-Hans": "没有其他可用账号",
     "zh-Hant": "沒有其他可用帳號"
+  },
+  "没有可续跑的会话": {
+    "en": "There is no resumable session.",
+    "ja": "継続できるセッションがありません。",
+    "zh-Hans": "没有可续跑的会话",
+    "zh-Hant": "沒有可續跑的會話"
   },
   "没有找到可恢复的会话": {
     "en": "No session available to restore",
@@ -1475,11 +1691,23 @@
     "zh-Hans": "添加账号（隔离 CODEX_HOME 登录，或捕获当前账号）",
     "zh-Hant": "新增帳號（以隔離的 CODEX_HOME 登入，或擷取目前帳號）"
   },
+  "清除手动配置，恢复自动发现": {
+    "en": "Clear manual settings and restore automatic discovery",
+    "ja": "手動設定を削除して自動検出に戻す",
+    "zh-Hans": "清除手动配置，恢复自动发现",
+    "zh-Hant": "清除手動設定，恢復自動偵測"
+  },
   "源文件仍可能包含凭据；确认不再需要后请自行安全删除。": {
     "en": "The source file may still contain credentials; delete it securely once you no longer need it.",
     "ja": "元のファイルには認証情報が残っている可能性があります。不要になったら安全に削除してください。",
     "zh-Hans": "源文件仍可能包含凭据；确认不再需要后请自行安全删除。",
     "zh-Hant": "來源檔案仍可能包含憑證；確認不再需要後請自行安全刪除。"
+  },
+  "版本：{version}": {
+    "en": "Version: {version}",
+    "ja": "バージョン：{version}",
+    "zh-Hans": "版本：{version}",
+    "zh-Hant": "版本：{version}"
   },
   "状态文件损坏：{path}（{error}）": {
     "en": "The state file is corrupted: {path} ({error})",
@@ -1613,6 +1841,24 @@
     "zh-Hans": "结果: {failures} 个失败 · {warnings} 个警告 · {state}",
     "zh-Hant": "結果：{failures} 個失敗 · {warnings} 個警告 · {state}"
   },
+  "续跑命令超时秒数": {
+    "en": "Continuation command timeout in seconds.",
+    "ja": "継続コマンドのタイムアウト秒数。",
+    "zh-Hans": "续跑命令超时秒数",
+    "zh-Hant": "續跑命令逾時秒數"
+  },
+  "续跑失败（退出码 {code}）：{detail}": {
+    "en": "Continuation failed (exit code {code}): {detail}",
+    "ja": "継続に失敗しました（終了コード {code}）：{detail}",
+    "zh-Hans": "续跑失败（退出码 {code}）：{detail}",
+    "zh-Hant": "續跑失敗（退出碼 {code}）：{detail}"
+  },
+  "续跑失败：{error}": {
+    "en": "Continuation failed: {error}",
+    "ja": "継続に失敗しました：{error}",
+    "zh-Hans": "续跑失败：{error}",
+    "zh-Hant": "續跑失敗：{error}"
+  },
   "缓存命中率下降: {points} 个百分点": {
     "en": "Cache hit-rate drop: {points} percentage points",
     "ja": "キャッシュ命中率の低下：{points} ポイント",
@@ -1637,6 +1883,12 @@
     "zh-Hans": "缺少必需参数：{names}",
     "zh-Hant": "缺少必要參數：{names}"
   },
+  "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。": {
+    "en": "Automatic discovery works. To pin a custom path, run codex-relay setup --codex <path> --codex-home <directory>.",
+    "ja": "自動検出を利用できます。カスタムパスを固定するには codex-relay setup --codex <パス> --codex-home <ディレクトリ> を実行してください。",
+    "zh-Hans": "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。",
+    "zh-Hant": "自動偵測可用；如需固定自訂路徑，請執行 codex-relay setup --codex <路徑> --codex-home <目錄>。"
+  },
   "自动接力会重启 ChatGPT，已默认禁用。": {
     "en": "Auto handoff restarts ChatGPT and is disabled by default.",
     "ja": "自動引き継ぎは ChatGPT を再起動するため、既定では無効です。",
@@ -1654,6 +1906,12 @@
     "ja": "自動引き継ぎデーモンを開始しました（しきい値 {threshold}%、間隔 {interval}s）。Ctrl-C で終了します。",
     "zh-Hans": "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。",
     "zh-Hant": "自動接力守護已啟動（閾值 {threshold}%，間隔 {interval}s）。按 Ctrl-C 結束。"
+  },
+  "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true": {
+    "en": "Auto-continue is not enabled. Enable it in Settings or set enabled to true in auto.json.",
+    "ja": "自動継続が有効になっていません。設定ページで有効にするか、auto.json の enabled を true にしてください。",
+    "zh-Hans": "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true",
+    "zh-Hant": "自動續跑未啟用；請先在設定頁啟用，或將 auto.json 的 enabled 設為 true"
   },
   "要恢复的会话 ID，或 last/none": {
     "en": "Session ID to restore, or last/none",
@@ -1883,6 +2141,12 @@
     "zh-Hans": "重命名账号别名",
     "zh-Hant": "重新命名帳號別名"
   },
+  "重新启动 App 失败：{error}": {
+    "en": "Failed to restart the app: {error}",
+    "ja": "App の再起動に失敗しました：{error}",
+    "zh-Hans": "重新启动 App 失败：{error}",
+    "zh-Hant": "重新啟動 App 失敗：{error}"
+  },
   "错误": {
     "en": "Error",
     "ja": "エラー",
@@ -1894,6 +2158,12 @@
     "ja": "再サインインが必要",
     "zh-Hans": "需重新登录",
     "zh-Hant": "需重新登入"
+  },
+  "非 JSON 输出: {text}": {
+    "en": "Non-JSON output: {text}",
+    "ja": "JSON 以外の出力：{text}",
+    "zh-Hans": "非 JSON 输出: {text}",
+    "zh-Hant": "非 JSON 輸出：{text}"
   },
   "额度阈值自动接力（可 --once 用于 turn 边界）": {
     "en": "Automatic quota-threshold handoff (use --once at turn boundaries)",
@@ -1912,209 +2182,5 @@
     "ja": "、{time} にリセット",
     "zh-Hans": "，{time} 重置",
     "zh-Hant": "，{time} 重置"
-  },
-  "桌面 App 正在运行；--force 将只替换文件，运行中的 App 不会被热切换": {
-    "zh-Hans": "桌面 App 正在运行；--force 将只替换文件，运行中的 App 不会被热切换",
-    "zh-Hant": "桌面 App 正在執行；--force 只會替換檔案，不會熱切換執行中的 App。",
-    "en": "The desktop app is running; --force will only replace files and will not hot-switch the running app.",
-    "ja": "デスクトップ App が実行中です。--force はファイルの置き換えのみを行い、実行中の App をホットスイッチしません。"
-  },
-  "已恢复切换前的 auth.json": {
-    "zh-Hans": "已恢复切换前的 auth.json",
-    "zh-Hant": "已還原切換前的 auth.json。",
-    "en": "Restored the previous auth.json.",
-    "ja": "切り替え前の auth.json を復元しました。"
-  },
-  "切换前没有 auth.json，已移除新写入的文件": {
-    "zh-Hans": "切换前没有 auth.json，已移除新写入的文件",
-    "zh-Hant": "切換前沒有 auth.json，已移除新寫入的檔案。",
-    "en": "There was no auth.json before the switch; the newly written file was removed.",
-    "ja": "切り替え前に auth.json がなかったため、新しく書き込んだファイルを削除しました。"
-  },
-  "已恢复切换前的 state.json": {
-    "zh-Hans": "已恢复切换前的 state.json",
-    "zh-Hant": "已還原切換前的 state.json。",
-    "en": "Restored the previous state.json.",
-    "ja": "切り替え前の state.json を復元しました。"
-  },
-  "尚未替换 auth.json，无需回滚": {
-    "zh-Hans": "尚未替换 auth.json，无需回滚",
-    "zh-Hant": "尚未替換 auth.json，無需回滾。",
-    "en": "auth.json was not replaced; no rollback is needed.",
-    "ja": "auth.json はまだ置き換えられていないため、ロールバックは不要です。"
-  },
-  "已重新启动 ChatGPT App": {
-    "zh-Hans": "已重新启动 ChatGPT App",
-    "zh-Hant": "已重新啟動 ChatGPT App。",
-    "en": "ChatGPT App was restarted.",
-    "ja": "ChatGPT App を再起動しました。"
-  },
-  "尚未替换 auth.json；已重新启动 ChatGPT App": {
-    "zh-Hans": "尚未替换 auth.json；已重新启动 ChatGPT App",
-    "zh-Hant": "尚未替換 auth.json；已重新啟動 ChatGPT App。",
-    "en": "auth.json was not replaced; ChatGPT App was restarted.",
-    "ja": "auth.json は置き換えず、ChatGPT App を再起動しました。"
-  },
-  "当前 config.toml 设置 cli_auth_credentials_store=keyring；本工具需要 auth.json。请改为 file 后重试。": {
-    "zh-Hans": "当前 config.toml 设置 cli_auth_credentials_store=keyring；本工具需要 auth.json。请改为 file 后重试。",
-    "zh-Hant": "目前 config.toml 設定 cli_auth_credentials_store=keyring；本工具需要 auth.json。請改為 file 後重試。",
-    "en": "config.toml sets cli_auth_credentials_store=keyring; this tool requires auth.json. Change it to file and retry.",
-    "ja": "config.toml で cli_auth_credentials_store=keyring が設定されています。このツールには auth.json が必要です。file に変更して再試行してください。"
-  },
-  "其他 Codex 进程仍在运行：{listing}（--force）": {
-    "zh-Hans": "其他 Codex 进程仍在运行：{listing}（--force）",
-    "zh-Hant": "其他 Codex 程序仍在執行：{listing}（--force）",
-    "en": "Other Codex processes are still running: {listing} (--force)",
-    "ja": "他の Codex プロセスがまだ実行中です：{listing}（--force）"
-  },
-  "当前有活动轮次，实际执行会被阻止：{detail}": {
-    "zh-Hans": "当前有活动轮次，实际执行会被阻止：{detail}",
-    "zh-Hant": "目前有活動輪次，實際執行會被阻止：{detail}",
-    "en": "An active turn is present; execution would be blocked: {detail}",
-    "ja": "現在アクティブなターンがあるため、実行はブロックされます：{detail}"
-  },
-  "已停止共享 app-server daemon：{note}": {
-    "zh-Hans": "已停止共享 app-server daemon：{note}",
-    "zh-Hant": "已停止共享 app-server daemon：{note}",
-    "en": "Stopped the shared app-server daemon: {note}",
-    "ja": "共有 app-server daemon を停止しました：{note}"
-  },
-  "切换失败：{error}": {
-    "zh-Hans": "切换失败：{error}",
-    "zh-Hant": "切換失敗：{error}",
-    "en": "Switch failed: {error}",
-    "ja": "切り替えに失敗しました：{error}"
-  },
-  "回滚：{notes}": {
-    "zh-Hans": "回滚：{notes}",
-    "zh-Hant": "回滾：{notes}",
-    "en": "Rollback: {notes}",
-    "ja": "ロールバック：{notes}"
-  },
-  "回滚时启动 App 失败：{error}": {
-    "zh-Hans": "回滚时启动 App 失败：{error}",
-    "zh-Hant": "回滾時啟動 App 失敗：{error}",
-    "en": "Failed to launch the app during rollback: {error}",
-    "ja": "ロールバック中の App 起動に失敗しました：{error}"
-  },
-  "重新启动 App 失败：{error}": {
-    "zh-Hans": "重新启动 App 失败：{error}",
-    "zh-Hant": "重新啟動 App 失敗：{error}",
-    "en": "Failed to restart the app: {error}",
-    "ja": "App の再起動に失敗しました：{error}"
-  },
-  "AppleScript 退出失败，尝试发送终止信号": {
-    "zh-Hans": "AppleScript 退出失败，尝试发送终止信号",
-    "zh-Hant": "AppleScript 結束失敗，嘗試傳送終止訊號。",
-    "en": "AppleScript quit failed; trying to send a termination signal.",
-    "ja": "AppleScript による終了に失敗したため、終了シグナルを送信します。"
-  },
-  "已向桌面 Codex 进程 {pid} 发送终止请求": {
-    "zh-Hans": "已向桌面 Codex 进程 {pid} 发送终止请求",
-    "zh-Hant": "已向桌面 Codex 程序 {pid} 傳送終止請求。",
-    "en": "Sent a termination request to desktop Codex process {pid}.",
-    "ja": "デスクトップ Codex プロセス {pid} に終了要求を送信しました。"
-  },
-  "已强制结束进程 {pid}": {
-    "zh-Hans": "已强制结束进程 {pid}",
-    "zh-Hant": "已強制結束程序 {pid}。",
-    "en": "Force-ended process {pid}.",
-    "ja": "プロセス {pid} を強制終了しました。"
-  },
-  "AppleScript 退出超时：{error}": {
-    "zh-Hans": "AppleScript 退出超时：{error}",
-    "zh-Hant": "AppleScript 結束逾時：{error}",
-    "en": "AppleScript quit timed out: {error}",
-    "ja": "AppleScript の終了がタイムアウトしました：{error}"
-  },
-  "刷新后的凭据账号身份发生变化：{original} -> {refreshed}；已拒绝写回。": {
-    "zh-Hans": "刷新后的凭据账号身份发生变化：{original} -> {refreshed}；已拒绝写回。",
-    "zh-Hant": "重新整理後的憑證帳號身分發生變化：{original} -> {refreshed}；已拒絕寫回。",
-    "en": "The refreshed credentials changed account identity: {original} -> {refreshed}; write-back was refused.",
-    "ja": "更新後の認証情報でアカウント ID が変化しました：{original} -> {refreshed}。書き戻しを拒否しました。"
-  },
-  "非 JSON 输出: {text}": {
-    "zh-Hans": "非 JSON 输出: {text}",
-    "zh-Hant": "非 JSON 輸出：{text}",
-    "en": "Non-JSON output: {text}",
-    "ja": "JSON 以外の出力：{text}"
-  },
-  "检测并保存 Codex CLI/数据目录": {
-    "zh-Hans": "检测并保存 Codex CLI/数据目录",
-    "zh-Hant": "偵測並儲存 Codex CLI/資料目錄",
-    "en": "Detect and save the Codex CLI/data directory",
-    "ja": "Codex CLI とデータディレクトリを検出して保存"
-  },
-  "手动指定 codex 可执行文件路径": {
-    "zh-Hans": "手动指定 codex 可执行文件路径",
-    "zh-Hant": "手動指定 codex 執行檔路徑",
-    "en": "Manually specify the codex executable path",
-    "ja": "codex 実行ファイルのパスを手動指定"
-  },
-  "手动指定 Codex 数据目录（默认 ~/.codex）": {
-    "zh-Hans": "手动指定 Codex 数据目录（默认 ~/.codex）",
-    "zh-Hant": "手動指定 Codex 資料目錄（預設 ~/.codex）",
-    "en": "Manually specify the Codex data directory (default ~/.codex)",
-    "ja": "Codex データディレクトリを手動指定（既定 ~/.codex）"
-  },
-  "清除手动配置，恢复自动发现": {
-    "zh-Hans": "清除手动配置，恢复自动发现",
-    "zh-Hant": "清除手動設定，恢復自動偵測",
-    "en": "Clear manual settings and restore automatic discovery",
-    "ja": "手動設定を削除して自動検出に戻す"
-  },
-  "已清除手动 Codex 配置，将重新使用自动发现。": {
-    "zh-Hans": "已清除手动 Codex 配置，将重新使用自动发现。",
-    "zh-Hant": "已清除手動 Codex 設定，將重新使用自動偵測。",
-    "en": "Manual Codex settings cleared; automatic discovery will be used again.",
-    "ja": "手動 Codex 設定を削除しました。自動検出に戻ります。"
-  },
-  "指定的 Codex CLI 不存在或不是文件：{path}": {
-    "zh-Hans": "指定的 Codex CLI 不存在或不是文件：{path}",
-    "zh-Hant": "指定的 Codex CLI 不存在或不是檔案：{path}",
-    "en": "The specified Codex CLI does not exist or is not a file: {path}",
-    "ja": "指定された Codex CLI が存在しないか、ファイルではありません：{path}"
-  },
-  "指定的 Codex 数据目录不存在：{path}": {
-    "zh-Hans": "指定的 Codex 数据目录不存在：{path}",
-    "zh-Hant": "指定的 Codex 資料目錄不存在：{path}",
-    "en": "The specified Codex data directory does not exist: {path}",
-    "ja": "指定された Codex データディレクトリが存在しません：{path}"
-  },
-  "已找到 Codex CLI：{path}": {
-    "zh-Hans": "已找到 Codex CLI：{path}",
-    "zh-Hant": "已找到 Codex CLI：{path}",
-    "en": "Found Codex CLI: {path}",
-    "ja": "Codex CLI が見つかりました：{path}"
-  },
-  "版本：{version}": {
-    "zh-Hans": "版本：{version}",
-    "zh-Hant": "版本：{version}",
-    "en": "Version: {version}",
-    "ja": "バージョン：{version}"
-  },
-  "Codex 数据目录：{path}": {
-    "zh-Hans": "Codex 数据目录：{path}",
-    "zh-Hant": "Codex 資料目錄：{path}",
-    "en": "Codex data directory: {path}",
-    "ja": "Codex データディレクトリ：{path}"
-  },
-  "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。": {
-    "zh-Hans": "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。",
-    "zh-Hant": "自動偵測可用；如需固定自訂路徑，請執行 codex-relay setup --codex <路徑> --codex-home <目錄>。",
-    "en": "Automatic discovery works. To pin a custom path, run codex-relay setup --codex <path> --codex-home <directory>.",
-    "ja": "自動検出を利用できます。カスタムパスを固定するには codex-relay setup --codex <パス> --codex-home <ディレクトリ> を実行してください。"
-  },
-  "未找到 Codex CLI。请先安装 Codex，或用 --codex <路径> 指定可执行文件。": {
-    "zh-Hans": "未找到 Codex CLI。请先安装 Codex，或用 --codex <路径> 指定可执行文件。",
-    "zh-Hant": "找不到 Codex CLI。請先安裝 Codex，或用 --codex <路徑> 指定執行檔。",
-    "en": "Codex CLI was not found. Install Codex, or specify the executable with --codex <path>.",
-    "ja": "Codex CLI が見つかりません。Codex をインストールするか、--codex <パス> で実行ファイルを指定してください。"
-  },
-  "安装说明：https://github.com/openai/codex": {
-    "zh-Hans": "安装说明：https://github.com/openai/codex",
-    "zh-Hant": "安裝說明：https://github.com/openai/codex",
-    "en": "Installation guide: https://github.com/openai/codex",
-    "ja": "インストールガイド：https://github.com/openai/codex"
   }
 }

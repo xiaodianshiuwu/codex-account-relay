@@ -25,6 +25,9 @@ dist-cli/
 auth.json
 credentials.json
 portable-ui.json
+auto.json
+config.json
+avatars.json
 state_*.sqlite
 thread_history_*.sqlite
 *.jsonl

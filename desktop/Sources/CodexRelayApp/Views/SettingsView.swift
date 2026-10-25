@@ -106,6 +106,46 @@ struct SettingsView: View {
                 }
 
                 RelayCard {
+                    VStack(alignment: .leading, spacing: 14) {
+                        HudLabel(text: "自动续跑", color: RelayTheme.accent)
+                        Text("达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。")
+                            .font(.caption)
+                            .foregroundStyle(RelayTheme.textMuted)
+
+                        Toggle("启用自动续跑", isOn: $preferences.autoContinueEnabled)
+                            .toggleStyle(.switch)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("续跑提示词")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(RelayTheme.text)
+                            TextField("例如：继续", text: $preferences.autoContinuePrompt)
+                                .textFieldStyle(.roundedBorder)
+                        }
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                Text("剩余额度阈值")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(RelayTheme.text)
+                                Spacer()
+                                Text("\(Int(preferences.autoRemainingThreshold))%")
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundStyle(RelayTheme.accent)
+                            }
+                            Slider(value: $preferences.autoRemainingThreshold, in: 0...50, step: 1)
+                            Text("剩余额度低于该百分比时准备切换；0% 表示只在额度耗尽时切换。")
+                                .font(.caption2)
+                                .foregroundStyle(RelayTheme.textMuted)
+                        }
+
+                        Text("自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。")
+                            .font(.caption2)
+                            .foregroundStyle(RelayTheme.textMuted)
+                    }
+                }
+
+                RelayCard {
                     VStack(alignment: .leading, spacing: 10) {
                         HudLabel(text: "数据与同步", color: RelayTheme.accent)
                         HStack {
@@ -162,7 +202,7 @@ struct SettingsView: View {
         if let last = model.lastUsageSync {
             return L10n.format("活动账号每 10 秒同步；上次同步 %@。", last.localizedString(locale: preferences.language.locale))
         }
-        return L10n.text("活动账号每 10 秒同步；启动时及每 2 分钟全量刷新。")
+        return L10n.text("活动账号每 10 秒同步；启动时及每 30 秒全量刷新。")
     }
 
     private func appearanceDescription(_ appearance: RelayAppearance) -> String {
