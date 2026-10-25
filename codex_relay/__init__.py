@@ -5,4 +5,4 @@ run on macOS, Windows and Linux without a virtual environment; the optional Tk
 desktop client is loaded only when explicitly launched.
 """
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"

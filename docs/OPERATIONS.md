@@ -1,41 +1,18 @@
 # 日常使用与故障处理
 
+> **0.4.0 起仅支持 macOS 14+ SwiftUI App。** 本文保留的 Windows/Linux/Tk/无桌面 CLI 段落属于历史实现和内部开发说明，不是公开支持入口。
+
 ## 安装与升级
 
 ### macOS
 
 ```sh
-cd codex-relay
-./install.sh
-codex-relay doctor
-
-# 原生 SwiftUI（推荐）
-cd desktop && ./build.sh
+cd codex-relay/desktop
+./build.sh
 open "$HOME/Applications/Codex Relay.app"
 ```
 
-### Windows
-
-```powershell
-cd <仓库目录>\codex-relay
-.\install.cmd
-%USERPROFILE%\.local\bin\codex-relay.cmd doctor
-%USERPROFILE%\.local\bin\codex-relay-gui.cmd
-```
-
-安装到 `%USERPROFILE%\.local\share\codex-relay`，启动器在 `%USERPROFILE%\.local\bin`。如果 PowerShell 执行策略阻止脚本，使用 `powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1`。
-
-### Linux
-
-```sh
-cd codex-relay
-sudo apt install python3-tk   # Debian/Ubuntu；Fedora 用 python3-tkinter
-./install.sh
-codex-relay doctor
-codex-relay-gui
-```
-
-无桌面/SSH 时不要启动 GUI，直接使用 CLI。Tk 客户端在无 `$DISPLAY` 时会提示并退出，不会假装成功。
+只支持 macOS 14+ 的 SwiftUI App；Windows/Linux 和 Tk 回退版不提供安装支持。
 
 升级 Codex 后：
 
@@ -153,7 +130,9 @@ codex-relay auto --once --threshold 95 --allow-chatgpt-restart --yes  # 明确�
 codex-relay auto --enable --remaining-threshold 10 --prompt "继续" --interval 60 --allow-chatgpt-restart --yes
 ```
 
-## 跨平台桌面 GUI（Windows / Linux / macOS fallback）
+## 历史 Tk 桌面 GUI（不支持、不发布）
+
+> 以下内容仅保留历史实现说明，不是公开支持入口。
 
 ```sh
 python -m codex_relay.portable_gui --self-test

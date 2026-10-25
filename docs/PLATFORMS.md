@@ -1,31 +1,31 @@
-# 平台支持与验证边界
+# 平台支持
 
-本文区分 **代码已实现**、**在本机实际执行过** 和 **尚未执行**，不要把 CI 配置、源码存在或构建成功等同于目标系统已验证。
+## 唯一支持范围
 
-## 支持矩阵
+| 能力 | 支持状态 |
+|---|---|
+| macOS 14+ SwiftUI App | 支持并发布 |
+| App 内置 Codex Relay 后端 | 随 App 打包 |
+| Codex CLI | 外部依赖，需用户安装并登录 |
+| Windows / Linux 桌面端 | **不支持、不发布** |
+| macOS 13 / Tk 回退 | **不支持、不发布** |
+| 独立 CLI / wheel | 仅内部源码与开发用途，不单独发布 |
 
-| 能力 | macOS SwiftUI | Windows Tk | Linux Tk | Headless CLI |
-|---|---|---|---|---|
-| 账号仓库、添加、删除、重命名 | 是 | 是（共享核心） | 是（共享核心） | 是 |
-| 切换账号（`auth.json`） | 是 | 是 | 是 | 是 |
-| 重启/退出 ChatGPT 桌面 App | 是（AppleScript + 深链接） | 检测到官方 App 时支持 | 通常没有官方 App，安全回退为仅替换凭据 | 显式模式 |
-| 深链接恢复原会话 | 是 | 检测到 App 时支持 | 无官方 App 时不可用 | `resume --cli` |
-| 会话列表、rollout/inspect | 是 | 是 | 是 | 是 |
-| 额度查询、Token 刷新 | 是 | 是 | 是 | 是 |
-| 四种语言、主题、数字格式 | 是 | 是（HUD 风格近似） | 是（HUD 风格近似） | 不适用 |
-| 无显示服务运行 | CLI 可用 | GUI 提示改用 CLI | GUI 提示改用 CLI | 是 |
+从 0.4.0 起，Codex Relay 只面向 **macOS 14+ 的 SwiftUI App**。发布资产只包含 `CodexRelay-<version>-macOS-SwiftUI.zip`，其中 `Codex Relay.app` 内含 Relay 后端，不要求用户另外安装 Python 包或 `codex-relay` 可执行文件。
 
-## 已执行的验证
+## 验证状态
 
-- macOS：Python 测试、Swift 测试、Tk 主界面启动与四语言导航、原生 App 构建和 `--self-test` 已执行。
-- Windows/Linux：提供安装脚本、Tk 客户端、PyInstaller 构建入口和 CI 矩阵；**未在真实目标系统执行原生运行验收**。
-- 平台分支单元测试覆盖 Windows 进程分类、`.cmd` 包装、非 macOS 桌面发现、文件锁和路径处理。
+- macOS 14+：Python 测试、Swift 测试、SwiftUI 构建、App 自检、默认窗口下的会话页/账号页实机检查已完成。
+- App 内置后端：发布构建验证了 `Contents/Resources/codex-relay` 存在且可执行。
+- Windows/Linux：**不再属于支持范围，未做目标机验收**。
+- macOS 13/Tk：**不再属于支持范围，未做目标机验收**。
 
-## 未验证事项
+## 保留的历史代码
 
-- Windows 官方 ChatGPT 桌面 App 的商店/MSIX 安装路径、进程控制和深链接。
-- Linux 各发行版的 Tk 包、显示服务器和桌面集成差异。
-- Windows/Linux 独立产物的真实安装、卸载、权限和杀毒软件兼容性。
-- Apple 公证、Windows 代码签名和 Linux 包管理器分发。
+`portable/`、`codex_relay/portable_gui.py`、Windows/Linux 安装脚本和独立 CLI wheel 构建仍保留在仓库中，目的是保留历史实现和内部后端代码，不代表继续提供产品支持。它们可能随代码重构而过时，不应作为下载、安装或验收入口。
 
-发布说明必须继续标注这些限制，直到目标系统有实际验收记录。
+## 未覆盖的发布事项
+
+- Apple Developer ID 公证和正式签名。
+- 自动更新。
+- 多用户、企业分发和 App Store 分发。

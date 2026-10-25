@@ -7,15 +7,8 @@
 ## 3 步开始
 
 1. **准备 Codex**：先安装并登录 [Codex CLI](https://github.com/openai/codex)。如果已经能运行 `codex`，这一步可以跳过。
-2. **下载 Codex Relay**：到 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 选择你的系统，下载后打开/运行即可。
-3. **让它自己找 Codex**：打开桌面端，或在终端运行：
-
-   ```sh
-   codex-relay setup
-   codex-relay doctor
-   ```
-
-   看到 `Doctor` 检查通过，就可以添加账号了。找不到 Codex 时，`setup` 会告诉你下一步，不会直接崩溃。
+2. **下载 Codex Relay**：到 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-<version>-macOS-SwiftUI.zip`，解压后把 `Codex Relay.app` 拖入“应用程序”。
+3. **打开 App**：App 已内置 Codex Relay 后端；只需要提前安装并登录 [Codex CLI](https://github.com/openai/codex)。首次启动会引导你完成路径检查。
 
 > **不需要**改源代码、手写配置文件或研究项目结构。默认自动发现；只有 Codex 装在非标准位置时，才需要手动指定一次。
 
@@ -23,7 +16,7 @@
 
 - 有多个 ChatGPT/Codex 账号，想快速切换但不想丢当前 thread 的人。
 - 希望在切换前自动备份、失败能回滚，不想手动改 `auth.json` 的人。
-- 想在 macOS、Windows、Linux 或纯 SSH 环境里用同一套账号逻辑的人。
+- 使用 macOS 14+，希望用一个原生 SwiftUI App 管理 Codex 多账号的人。
 
 ## 你能得到什么
 
@@ -36,15 +29,11 @@
 
 ## 平台与下载
 
-| 你的系统 | 推荐方式 | 下载文件 |
+| 支持范围 | 唯一支持方式 | 下载文件 |
 |---|---|---|
-| macOS 14+ | 原生 SwiftUI App（推荐） | `CodexRelay-<version>-macOS-SwiftUI.zip` |
-| macOS 13 或 Tk 回退 | Tk 桌面端（兼容回退） | `CodexRelay-<version>-macOS-Tk-arm64.app.zip` |
-| Windows 10/11 | Tk 桌面端 | `CodexRelay-<version>-Windows-x86_64.exe` |
-| Linux | Tk 桌面端 | `CodexRelay-<version>-Linux-x86_64` |
-| 任意系统 / SSH | 独立 CLI | `codex_relay-<version>-py3-none-any.whl` |
+| macOS 14+ | 原生 SwiftUI App | `CodexRelay-<version>-macOS-SwiftUI.zip` |
 
-> **技术栈说明**：SwiftUI 是 Apple 平台框架，无法在 Windows/Linux 原生运行；macOS 14+ 使用 SwiftUI 主界面，Windows/Linux 使用 Tk 兼容界面（已统一暗色 HUD 主题）。Windows/Linux 已有 CI 构建与自动化测试，但原生桌面交互仍需目标机人工验收。CI 通过不等于所有平台都已完整验证。
+> **0.4.0 起只支持 macOS 14+ 的 SwiftUI App。** Windows、Linux、macOS Tk 回退版和独立 CLI/wheel 不再发布、不再提供使用支持。Tk/CLI 源码仍保留在仓库中作为历史实现和内部后端代码，但不属于公开支持范围。
 
 ## 安装
 
@@ -52,42 +41,23 @@
 
 ### 从 Release 安装
 
-Release 提供：
+Release 只提供：
 
-- `codex_relay-<version>-py3-none-any.whl`：独立 CLI。
-- macOS 14+：`CodexRelay-<version>-macOS-SwiftUI.zip`。
-- macOS 13/Tk 回退：`CodexRelay-<version>-macOS-Tk-arm64.app.zip`。
-- Windows：`CodexRelay-<version>-Windows-x86_64.exe`。
-- Linux：`CodexRelay-<version>-Linux-x86_64`（Tk 桌面）及 CLI wheel。
+- macOS 14+：`CodexRelay-<version>-macOS-SwiftUI.zip`，内含 App 和内置 Codex Relay 后端。
 
-下载对应产物后：
-
-```sh
-# CLI（任意平台，需要 Python 3.9+）
-python3 -m pip install codex_relay-*.whl
-codex-relay setup
-codex-relay doctor
-```
-
-macOS 解压下载的 `.zip` 后，把 `Codex Relay.app` 拖入“应用程序”；Windows/Linux 直接运行对应可执行文件。**首次启动前请先确保已安装 Codex CLI；如果没有，应用会显示安装引导，也可以用 `codex-relay setup` 手动指定路径。**
+下载后解压，把 `Codex Relay.app` 拖入“应用程序”。**首次启动前请先安装并登录 Codex CLI**；找不到 Codex 时，App 会显示诊断和手动指定入口。
 
 ### 从源码安装
 
 ```sh
 git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
 cd codex-relay
-
-# macOS / Linux
-./install.sh
-
-# Windows PowerShell
-.\install.ps1
-
-codex-relay setup
-codex-relay doctor
+cd desktop
+./build.sh
+open "$HOME/Applications/Codex Relay.app"
 ```
 
-安装脚本只复制程序文件到用户目录，不修改 Codex 的认证、配置或会话。
+需要 macOS 14+、Xcode Command Line Tools 和 Swift 5.9+。`desktop/build.sh` 在发布流程中会把内置后端一起装入 App；本地源码构建若未准备 `dist-cli/codex-relay`，会回退到 PATH 中的 `codex-relay`。
 
 ### macOS 原生桌面端
 
@@ -99,22 +69,9 @@ open "$HOME/Applications/Codex Relay.app"
 
 需要 macOS 14+、Xcode Command Line Tools 和 Swift 5.9+。
 
-### Windows / Linux Tk 桌面端
+### 历史代码（不支持、不发布）
 
-```sh
-python3 -m pip install pyinstaller
-./portable/build.sh          # Windows: .\portable\build.ps1
-```
-
-也可以直接运行源码：
-
-```sh
-codex-relay-gui
-# 或
-python3 -m codex_relay.portable_gui
-```
-
-Linux 需要系统 Tk：Debian/Ubuntu `sudo apt install python3-tk`，Fedora `sudo dnf install python3-tkinter`。
+`portable/`、`codex_relay/portable_gui.py`、Windows/Linux 安装脚本和独立 CLI wheel 构建仍保留在仓库中，方便维护历史实现和内部后端，但**不属于 0.4.0 的公开支持范围，也不应作为下载或安装入口**。
 
 ## 首次启动与 Codex 自动发现
 
@@ -123,7 +80,7 @@ Linux 需要系统 Tk：Debian/Ubuntu `sudo apt install python3-tk`，Fedora `su
 1. `CODEX_RELAY_CODEX` 环境变量（显式路径优先）。
 2. `~/.codex-relay/config.json` 中已经验证并保存的 `codex_binary`。
 3. 系统 `PATH` 中的 `codex`。
-4. 常见安装目录（macOS Homebrew、`~/.local/bin`、Windows `LOCALAPPDATA` 等）。
+4. 常见安装目录（macOS Homebrew、`~/.local/bin` 等）。
 
 Codex 数据目录默认是 `~/.codex`，按以下顺序确定：
 
@@ -142,11 +99,7 @@ codex-relay setup
 如果 Codex 安装在非标准位置：
 
 ```sh
-# macOS / Linux
 codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
-
-# Windows PowerShell
-codex-relay setup --codex C:\path\to\codex.exe --codex-home C:\Users\<you>\.codex
 ```
 
 `setup` 会验证 CLI 是否可执行、读取版本，并把路径写入 `~/.codex-relay/config.json`（`0600`）。之后 `codex-relay doctor`、GUI 和 CLI 都会使用这个配置。清除手动配置：
@@ -157,7 +110,10 @@ codex-relay setup --reset
 
 > 不需要修改源代码，也不需要编辑复杂配置文件。环境变量只作为自动化/高级覆盖手段。
 
-## 快速开始
+## 内部 CLI（开发 / 内置后端）
+
+> 从 0.4.0 起 CLI 不作为独立产品发布；它是 SwiftUI App 的内置后端和开发诊断入口。以下命令仅用于源码开发和故障排查。
+
 
 ```sh
 # 1. 查看环境和诊断
@@ -204,7 +160,7 @@ codex-relay auto --enable --remaining-threshold 10 --prompt "继续完成当前�
 - 默认提示词是“继续”；设置保存在 `~/.codex-relay/auto.json`，与 GUI 设置共用。
 - 守护仍然需要显式 `--allow-chatgpt-restart --yes`，不会在后台静默重启 ChatGPT。
 
-## CLI
+## CLI 参考（内部）
 
 ```sh
 codex-relay --help
@@ -246,14 +202,13 @@ python3 tools/i18n_audit.py --json
 
 ## English
 
-**Start in three steps:** (1) install and sign in to the Codex CLI; (2) download the release for your OS; (3) open the app, or run `codex-relay setup` and `codex-relay doctor` in a terminal. If Codex is already on your `PATH`, Relay finds it automatically.
+**Start in three steps:** (1) install and sign in to the Codex CLI; (2) download `CodexRelay-<version>-macOS-SwiftUI.zip` on macOS 14+; (3) open the app. If Codex is already on your `PATH`, Relay finds it automatically.
 
-**Codex Relay** is a community-built, cross-platform handoff tool for Codex accounts. It stores each ChatGPT/Codex account in an isolated profile, atomically switches the active `auth.json`, and resumes the same thread whenever possible so rollout history, tool results, compaction checkpoints and encrypted reasoning items stay usable.
+**Codex Relay** is a macOS SwiftUI handoff tool for Codex accounts. It stores each ChatGPT/Codex account in an isolated profile, atomically switches the active `auth.json`, and resumes the same thread whenever possible so rollout history, tool results, compaction checkpoints and encrypted reasoning items stay usable.
 
 ### What you get
 
-- A Python CLI that works without a GUI.
-- A native SwiftUI macOS app and a Tk desktop client for Windows/Linux.
+- A native SwiftUI macOS app (the only supported distribution since 0.4.0).
 - Four UI languages: Simplified Chinese, Traditional Chinese, English and Japanese.
 - Quota, token, cache, reasoning and process diagnostics.
 - Explicit confirmation before quitting or restarting ChatGPT; no silent background restarts.
@@ -263,30 +218,21 @@ python3 tools/i18n_audit.py --json
 | Platform | Desktop client | Status |
 |---|---|---|
 | macOS 14+ | SwiftUI | Built and smoke-tested on macOS |
-| macOS 13 / Tk fallback | Tk | Compatibility fallback |
-| Windows 10/11 | Tk | Source, installer and CI build; native GUI acceptance still pending |
-| Linux | Tk | Source and CI build; native GUI acceptance still pending |
-| Headless/SSH | CLI only | Supported |
 
-Do not treat a successful CI build as proof that every native desktop interaction has been verified.
+Starting with 0.4.0, only the macOS 14+ SwiftUI app is supported and released. Windows/Linux, the macOS Tk fallback and the standalone CLI/wheel are not published or supported. The Tk/CLI source remains in the repository as historical and internal backend code only.
 
 ### Install
 
 Download the latest release from [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest), then choose the asset for your platform:
 
-- macOS SwiftUI: unzip `CodexRelay-*-macOS-SwiftUI.zip` and move the app to Applications.
-- Windows: run `CodexRelay-*-Windows-x86_64.exe`.
-- Linux: run `CodexRelay-*-Linux-x86_64` (Tk and a display server are required).
-- CLI on any platform: `python3 -m pip install codex_relay-*.whl`.
-
+- macOS 14+: unzip `CodexRelay-*-macOS-SwiftUI.zip` and move the app to Applications. The app contains the Relay backend; install Codex CLI separately.
 From source:
 
 ```sh
 git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay
-./install.sh          # Windows: .\install.ps1
-codex-relay setup
-codex-relay doctor
+cd codex-relay/desktop
+./build.sh
+open "$HOME/Applications/Codex Relay.app"
 ```
 
 ### First run and Codex discovery
@@ -352,8 +298,7 @@ Codex, ChatGPT and OpenAI are trademarks of their respective owners. This is not
 
 ### 主な機能
 
-- GUI を必要としない Python CLI。
-- macOS のネイティブ SwiftUI アプリと、Windows/Linux 向け Tk デスクトップクライアント。
+- macOS のネイティブ SwiftUI アプリ（0.4.0 以降の唯一のサポート対象）。
 - 簡体字中国語、繁体字中国語、英語、日本語の 4 言語 UI。
 - クォータ、Token、キャッシュ、reasoning、プロセスの診断。
 - ChatGPT の終了・再起動前には必ず明示確認。バックグラウンドで勝手に再起動しません。
@@ -363,31 +308,21 @@ Codex, ChatGPT and OpenAI are trademarks of their respective owners. This is not
 | 環境 | デスクトップ | 状態 |
 |---|---|---|
 | macOS 14+ | SwiftUI | macOS でビルドとスモークテスト済み |
-| macOS 13 / Tk フォールバック | Tk | 互換フォールバック |
-| Windows 10/11 | Tk | ソース、インストーラー、CI ビルドあり。ネイティブ GUI の受け入れ確認は未完了 |
-| Linux | Tk | ソースと CI ビルドあり。ネイティブ GUI の受け入れ確認は未完了 |
-| ヘッドレス / SSH | CLI のみ | 対応 |
 
-CI のビルド成功は、すべてのネイティブ GUI 動作を検証済みという意味ではありません。
+0.4.0 以降、サポートおよび配布するのは macOS 14+ の SwiftUI App のみです。Windows/Linux、macOS Tk フォールバック、単体 CLI/wheel は配布もサポートも行いません。Tk/CLI のソースは歴史的実装および内部バックエンドとしてリポジトリに残ります。
 
 ### インストール
 
 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) から環境に合うファイルをダウンロードします。
 
-- macOS SwiftUI: `CodexRelay-*-macOS-SwiftUI.zip` を展開して Applications に移動。
-- macOS 13/Tk フォールバック: `CodexRelay-*-macOS-Tk-arm64.app.zip`。
-- Windows: `CodexRelay-*-Windows-x86_64.exe` を実行。
-- Linux: `CodexRelay-*-Linux-x86_64` を実行（Tk と表示環境が必要）。
-- CLI: `python3 -m pip install codex_relay-*.whl`。
-
+- macOS 14+: `CodexRelay-*-macOS-SwiftUI.zip` を展開して Applications に移動。Relay バックエンドは App に同梱されています。Codex CLI は別途インストールしてください。
 ソースからインストールする場合:
 
 ```sh
 git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay
-./install.sh          # Windows: .\install.ps1
-codex-relay setup
-codex-relay doctor
+cd codex-relay/desktop
+./build.sh
+open "$HOME/Applications/Codex Relay.app"
 ```
 
 ### 初回セットアップと Codex の自動検出
@@ -447,14 +382,13 @@ Codex、ChatGPT、OpenAI は各権利者の商標です。本プロジェクト�
 
 ## 繁體中文
 
-**3 個步驟開始：**（1）安裝並登入 Codex CLI；（2）下載符合你系統的 Release；（3）開啟 App，或在終端機執行 `codex-relay setup` 與 `codex-relay doctor`。如果 Codex 已在 `PATH`，Relay 會自動找到它。
+**3 個步驟開始：**（1）安裝並登入 Codex CLI；（2）在 macOS 14+ 下載 `CodexRelay-<version>-macOS-SwiftUI.zip`；（3）開啟 App。如果 Codex 已在 `PATH`，Relay 會自動找到它。
 
 **Codex Relay** 是社群開發的 Codex 多帳號接力工具。它將每個 ChatGPT/Codex 帳號的認證資料隔離保存，以原子方式切換目前的 `auth.json`，並盡可能在同一條 thread 上繼續原會話，保留 rollout、工具結果、壓縮檢查點與加密 reasoning 項目。
 
 ### 主要功能
 
-- 不需要圖形介面的 Python CLI。
-- macOS 原生 SwiftUI 應用程式，以及 Windows/Linux 的 Tk 桌面用戶端。
+- macOS 原生 SwiftUI 應用程式（0.4.0 起唯一支援的版本）。
 - 四種介面語言：簡體中文、繁體中文、English、日本語。
 - 額度、Token、快取、reasoning 與程序診斷。
 - 結束或重新啟動 ChatGPT 前一定要求明確確認，不會在背景自行重啟。
@@ -464,31 +398,21 @@ Codex、ChatGPT、OpenAI は各権利者の商標です。本プロジェクト�
 | 環境 | 桌面用戶端 | 狀態 |
 |---|---|---|
 | macOS 14+ | SwiftUI | 已在 macOS 建置與煙霧測試 |
-| macOS 13 / Tk 回退 | Tk | 相容性回退 |
-| Windows 10/11 | Tk | 已提供原始碼、安裝程式與 CI 建置；原生 GUI 驗收尚未完成 |
-| Linux | Tk | 已提供原始碼與 CI 建置；原生 GUI 驗收尚未完成 |
-| 無圖形環境 / SSH | 僅 CLI | 支援 |
 
-CI 建置成功不等於所有原生 GUI 互動都已經驗證。
+自 0.4.0 起，只支援並發布 macOS 14+ SwiftUI App。Windows/Linux、macOS Tk 回退版與獨立 CLI/wheel 不再發布、不再支援。Tk/CLI 原始碼仍保留於倉庫，作為歷史實作與內部後端。
 
 ### 安裝
 
 從 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下載適合的檔案：
 
-- macOS SwiftUI：解壓縮 `CodexRelay-*-macOS-SwiftUI.zip`，將 App 拖到「應用程式」。
-- macOS 13/Tk 回退：`CodexRelay-*-macOS-Tk-arm64.app.zip`。
-- Windows：執行 `CodexRelay-*-Windows-x86_64.exe`。
-- Linux：執行 `CodexRelay-*-Linux-x86_64`（需要 Tk 與顯示環境）。
-- CLI：`python3 -m pip install codex_relay-*.whl`。
-
+- macOS 14+：解壓縮 `CodexRelay-*-macOS-SwiftUI.zip`，將 App 拖到「應用程式」。Relay 後端已內建於 App；Codex CLI 需另行安裝。
 從原始碼安裝：
 
 ```sh
 git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay
-./install.sh          # Windows: .\install.ps1
-codex-relay setup
-codex-relay doctor
+cd codex-relay/desktop
+./build.sh
+open "$HOME/Applications/Codex Relay.app"
 ```
 
 ### 首次啟動與 Codex 自動偵測

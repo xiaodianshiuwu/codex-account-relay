@@ -15,6 +15,12 @@ public final class RelayBackend: @unchecked Sendable {
            FileManager.default.isExecutableFile(atPath: override) {
             return override
         }
+        // The release app ships its Python backend inside the bundle so a
+        // fresh download works without a separate pip/wheel install.
+        if let bundled = Bundle.main.path(forResource: "codex-relay", ofType: nil),
+           FileManager.default.isExecutableFile(atPath: bundled) {
+            return bundled
+        }
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let candidates = [
             "\(home)/.local/bin/codex-relay",

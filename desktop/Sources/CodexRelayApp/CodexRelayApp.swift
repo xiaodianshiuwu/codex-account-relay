@@ -41,6 +41,7 @@ struct CodexRelayApp: App {
         }
         if CommandLine.arguments.contains("--self-test") {
             let backend = RelayBackend()
+            print("backend=\(backend.binaryPath ?? "-")")
             do {
                 let accounts = try backend.listAccounts(refresh: false)
                 let status = try backend.status()

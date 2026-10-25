@@ -2,20 +2,20 @@
 
 ## 环境
 
-- Python 3.9+
-- PowerShell 5+（Windows 安装脚本）
-- macOS 14+、Swift 5.9+（原生 GUI）
-- Tk 8.5+（Tk 客户端；Linux 安装 `python3-tk`）
-- PyInstaller（仅构建独立桌面包时需要）
+- macOS 14+、Swift 5.9+（唯一支持的 SwiftUI App）
+- Python 3.9+（内部 CLI 后端与测试）
+- PyInstaller（构建 App 内置后端时需要）
+
+Windows/Linux/Tk 代码仍保留在仓库中，但不是公开支持范围；本文不提供其构建或验收承诺。
 
 项目没有运行时第三方 Python 依赖；标准库之外的可选构建依赖见 `THIRD_PARTY_NOTICES.md`。
 
 ## 目录
 
 ```text
-codex_relay/        Python 核心、CLI、Tk 客户端、本地化
-desktop/            macOS SwiftUI 应用
-portable/           Tk 桌面打包脚本
+codex_relay/        Python 核心、CLI、历史 Tk 客户端、本地化
+desktop/            macOS SwiftUI 应用（唯一发布形态）
+portable/           历史 Tk 打包脚本（不发布）
 tools/              构建与 i18n 审计工具
 tests/              Python 单元/集成测试
 docs/               用户与开发者文档
@@ -26,7 +26,6 @@ i18n/               翻译源与审计 allowlist
 
 ```sh
 python3 tests/run.py
-python3 -m codex_relay.portable_gui --self-test
 swift test --package-path desktop --scratch-path /tmp/codex-relay-swift
 python3 tools/build_strings.py --check
 python3 tools/i18n_audit.py --json
@@ -37,19 +36,13 @@ python3 tools/i18n_audit.py --json
 ## 构建
 
 ```sh
-python3 -m pip wheel . --no-deps -w dist-cli
 python3 -m pip install pyinstaller
-python3 tools/build_portable.py
-```
-
-macOS 原生 App：
-
-```sh
+python3 tools/build_cli_bundle.py
 cd desktop
 ./build.sh
 ```
 
-跨平台产物必须在目标系统构建；PyInstaller 不能从 macOS 交叉生成 Windows/Linux 可执行文件。
+发布流程会把 `dist-cli/codex-relay` 复制进 App 的 `Contents/Resources`；本地源码构建没有该文件时回退到 PATH 中的 `codex-relay`。Windows/Linux/Tk 产物不再发布。
 
 ## 代码约定
 

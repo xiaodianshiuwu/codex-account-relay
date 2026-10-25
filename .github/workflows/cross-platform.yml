@@ -1,61 +1,47 @@
-name: cross-platform
+name: internal-tests
 
 on:
   push:
     paths:
       - "codex_relay/**"
       - "tests/**"
-      - "desktop/Resources/**"
+      - "desktop/**"
       - "pyproject.toml"
       - "setup.py"
-      - "install*"
-      - "portable/**"
       - "tools/**"
       - ".github/workflows/cross-platform.yml"
   pull_request:
     paths:
       - "codex_relay/**"
       - "tests/**"
-      - "desktop/Resources/**"
+      - "desktop/**"
       - "pyproject.toml"
       - "setup.py"
-      - "install*"
-      - "portable/**"
       - "tools/**"
       - ".github/workflows/cross-platform.yml"
   workflow_dispatch:
 
 jobs:
   test-and-build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install Tk on Linux
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y python3-tk
-      - name: Verify Tk is importable in the test interpreter
-        shell: bash
-        run: python -c "import tkinter; print('Tk', tkinter.TkVersion)"
       - name: Test core and CLI
         env:
           CODEX_RELAY_TEST_MODE: "1"
         run: python tests/run.py
-      - name: Install CLI package
+      - name: Install Python package
         run: python -m pip install .
-      - name: Build CLI wheel
-        run: python -m pip wheel . --no-deps -w dist-cli
-      - name: Build portable desktop
-        run: python -m pip install pyinstaller && python tools/build_portable.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: codex-relay-${{ matrix.os }}
-          path: |
-            dist/CodexRelay*
-            dist-cli/*.whl
+      - name: Swift tests
+        run: swift test --package-path desktop
+      - name: Build SwiftUI app
+        env:
+          CODEX_RELAY_GUI_APP: ${{ runner.temp }}/Codex Relay.app
+          CODEX_RELAY_OPEN_AFTER: "0"
+        run: |
+          cd desktop
+          ./build.sh
+          test -x "$RUNNER_TEMP/Codex Relay.app/Contents/MacOS/CodexRelay"

@@ -1,6 +1,6 @@
 # Codex Relay macOS GUI
 
-原生 SwiftUI macOS 应用（macOS 14+），调用同一仓库的 `codex-relay` CLI 完成实际操作。GUI 本身不保存、不打印 token，只解析 CLI 的 JSON 输出。
+macOS 14+ 原生 SwiftUI 应用，也是当前唯一公开支持的产品形态。Release 版会把 Codex Relay 后端作为 `Contents/Resources/codex-relay` 内置到 App 中；GUI 本身不保存、不打印 token，只解析后端的 JSON 输出。
 
 ## 功能
 
@@ -19,7 +19,7 @@ cd desktop
 open "$HOME/Applications/Codex Relay.app"
 ```
 
-`build.sh` 会 release 构建、组装 `Codex Relay.app`、ad-hoc 签名并安装到 `~/Applications`。需要 macOS 14+、Xcode Command Line Tools 和 Swift 5.9+。
+`build.sh` 会 release 构建、组装 `Codex Relay.app`、ad-hoc 签名并安装到 `~/Applications`。发布构建会把 `dist-cli/codex-relay` 复制进 App；本地没有该文件时回退到 PATH 中的 `codex-relay`。需要 macOS 14+、Xcode Command Line Tools 和 Swift 5.9+。
 
 ## 自检
 

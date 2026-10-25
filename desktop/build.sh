@@ -24,6 +24,17 @@ cp "$ROOT/Info.plist" "$BUILD/Codex Relay.app/Contents/Info.plist"
 cp "$ROOT/.build/release/CodexRelay" "$BUILD/Codex Relay.app/Contents/MacOS/CodexRelay"
 chmod 755 "$BUILD/Codex Relay.app/Contents/MacOS/CodexRelay"
 
+# Ship the automation backend inside the app. A release download must not
+# depend on `codex-relay` already existing in PATH.
+CLI_BIN="${CODEX_RELAY_CLI_BIN:-$ROOT/../dist-cli/codex-relay}"
+if [ -f "$CLI_BIN" ]; then
+  cp "$CLI_BIN" "$BUILD/Codex Relay.app/Contents/Resources/codex-relay"
+  chmod 755 "$BUILD/Codex Relay.app/Contents/Resources/codex-relay"
+  echo "==> 已打包后端: $CLI_BIN"
+else
+  echo "==> 未找到打包后端，本地运行将回退到 PATH 中的 codex-relay" >&2
+fi
+
 if [ -f "$ROOT/Assets/AppIcon.icns" ]; then
   cp "$ROOT/Assets/AppIcon.icns" "$BUILD/Codex Relay.app/Contents/Resources/AppIcon.icns"
 fi

@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup(
     name="codex-relay",
-    version="0.3.1",
+    version="0.4.0",
     description="Codex multi-account handoff with session continuity, reasoning replay and cache diagnostics",
     long_description=(Path(__file__).resolve().parent / "README.md").read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
@@ -20,7 +20,6 @@ setup(
     entry_points={
         "console_scripts": [
             "codex-relay=codex_relay.cli:main",
-            "codex-relay-gui=codex_relay.portable_gui:main",
         ],
     },
 )
