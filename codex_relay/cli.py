@@ -27,7 +27,7 @@ from .store import Store, default_paths
 from .switch import SwitchOptions, switch
 from .threads import get_thread, list_threads, most_recent_thread
 from .usage import idle_check, max_used_percent, refresh_usage, usage_line, usage_text
-from .util import RelayError, executable_command, human_bytes, now_iso, parse_iso
+from .util import RelayError, ensure_tls_certificates, executable_command, human_bytes, now_iso, parse_iso
 
 
 EXIT_OK = 0
@@ -1666,6 +1666,7 @@ def _extract_lang(argv: List[str]) -> Optional[str]:
 
 def main(argv: Optional[List[str]] = None) -> int:
     _configure_stdio()
+    ensure_tls_certificates()
     global _TRANSLATOR
     args_list = list(sys.argv[1:] if argv is None else argv)
     language = resolve_language(_extract_lang(args_list))

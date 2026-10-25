@@ -50,6 +50,13 @@ class PlatformTests(unittest.TestCase):
             "other",
         )
 
+    def test_tls_certificate_fallback_for_frozen_backend(self) -> None:
+        with unittest.mock.patch.dict(os.environ, {}, clear=True), unittest.mock.patch.object(
+            util.os.path, "isfile", side_effect=lambda value: value == "/etc/ssl/cert.pem"
+        ):
+            util.ensure_tls_certificates()
+            self.assertEqual(os.environ.get("SSL_CERT_FILE"), "/etc/ssl/cert.pem")
+
     def test_portable_quota_and_number_formats(self) -> None:
         self.assertEqual(_shown_percent(80.0, "remaining"), 20.0)
         self.assertEqual(_shown_percent(80.0, "used"), 80.0)

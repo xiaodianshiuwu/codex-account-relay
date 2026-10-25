@@ -31,6 +31,27 @@ class RelayError(RuntimeError):
     """An expected, user-facing error."""
 
 
+def ensure_tls_certificates() -> None:
+    """Point urllib at the system CA bundle when a frozen build cannot find it.
+
+    PyInstaller one-file builds can inherit an OpenSSL cafile path relative to
+    the frozen runtime instead of the macOS system bundle. Respect an explicit
+    SSL_CERT_FILE/SSL_CERT_DIR, then fall back to the standard system paths.
+    """
+    if os.environ.get("SSL_CERT_FILE") or os.environ.get("SSL_CERT_DIR"):
+        return
+    candidates = (
+        "/etc/ssl/cert.pem",
+        "/private/etc/ssl/cert.pem",
+        "/etc/ssl/certs/ca-certificates.crt",
+        "/etc/pki/tls/certs/ca-bundle.crt",
+    )
+    for value in candidates:
+        if os.path.isfile(value):
+            os.environ["SSL_CERT_FILE"] = value
+            return
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
