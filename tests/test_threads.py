@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 
+from codex_relay.reporting import inspect_thread
 from codex_relay.threads import get_thread, handoff_metrics, list_threads, rollout_metrics
 from codex_relay.util import RelayError
 
@@ -67,6 +68,13 @@ class ThreadTests(unittest.TestCase):
     def test_missing_rollout_is_reported(self) -> None:
         with self.assertRaises(RelayError):
             rollout_metrics(self.store.paths.codex_home / "missing.jsonl")
+
+    def test_inspect_can_report_missing_rollout_without_raising(self) -> None:
+        self.rollout.unlink()
+        report = inspect_thread(self.store, "thread-1", allow_missing_rollout=True)
+        self.assertFalse(report["available"])
+        self.assertIn("rollout 文件不存在", report["reason"])
+        self.assertIsNone(report["metrics"])
 
 
 if __name__ == "__main__":

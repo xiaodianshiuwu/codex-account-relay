@@ -5,48 +5,19 @@ struct AccountsView: View {
     @EnvironmentObject private var model: AppModel
 
     var body: some View {
-        HSplitView {
-            VStack(spacing: 0) {
-                header
-                HudDivider()
-                if model.accounts.isEmpty {
-                    EmptyStateView(
-                        icon: "person.2.slash",
-                        title: "还没有账号",
-                        message: "先捕获当前账号，或添加另一个 ChatGPT 账号。"
-                    )
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 6) {
-                            ForEach(model.accounts) { account in
-                                AccountRow(
-                                    account: account,
-                                    selected: model.selectedAccountID == account.id
-                                ) {
-                                    withAnimation(.easeOut(duration: 0.15)) {
-                                        model.selectedAccountID = account.id
-                                    }
-                                }
-                            }
-                        }
-                        .padding(12)
-                    }
-                }
-            }
-            .frame(minWidth: 300, idealWidth: 340, maxWidth: 400)
-            .background(RelayTheme.panel)
-
-            if let account = model.selectedAccount {
-                AccountDetailView(account: account)
-                    .id(account.id)
-            } else {
-                EmptyStateView(
-                    icon: "person.crop.circle",
-                    title: "选择一个账号",
-                    message: "查看额度、状态，并切换后恢复原会话。"
-                )
+        GeometryReader { proxy in
+            let listWidth = min(max(proxy.size.width * 0.28, 250), 340)
+            HStack(spacing: 0) {
+                listPane
+                    .frame(width: listWidth)
+                Rectangle()
+                    .fill(RelayTheme.line)
+                    .frame(width: 1)
+                detailPane
+                    .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: model.selectedAccountID) { _, _ in
             Task { await model.refreshSelectedUsageIfNeeded() }
         }
@@ -54,6 +25,49 @@ struct AccountsView: View {
             // Refresh every profile, not only the selected row; the list is
             // shared by the whole page and an inactive account may have reset.
             Task { await model.refreshUsage(silent: true) }
+        }
+    }
+
+    private var listPane: some View {
+        VStack(spacing: 0) {
+            header
+            HudDivider()
+            if model.accounts.isEmpty {
+                EmptyStateView(
+                    icon: "person.2.slash",
+                    title: "还没有账号",
+                    message: "先捕获当前账号，或添加另一个 ChatGPT 账号。"
+                )
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(model.accounts) { account in
+                            AccountRow(
+                                account: account,
+                                selected: model.selectedAccountID == account.id
+                            ) {
+                                model.selectedAccountID = account.id
+                            }
+                        }
+                    }
+                    .padding(12)
+                }
+            }
+        }
+        .background(RelayTheme.panel)
+    }
+
+    @ViewBuilder
+    private var detailPane: some View {
+        if let account = model.selectedAccount {
+            AccountDetailView(account: account)
+                .id(account.id)
+        } else {
+            EmptyStateView(
+                icon: "person.crop.circle",
+                title: "选择一个账号",
+                message: "查看额度、状态，并切换后恢复原会话。"
+            )
         }
     }
 
@@ -216,7 +230,11 @@ private struct AccountDetailView: View {
                     }
                 }
 
-                HStack(spacing: 16) {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 180), spacing: 12)],
+                    alignment: .leading,
+                    spacing: 12
+                ) {
                     usageCard(title: "5 小时额度", window: account.usage?.primary)
                     usageCard(title: "每周额度", window: account.usage?.secondary)
                 }

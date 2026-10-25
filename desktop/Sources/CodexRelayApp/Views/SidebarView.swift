@@ -77,9 +77,10 @@ struct SidebarView: View {
                     item: item,
                     selected: model.section == item
                 ) {
-                    withAnimation(.easeOut(duration: 0.16)) {
-                        model.section = item
-                    }
+                    // Page changes are intentionally not animated: animating
+                    // the whole detail tree made the split panes resize and
+                    // briefly clip at windowed sizes.
+                    model.section = item
                 }
             }
         }

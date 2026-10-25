@@ -771,9 +771,13 @@ final class AppModel: ObservableObject {
             inspections[session.id] = report
             inspectionFetchedAt[session.id] = Date()
         } catch {
-            inspectionErrors[session.id] = error.relayLocalizedDescription
-            if reportError {
-                presentError(L10n.text("分析失败"), error.relayLocalizedDescription)
+            let message = error.relayLocalizedDescription
+            inspectionErrors[session.id] = message
+            // A stale row in Codex's local threads DB can point at a rollout
+            // that was deleted or compacted. Show that inline in the detail
+            // pane; a modal alert is disruptive and blocks the whole app.
+            if reportError, !message.localizedCaseInsensitiveContains("rollout") {
+                presentError(L10n.text("分析失败"), message)
             }
         }
     }

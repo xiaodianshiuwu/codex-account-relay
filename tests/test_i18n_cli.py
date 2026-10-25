@@ -383,10 +383,18 @@ class TkWidgetTests(unittest.TestCase):
 
         with mock_patch.object(PortableApp, "refresh_overview", lambda self: None):
             app = PortableApp(self.root)
-        radios = self._widgets(self.root, self.tk.Radiobutton)
-        self.assertEqual(len(radios), 11)
-        self.assertIn("Remaining quota", [radio.cget("text") for radio in radios])
-        self.assertIn("Compact (K/M/B)", [radio.cget("text") for radio in radios])
+        settings_labels = [
+            widget.cget("text") for widget in self._widgets(self.root, self.tk.Label)
+            if widget.cget("text") in {
+                "剩余额度", "已使用", "完整数值", "简写 K/M/B",
+                "跟随系统", "深色", "浅色", "简体中文", "繁體中文", "English", "日本語",
+                "Remaining quota", "Used", "Full values", "Compact (K/M/B)",
+                "System", "Dark", "Light",
+            }
+        ]
+        self.assertEqual(len(settings_labels), 11)
+        self.assertIn("Remaining quota", [widget.cget("text") for widget in self._widgets(self.root, self.tk.Label)])
+        self.assertIn("Compact (K/M/B)", [widget.cget("text") for widget in self._widgets(self.root, self.tk.Label)])
         self.assertIn("Overview", [button.cget("text").strip() for button in app.nav_buttons.values()])
 
         old_pages = list(app.pages.values())
@@ -398,7 +406,7 @@ class TkWidgetTests(unittest.TestCase):
         self.assertEqual(app._generation, generation + 1)
         self.assertTrue(all(not page.winfo_exists() for page in old_pages))
         self.assertIn("セッション", [button.cget("text").strip() for button in app.nav_buttons.values()])
-        texts = [radio.cget("text") for radio in self._widgets(self.root, self.tk.Radiobutton)]
+        texts = [widget.cget("text") for widget in self._widgets(self.root, self.tk.Label)]
         self.assertIn("残りの利用枠", texts)
         self.assertIn("短縮（K/M/B）", texts)
 

@@ -6,49 +6,66 @@ struct SessionsView: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        HSplitView {
-            VStack(spacing: 0) {
-                header
-                HudDivider()
-                if model.filteredSessions.isEmpty {
-                    EmptyStateView(
-                        icon: "bubble.left.and.exclamationmark.bubble.right",
-                        title: "没有匹配的会话",
-                        message: "调整搜索或账号筛选，或先在 Codex 中开始一个会话。"
-                    )
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 6) {
-                            ForEach(model.filteredSessions) { session in
-                                SessionRow(
-                                    session: session,
-                                    creatorName: model.preferredName(forAlias: session.creatorAlias),
-                                    selected: model.selectedSessionID == session.id,
-                                    isActiveAccount: session.creatorAlias == model.currentAccount?.alias
-                                ) {
-                                    withAnimation(.easeOut(duration: 0.15)) {
-                                        model.selectedSessionID = session.id
-                                    }
-                                }
+        GeometryReader { proxy in
+            // HSplitView uses the detail's large ideal width when the window is
+            // windowed, which can push the sidebar off-screen. A bounded HStack
+            // keeps both panes inside the actual window at every size.
+            let listWidth = min(max(proxy.size.width * 0.30, 260), 360)
+            HStack(spacing: 0) {
+                listPane
+                    .frame(width: listWidth)
+                Rectangle()
+                    .fill(RelayTheme.line)
+                    .frame(width: 1)
+                detailPane
+                    .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var listPane: some View {
+        VStack(spacing: 0) {
+            header
+            HudDivider()
+            if model.filteredSessions.isEmpty {
+                EmptyStateView(
+                    icon: "bubble.left.and.exclamationmark.bubble.right",
+                    title: "没有匹配的会话",
+                    message: "调整搜索或账号筛选，或先在 Codex 中开始一个会话。"
+                )
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(model.filteredSessions) { session in
+                            SessionRow(
+                                session: session,
+                                creatorName: model.preferredName(forAlias: session.creatorAlias),
+                                selected: model.selectedSessionID == session.id,
+                                isActiveAccount: session.creatorAlias == model.currentAccount?.alias
+                            ) {
+                                model.selectedSessionID = session.id
                             }
                         }
-                        .padding(12)
                     }
+                    .padding(12)
                 }
             }
-            .frame(minWidth: 340, idealWidth: 400, maxWidth: 480)
-            .background(RelayTheme.panel)
+        }
+        .background(RelayTheme.panel)
+    }
 
-            if let session = model.selectedSession {
-                SessionDetailView(session: session)
-                    .id(session.id)
-            } else {
-                EmptyStateView(
-                    icon: "bubble.left.and.bubble.right",
-                    title: "选择一个会话",
-                    message: "查看创建账号、工作目录，并切换账号后继续同一会话。"
-                )
-            }
+    @ViewBuilder
+    private var detailPane: some View {
+        if let session = model.selectedSession {
+            SessionDetailView(session: session)
+                .id(session.id)
+        } else {
+            EmptyStateView(
+                icon: "bubble.left.and.bubble.right",
+                title: "选择一个会话",
+                message: "查看创建账号、工作目录，并切换账号后继续同一会话。"
+            )
         }
     }
 
@@ -261,7 +278,7 @@ private struct SessionDetailView: View {
                 }
             }
             .padding(24)
-            .frame(maxWidth: 980, alignment: .leading)
+            .frame(maxWidth: 900, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(Color.clear)
@@ -540,13 +557,18 @@ private struct SessionDetailView: View {
                 RelayCard {
                     VStack(alignment: .leading, spacing: 10) {
                         HudLabel(text: L10n.format("逐轮缓存 // 最近 %d 轮", visible.count), color: RelayTheme.accent)
-                        turnHeader
-                        HudDivider()
-                        ForEach(Array(visible.enumerated()), id: \.element.id) { offset, turn in
-                            turnRow(index: startNumber + offset, turn: turn)
-                            if offset < visible.count - 1 {
-                                HudDivider().opacity(0.55)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                turnHeader
+                                HudDivider()
+                                ForEach(Array(visible.enumerated()), id: \.element.id) { offset, turn in
+                                    turnRow(index: startNumber + offset, turn: turn)
+                                    if offset < visible.count - 1 {
+                                        HudDivider().opacity(0.55)
+                                    }
+                                }
                             }
+                            .frame(minWidth: 500, alignment: .leading)
                         }
                     }
                 }

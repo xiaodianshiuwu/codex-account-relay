@@ -7,15 +7,23 @@ from .threads import get_thread, handoff_metrics, rollout_metrics, rollout_path_
 from .util import RelayError, human_bytes, short_text
 
 
-def inspect_thread(store: Store, thread_id: str) -> Dict[str, Any]:
+def inspect_thread(store: Store, thread_id: str, *, allow_missing_rollout: bool = False) -> Dict[str, Any]:
     thread = get_thread(store.paths, thread_id)
     if not thread:
         raise RelayError(f"找不到会话：{thread_id}")
     path = rollout_path_for(store.paths, thread)
+    if allow_missing_rollout and not path.exists():
+        return {
+            "thread": thread.as_dict(),
+            "metrics": None,
+            "available": False,
+            "reason": f"rollout 文件不存在：{path}",
+        }
     metrics = rollout_metrics(path)
     return {
         "thread": thread.as_dict(),
         "metrics": metrics.as_dict(),
+        "available": True,
     }
 
 

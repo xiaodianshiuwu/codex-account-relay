@@ -35,6 +35,7 @@ class RefreshArgsTests(unittest.TestCase):
         app.selected_account = {"id": "b", "alias": "work"}
         app.accounts = []
         app.select_account = lambda: None  # type: ignore[method-assign]
+        app._paint_list_selection = lambda widget, index: None  # type: ignore[method-assign]
         app._set_accounts([
             {"id": "a", "alias": "personal", "email": "a@example.com"},
             {"id": "b", "alias": "work", "email": "b@example.com"},
@@ -44,7 +45,7 @@ class RefreshArgsTests(unittest.TestCase):
 
     def test_refresh_accounts_requests_all_profiles(self) -> None:
         app = object.__new__(PortableApp)
-        app.async_call = lambda label, work, done: done(work())  # type: ignore[method-assign]
+        app.async_call = lambda label, work, done, **kwargs: done(work())  # type: ignore[method-assign]
         app.t = lambda key: key  # type: ignore[method-assign]
         app._set_accounts = lambda accounts: None  # type: ignore[method-assign]
         seen = {}
@@ -59,7 +60,7 @@ class RefreshArgsTests(unittest.TestCase):
 
     def test_refresh_usage_requests_all_profiles(self) -> None:
         app = object.__new__(PortableApp)
-        app.async_call = lambda label, work, done: done(work())  # type: ignore[method-assign]
+        app.async_call = lambda label, work, done, **kwargs: done(work())  # type: ignore[method-assign]
         app.t = lambda key: key  # type: ignore[method-assign]
         app._set_accounts = lambda accounts: None  # type: ignore[method-assign]
         app.refresh_overview = lambda: None  # type: ignore[method-assign]

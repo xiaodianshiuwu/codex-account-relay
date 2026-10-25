@@ -51,9 +51,9 @@ jobs:
               name = f"CodexRelay-{ref}-Windows-x86_64.exe"
               shutil.copy2(root / "CodexRelay.exe", out / name)
           elif sys.platform == "darwin":
-              name = f"CodexRelay-{ref}-macOS-arm64"
+              name = f"CodexRelay-{ref}-macOS-Tk-arm64"
               shutil.copy2(root / "CodexRelay", out / name)
-              with zipfile.ZipFile(out / f"CodexRelay-{ref}-macOS-arm64.app.zip", "w", zipfile.ZIP_DEFLATED) as z:
+              with zipfile.ZipFile(out / f"CodexRelay-{ref}-macOS-Tk-arm64.app.zip", "w", zipfile.ZIP_DEFLATED) as z:
                   for item in (root / "CodexRelay.app").rglob("*"):
                       z.write(item, item.relative_to(root))
           else:

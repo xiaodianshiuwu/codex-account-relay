@@ -577,6 +577,9 @@ struct KVRow: View {
                 .font(monospaced ? .hudMono(10) : .system(size: 11.5))
                 .foregroundStyle(RelayTheme.text)
                 .multilineTextAlignment(.trailing)
+                .lineLimit(3)
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .trailing)
                 .textSelection(.enabled)
         }
         .padding(.vertical, 1)
@@ -765,7 +768,7 @@ struct HudProgressLine: View {
 
 enum AppVersion {
     static var display: String {
-        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.3.0"
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.3.1"
     }
 }
 

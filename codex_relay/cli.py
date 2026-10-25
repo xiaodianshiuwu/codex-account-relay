@@ -777,7 +777,14 @@ def cmd_sessions(args: argparse.Namespace, store: Store) -> int:
 
 # --------------------------------------------------------------------- inspect
 def cmd_inspect(args: argparse.Namespace, store: Store) -> int:
-    result = inspect_thread(store, args.thread)
+    result = inspect_thread(store, args.thread, allow_missing_rollout=True)
+    if result.get("available") is False:
+        reason = str(result.get("reason") or t("rollout 文件不存在：{path}", path="-"))
+        if args.json:
+            _print_json(result)
+        else:
+            print(reason, file=sys.stderr)
+        return EXIT_ERROR
     if args.json:
         _print_json(result)
         return EXIT_OK

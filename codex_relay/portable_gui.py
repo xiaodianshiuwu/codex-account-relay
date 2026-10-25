@@ -31,6 +31,49 @@ except ImportError:  # pragma: no cover - exercised on minimal CI images
     ttk = None  # type: ignore[assignment]
     filedialog = messagebox = simpledialog = None  # type: ignore[assignment]
 
+def _flat_button(
+    parent: "tk.Misc",
+    text: str,
+    command: Callable[[], None],
+    *,
+    bg: str,
+    fg: str,
+    active_bg: Optional[str] = None,
+    active_fg: Optional[str] = None,
+    **kwargs: Any,
+) -> "tk.Label":
+    """A Tk label styled as a button.
+
+    Native ``tk.Button`` on macOS ignores background/foreground requests and
+    renders white Aqua buttons even in a dark HUD. Labels honor the colors, so
+    all cross-platform buttons use this small adapter instead.
+    """
+    widget = tk.Label(parent, text=text, bg=bg, fg=fg, bd=0, relief="flat",
+                      highlightthickness=0, cursor="hand2", takefocus=True, **kwargs)
+    normal_bg, normal_fg = bg, fg
+
+    def click(_event: Any) -> None:
+        if str(widget.cget("state")) != "disabled":
+            command()
+
+    def enter(_event: Any) -> None:
+        if active_bg and str(widget.cget("state")) != "disabled":
+            widget.configure(bg=active_bg)
+        if active_fg and str(widget.cget("state")) != "disabled":
+            widget.configure(fg=active_fg)
+
+    def leave(_event: Any) -> None:
+        widget.configure(bg=normal_bg)
+        widget.configure(fg=normal_fg)
+
+    widget.bind("<Button-1>", click)
+    widget.bind("<Return>", click)
+    widget.bind("<space>", click)
+    widget.bind("<Enter>", enter)
+    widget.bind("<Leave>", leave)
+    return widget
+
+
 from . import __version__
 from .i18n import Translator, format_number, normalize_language, system_language
 from .store import Store, default_paths
@@ -315,7 +358,7 @@ class PortableApp:
         style.configure("TEntry", fieldbackground=p["panel2"], foreground=p["text"])
 
     def _build_ui(self) -> None:
-        self.root.title(f"Codex Relay {__version__}")
+        self.root.title(f"Codex Relay {__version__} · Tk")
         self.root.geometry("1120x760")
         self.root.minsize(900, 620)
         p = self._palette()
@@ -332,11 +375,10 @@ class PortableApp:
             ("overview", "概览"), ("accounts", "账号"), ("sessions", "会话"),
             ("diagnostics", "诊断"), ("settings", "设置"),
         ]:
-            button = tk.Button(
-                self.sidebar, text=f"  {self.t(label)}", anchor="w", bd=0,
-                bg=p["panel"], fg=p["muted"], activebackground=p["panel2"],
-                activeforeground=p["text"], font=("Helvetica", 12), padx=12, pady=9,
-                command=lambda k=key: self.show_page(k),
+            button = _flat_button(
+                self.sidebar, f"  {self.t(label)}", lambda k=key: self.show_page(k),
+                bg=p["panel"], fg=p["muted"], active_bg=p["panel2"], active_fg=p["text"],
+                anchor="w", font=("Helvetica", 12), padx=12, pady=9,
             )
             button.pack(fill="x", padx=10, pady=2)
             self.nav_buttons[key] = button
@@ -378,6 +420,10 @@ class PortableApp:
         if name == "overview":
             self.refresh_overview()
         elif name == "accounts":
+            if self.accounts:
+                # Show the last known list immediately; the refresh below may
+                # need to start an isolated app-server for each profile.
+                self._set_accounts(self.accounts)
             self.refresh_accounts()
         elif name == "sessions":
             self.refresh_sessions()
@@ -452,12 +498,18 @@ class PortableApp:
         self.account_detail.pack(fill="both", expand=True)
         buttons = tk.Frame(detail, bg=p["bg"])
         buttons.pack(fill="x", pady=10)
-        self._button(buttons, "切换账号并恢复", self.confirm_switch).pack(side="left", padx=(0, 8))
-        self._button(buttons, "重命名", self.rename_account).pack(side="left", padx=(0, 8))
-        self._button(buttons, "添加账号", self.add_account).pack(side="left", padx=(0, 8))
-        self._button(buttons, "更换头像", self.change_avatar).pack(side="left", padx=(0, 8))
-        self._button(buttons, "恢复默认头像", self.reset_avatar).pack(side="left", padx=(0, 8))
-        self._button(buttons, "仅重启 ChatGPT", self.confirm_restart).pack(side="left")
+        account_actions = [
+            ("切换账号并恢复", self.confirm_switch),
+            ("重命名", self.rename_account),
+            ("添加账号", self.add_account),
+            ("更换头像", self.change_avatar),
+            ("恢复默认头像", self.reset_avatar),
+            ("仅重启 ChatGPT", self.confirm_restart),
+        ]
+        for index, (key, command) in enumerate(account_actions):
+            self._button(buttons, key, command).grid(
+                row=index // 3, column=index % 3, sticky="w", padx=(0, 8), pady=3,
+            )
         return page
 
     def _make_sessions(self) -> tk.Frame:
@@ -518,10 +570,15 @@ class PortableApp:
             line = tk.Frame(card, bg=p["panel"])
             line.pack(fill="x", padx=12, pady=(0, 9))
             for value, label in options:
-                tk.Radiobutton(line, text=self.t(label), value=value, variable=variable,
-                               bg=p["panel"], fg=p["text"], selectcolor=p["panel2"],
-                               activebackground=p["panel"], activeforeground=p["text"],
-                               font=("Helvetica", 10), command=self.apply_settings).pack(side="left", padx=(0, 14))
+                choice = _flat_button(
+                    line, self.t(label),
+                    lambda v=value: (variable.set(v), self.apply_settings()),
+                    bg=p["panel2"] if variable.get() == value else p["panel"],
+                    fg=p["accent"] if variable.get() == value else p["text"],
+                    active_bg=p["panel2"], active_fg=p["accent"],
+                    font=("Helvetica", 10), padx=9, pady=4,
+                )
+                choice.pack(side="left", padx=(0, 8))
         auto = self.auto_settings
         self.auto_enabled_var = tk.BooleanVar(value=bool(auto.get("enabled")))
         self.auto_prompt_var = tk.StringVar(value=str(auto.get("prompt") if auto_path().exists() else self.t("继续")))
@@ -530,23 +587,41 @@ class PortableApp:
         auto_card.pack(fill="x", pady=5)
         tk.Label(auto_card, text=self.t("自动续跑"), bg=p["panel"], fg=p["text"],
                  font=("Helvetica", 12, "bold"), anchor="w").pack(fill="x", padx=12, pady=(9, 3))
-        tk.Checkbutton(auto_card, text=self.t("启用自动续跑"), variable=self.auto_enabled_var,
-                       bg=p["panel"], fg=p["text"], selectcolor=p["panel2"],
-                       activebackground=p["panel"], activeforeground=p["text"],
-                       font=("Helvetica", 10), anchor="w").pack(fill="x", padx=12)
+        auto_toggle = tk.Label(
+            auto_card, text=self.t("启用自动续跑"), bg=p["panel"], fg=p["text"],
+            font=("Helvetica", 10), anchor="w", cursor="hand2", padx=0, pady=3, takefocus=True,
+        )
+        auto_toggle.pack(fill="x", padx=12)
+
+        def toggle_auto(_event: Any) -> None:
+            self.auto_enabled_var.set(not self.auto_enabled_var.get())
+            auto_toggle.configure(
+                text=("[x] " if self.auto_enabled_var.get() else "[ ] ") + self.t("启用自动续跑"),
+                fg=p["accent"] if self.auto_enabled_var.get() else p["text"],
+            )
+
+        auto_toggle.configure(text=("[x] " if self.auto_enabled_var.get() else "[ ] ") + self.t("启用自动续跑"))
+        auto_toggle.bind("<Button-1>", toggle_auto)
+        auto_toggle.bind("<Return>", toggle_auto)
+        auto_toggle.bind("<space>", toggle_auto)
         prompt_line = tk.Frame(auto_card, bg=p["panel"])
         prompt_line.pack(fill="x", padx=12, pady=(6, 3))
         tk.Label(prompt_line, text=self.t("续跑提示词"), bg=p["panel"], fg=p["muted"],
                  font=("Helvetica", 10), anchor="w").pack(side="left")
-        tk.Entry(prompt_line, textvariable=self.auto_prompt_var, bg=p["panel2"], fg=p["text"],
-                 insertbackground=p["text"], relief="flat", font=("Helvetica", 10)).pack(
-                     side="left", fill="x", expand=True, padx=(8, 0))
+        tk.Entry(
+            prompt_line, textvariable=self.auto_prompt_var, bg=p["panel2"], fg=p["text"],
+            insertbackground=p["text"], relief="flat", highlightthickness=1,
+            highlightbackground=p["line"], highlightcolor=p["accent"], font=("Helvetica", 10),
+        ).pack(side="left", fill="x", expand=True, padx=(8, 0))
         remaining_line = tk.Frame(auto_card, bg=p["panel"])
         remaining_line.pack(fill="x", padx=12, pady=(3, 3))
         tk.Label(remaining_line, text=self.t("剩余额度阈值（%）"), bg=p["panel"], fg=p["muted"],
                  font=("Helvetica", 10), anchor="w").pack(side="left")
-        tk.Entry(remaining_line, textvariable=self.auto_remaining_var, width=8, bg=p["panel2"], fg=p["text"],
-                 insertbackground=p["text"], relief="flat", font=("Helvetica", 10)).pack(side="left", padx=(8, 0))
+        tk.Entry(
+            remaining_line, textvariable=self.auto_remaining_var, width=8, bg=p["panel2"],
+            fg=p["text"], insertbackground=p["text"], relief="flat", highlightthickness=1,
+            highlightbackground=p["line"], highlightcolor=p["accent"], font=("Helvetica", 10),
+        ).pack(side="left", padx=(8, 0))
         tk.Label(auto_card, text=self.t("由 codex-relay auto 守护使用；切换会重启 ChatGPT，需显式确认。"),
                  bg=p["panel"], fg=p["muted"], font=("Helvetica", 9), anchor="w",
                  wraplength=700, justify="left").pack(fill="x", padx=12, pady=(2, 0))
@@ -556,11 +631,13 @@ class PortableApp:
         self._button(page, "打开凭据仓库", self.open_store).pack(anchor="w")
         return page
 
-    def _button(self, parent: "tk.Misc", key: str, command: Callable[[], None]) -> "tk.Button":
+    def _button(self, parent: "tk.Misc", key: str, command: Callable[[], None]) -> "tk.Label":
         p = self._palette()
-        return tk.Button(parent, text=self.t(key), command=command, bd=0,
-                         bg=p["panel2"], fg=p["text"], activebackground=p["accent"],
-                         activeforeground=p["bg"], font=("Helvetica", 10), padx=10, pady=6)
+        return _flat_button(
+            parent, self.t(key), command,
+            bg=p["panel2"], fg=p["text"], active_bg=p["accent"], active_fg=p["bg"],
+            font=("Helvetica", 10), padx=10, pady=6,
+        )
 
     def apply_settings(self) -> None:
         self.settings["quota_display"] = self.quota_var.get()
@@ -629,7 +706,14 @@ class PortableApp:
     def _is_current(self, generation: int) -> bool:
         return generation == self._generation and hasattr(self, "status_label")
 
-    def async_call(self, label: str, work: Callable[[], Any], done: Callable[[Any], None]) -> None:
+    def async_call(
+        self,
+        label: str,
+        work: Callable[[], Any],
+        done: Callable[[Any], None],
+        *,
+        modal: bool = True,
+    ) -> None:
         if self.busy:
             return
         self.set_busy(label)
@@ -640,7 +724,7 @@ class PortableApp:
                 result = work()
             except Exception as exc:  # noqa: BLE001 - shown to the user
                 message = str(exc)
-                self.root.after(0, lambda m=message: self.fail(m, generation))
+                self.root.after(0, lambda m=message: self.fail(m, generation, label=label, modal=modal))
                 return
             self.root.after(0, lambda: self.finish(result, done, generation))
 
@@ -652,11 +736,26 @@ class PortableApp:
         self.clear_busy()
         done(result)
 
-    def fail(self, message: str, generation: Optional[int] = None) -> None:
+    def fail(
+        self,
+        message: str,
+        generation: Optional[int] = None,
+        *,
+        label: str = "",
+        modal: bool = True,
+    ) -> None:
         if generation is not None and not self._is_current(generation):
             return
         self.clear_busy()
-        messagebox.showerror("Codex Relay", message)
+        if modal:
+            messagebox.showerror("Codex Relay", message)
+            return
+        # Read-only dashboard refreshes must not block the whole UI when Codex
+        # has not been set up yet or a local DB/log was pruned. Keep the error
+        # visible in the status bar and leave the rest of the app usable.
+        if hasattr(self, "status_label"):
+            prefix = f"{label}: " if label else ""
+            self.status_label.configure(text=f"{prefix}{message}")
 
     def refresh_overview(self) -> None:
         def work() -> Tuple[Any, Any, Any]:
@@ -688,7 +787,7 @@ class PortableApp:
                 self.recent.insert("end", f"  {session.get('creator_alias') or '-'} · {updated}\n")
             self.recent.configure(state="disabled")
             self.sidebar_footer.configure(text=f"{self.t('当前账号')}: {self.overview_account.cget('text')}\nPY {sys.version.split()[0]}")
-        self.async_call(self.t("读取概览…"), work, done)
+        self.async_call(self.t("读取概览…"), work, done, modal=False)
 
     def usage_text(self, usage: Dict[str, Any]) -> str:
         mode = self.settings.get("quota_display", "remaining")
@@ -700,6 +799,15 @@ class PortableApp:
             percent = self.localizer.pct(shown, 0)
             return f"{label}: {percent} ({self.t('剩余') if mode == 'remaining' else self.t('已用')})"
         return "  ·  ".join([one("primary", self.t("5 小时")), one("secondary", self.t("1 周"))])
+
+    def _paint_list_selection(self, widget: "tk.Listbox", selected_index: int) -> None:
+        p = self._palette()
+        for index in range(widget.size()):
+            widget.itemconfigure(
+                index,
+                background=p["panel2"] if index == selected_index else p["panel"],
+                foreground=p["text"] if index == selected_index else p["text"],
+            )
 
     def _set_accounts(self, accounts: List[Dict[str, Any]]) -> None:
         """Replace the account list while preserving the selected account."""
@@ -714,6 +822,11 @@ class PortableApp:
             self.selected_account = None
             return
         selected_index = 0
+        if not previous_id and not previous_alias:
+            selected_index = next(
+                (index for index, account in enumerate(self.accounts) if account.get("active")),
+                0,
+            )
         for index, account in enumerate(self.accounts):
             if previous_id and account.get("id") == previous_id:
                 selected_index = index
@@ -723,6 +836,7 @@ class PortableApp:
                 break
         self.account_list.selection_clear(0, "end")
         self.account_list.selection_set(selected_index)
+        self._paint_list_selection(self.account_list, selected_index)
         self.select_account()
 
     def refresh_accounts(self) -> None:
@@ -733,7 +847,7 @@ class PortableApp:
             return _cli_json(["list", "--refresh", "--json"], timeout=180)
         def done(result: Any) -> None:
             self._set_accounts(result.get("profiles", []))
-        self.async_call(self.t("读取账号…"), work, done)
+        self.async_call(self.t("读取账号…"), work, done, modal=False)
 
     def _auto_refresh_accounts(self) -> None:
         if not self.busy:
@@ -745,6 +859,7 @@ class PortableApp:
         if not selection:
             return
         index = selection[0]
+        self._paint_list_selection(self.account_list, index)
         if index >= len(self.accounts):
             return
         self.selected_account = self.accounts[index]
@@ -939,7 +1054,7 @@ class PortableApp:
             for session in self.sessions:
                 title = self.localizer.external(session.get("display_title") or session.get("title") or session.get("id"))
                 self.session_list.insert("end", title)
-        self.async_call(self.t("读取会话…"), work, done)
+        self.async_call(self.t("读取会话…"), work, done, modal=False)
 
     def inspect_selected_session(self) -> None:
         selection = self.session_list.curselection()
@@ -947,13 +1062,24 @@ class PortableApp:
             return
         session = self.sessions[selection[0]]
         thread_id = session.get("id")
-        self.async_call(
-            self.t("分析会话缓存…"),
-            lambda: _cli_json(["inspect", thread_id, "--json"], timeout=180),
-            lambda result: self.show_inspection(result),
-        )
+
+        def work() -> Any:
+            try:
+                return _cli_json(["inspect", thread_id, "--json"], timeout=180)
+            except Exception as exc:  # keep stale/deleted rollout errors inline
+                return {"_error": str(exc), "thread": {"id": thread_id}}
+
+        self.async_call(self.t("分析会话缓存…"), work, self.show_inspection, modal=False)
 
     def show_inspection(self, result: Dict[str, Any]) -> None:
+        if result.get("_error"):
+            self.session_detail.delete("1.0", "end")
+            self.session_detail.insert("end", f"{self.t('分析失败')}: {result['_error']}")
+            return
+        if result.get("available") is False:
+            self.session_detail.delete("1.0", "end")
+            self.session_detail.insert("end", str(result.get("reason") or self.t("分析失败")))
+            return
         metrics = result.get("metrics") or {}
         totals = metrics.get("totals") or {}
         mode = self.settings.get("number_format", "full")
@@ -988,7 +1114,7 @@ class PortableApp:
             self._set_accounts(result.get("profiles", []))
             self.refresh_overview()
 
-        self.async_call(self.t("刷新额度…"), work, done)
+        self.async_call(self.t("刷新额度…"), work, done, modal=False)
 
     def refresh_doctor(self) -> None:
         # `doctor --json` exits 1 when a check fails but still prints the
@@ -997,6 +1123,7 @@ class PortableApp:
             self.t("运行诊断…"),
             lambda: _cli_json(["doctor", "--json"], timeout=240, allow_codes=(0, 1)),
             self.show_doctor,
+            modal=False,
         )
 
     def show_doctor(self, result: Dict[str, Any]) -> None:
@@ -1022,14 +1149,35 @@ class ConfirmDialog:
         tk.Label(self.top, text=message, bg=p["bg"], fg=p["text"], wraplength=420,
                  justify="left", padx=18, pady=18).pack(fill="x")
         self.var = tk.BooleanVar(value=False)
-        tk.Checkbutton(self.top, text=confirm_text or (translate("我确认现在退出并重启 ChatGPT") if translate else "I confirm"),
-                       variable=self.var, bg=p["bg"], fg=p["text"], selectcolor=p["panel2"]).pack(anchor="w", padx=18)
+        check = tk.Label(
+            self.top, text="[ ] " + (confirm_text or (translate("我确认现在退出并重启 ChatGPT") if translate else "I confirm")),
+            bg=p["bg"], fg=p["text"], font=("Helvetica", 10), anchor="w", cursor="hand2", takefocus=True,
+        )
+        check.pack(anchor="w", padx=18)
+
+        def toggle_check(_event: Any) -> None:
+            self.var.set(not self.var.get())
+            check.configure(
+                text=("[x] " if self.var.get() else "[ ] ") + (confirm_text or (translate("我确认现在退出并重启 ChatGPT") if translate else "I confirm")),
+                fg=p["accent"] if self.var.get() else p["text"],
+            )
+
+        check.bind("<Button-1>", toggle_check)
+        check.bind("<Return>", toggle_check)
+        check.bind("<space>", toggle_check)
         buttons = tk.Frame(self.top, bg=p["bg"])
         buttons.pack(fill="x", padx=18, pady=14)
-        tk.Button(buttons, text=translate("取消") if translate else "Cancel", command=self.top.destroy).pack(side="right")
-        tk.Button(buttons, text=translate("确认并继续") if translate else "Continue",
-                  command=self._accept, state="disabled").pack(side="right", padx=8)
-        self.button = buttons.winfo_children()[1]
+        _flat_button(
+            buttons, translate("取消") if translate else "Cancel", self.top.destroy,
+            bg=p["panel2"], fg=p["text"], active_bg=p["accent"], active_fg=p["bg"],
+            font=("Helvetica", 10), padx=12, pady=6,
+        ).pack(side="right")
+        self.button = _flat_button(
+            buttons, translate("确认并继续") if translate else "Continue", self._accept,
+            bg=p["panel2"], fg=p["text"], active_bg=p["accent"], active_fg=p["bg"],
+            font=("Helvetica", 10), padx=12, pady=6, state="disabled",
+        )
+        self.button.pack(side="right", padx=8)
         self.var.trace_add("write", lambda *_: self.button.configure(state="normal" if self.var.get() else "disabled"))
         self.top.wait_window()
 

@@ -38,12 +38,13 @@
 
 | 你的系统 | 推荐方式 | 下载文件 |
 |---|---|---|
-| macOS 14+ | 原生 SwiftUI App | `CodexRelay-<version>-macOS-SwiftUI.zip` |
+| macOS 14+ | 原生 SwiftUI App（推荐） | `CodexRelay-<version>-macOS-SwiftUI.zip` |
+| macOS 13 或 Tk 回退 | Tk 桌面端（兼容回退） | `CodexRelay-<version>-macOS-Tk-arm64.app.zip` |
 | Windows 10/11 | Tk 桌面端 | `CodexRelay-<version>-Windows-x86_64.exe` |
 | Linux | Tk 桌面端 | `CodexRelay-<version>-Linux-x86_64` |
 | 任意系统 / SSH | 独立 CLI | `codex_relay-<version>-py3-none-any.whl` |
 
-> **验证边界**：macOS 已完成本机实际构建、测试和主要界面验收；Windows/Linux 已有 CI 构建与自动化测试，但原生桌面交互仍需目标机人工验收。CI 通过不等于所有平台都已完整验证。
+> **技术栈说明**：SwiftUI 是 Apple 平台框架，无法在 Windows/Linux 原生运行；macOS 14+ 使用 SwiftUI 主界面，Windows/Linux 使用 Tk 兼容界面（已统一暗色 HUD 主题）。Windows/Linux 已有 CI 构建与自动化测试，但原生桌面交互仍需目标机人工验收。CI 通过不等于所有平台都已完整验证。
 
 ## 安装
 
@@ -54,7 +55,8 @@
 Release 提供：
 
 - `codex_relay-<version>-py3-none-any.whl`：独立 CLI。
-- macOS：`CodexRelay-<version>-macOS-SwiftUI.zip`。
+- macOS 14+：`CodexRelay-<version>-macOS-SwiftUI.zip`。
+- macOS 13/Tk 回退：`CodexRelay-<version>-macOS-Tk-arm64.app.zip`。
 - Windows：`CodexRelay-<version>-Windows-x86_64.exe`。
 - Linux：`CodexRelay-<version>-Linux-x86_64`（Tk 桌面）及 CLI wheel。
 
@@ -261,6 +263,7 @@ python3 tools/i18n_audit.py --json
 | Platform | Desktop client | Status |
 |---|---|---|
 | macOS 14+ | SwiftUI | Built and smoke-tested on macOS |
+| macOS 13 / Tk fallback | Tk | Compatibility fallback |
 | Windows 10/11 | Tk | Source, installer and CI build; native GUI acceptance still pending |
 | Linux | Tk | Source and CI build; native GUI acceptance still pending |
 | Headless/SSH | CLI only | Supported |
@@ -360,6 +363,7 @@ Codex, ChatGPT and OpenAI are trademarks of their respective owners. This is not
 | 環境 | デスクトップ | 状態 |
 |---|---|---|
 | macOS 14+ | SwiftUI | macOS でビルドとスモークテスト済み |
+| macOS 13 / Tk フォールバック | Tk | 互換フォールバック |
 | Windows 10/11 | Tk | ソース、インストーラー、CI ビルドあり。ネイティブ GUI の受け入れ確認は未完了 |
 | Linux | Tk | ソースと CI ビルドあり。ネイティブ GUI の受け入れ確認は未完了 |
 | ヘッドレス / SSH | CLI のみ | 対応 |
@@ -371,6 +375,7 @@ CI のビルド成功は、すべてのネイティブ GUI 動作を検証済み
 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) から環境に合うファイルをダウンロードします。
 
 - macOS SwiftUI: `CodexRelay-*-macOS-SwiftUI.zip` を展開して Applications に移動。
+- macOS 13/Tk フォールバック: `CodexRelay-*-macOS-Tk-arm64.app.zip`。
 - Windows: `CodexRelay-*-Windows-x86_64.exe` を実行。
 - Linux: `CodexRelay-*-Linux-x86_64` を実行（Tk と表示環境が必要）。
 - CLI: `python3 -m pip install codex_relay-*.whl`。
@@ -459,6 +464,7 @@ Codex、ChatGPT、OpenAI は各権利者の商標です。本プロジェクト�
 | 環境 | 桌面用戶端 | 狀態 |
 |---|---|---|
 | macOS 14+ | SwiftUI | 已在 macOS 建置與煙霧測試 |
+| macOS 13 / Tk 回退 | Tk | 相容性回退 |
 | Windows 10/11 | Tk | 已提供原始碼、安裝程式與 CI 建置；原生 GUI 驗收尚未完成 |
 | Linux | Tk | 已提供原始碼與 CI 建置；原生 GUI 驗收尚未完成 |
 | 無圖形環境 / SSH | 僅 CLI | 支援 |
@@ -470,6 +476,7 @@ CI 建置成功不等於所有原生 GUI 互動都已經驗證。
 從 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下載適合的檔案：
 
 - macOS SwiftUI：解壓縮 `CodexRelay-*-macOS-SwiftUI.zip`，將 App 拖到「應用程式」。
+- macOS 13/Tk 回退：`CodexRelay-*-macOS-Tk-arm64.app.zip`。
 - Windows：執行 `CodexRelay-*-Windows-x86_64.exe`。
 - Linux：執行 `CodexRelay-*-Linux-x86_64`（需要 Tk 與顯示環境）。
 - CLI：`python3 -m pip install codex_relay-*.whl`。
