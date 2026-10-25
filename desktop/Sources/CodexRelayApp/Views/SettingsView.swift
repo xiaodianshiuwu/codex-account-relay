@@ -133,7 +133,7 @@ struct SettingsView: View {
                                     .font(.system(size: 12, design: .monospaced))
                                     .foregroundStyle(RelayTheme.accent)
                             }
-                            Slider(value: $preferences.autoRemainingThreshold, in: 0...50, step: 1)
+                            Slider(value: $preferences.autoRemainingThreshold, in: 0...100, step: 1)
                             Text("剩余额度低于该百分比时准备切换；0% 表示只在额度耗尽时切换。")
                                 .font(.caption2)
                                 .foregroundStyle(RelayTheme.textMuted)

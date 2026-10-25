@@ -34,7 +34,7 @@ except ImportError:  # pragma: no cover - exercised on minimal CI images
 from . import __version__
 from .i18n import Translator, format_number, normalize_language, system_language
 from .store import Store, default_paths
-from .auto_config import load_auto_settings, save_auto_settings
+from .auto_config import auto_path, load_auto_settings, save_auto_settings
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -524,7 +524,7 @@ class PortableApp:
                                font=("Helvetica", 10), command=self.apply_settings).pack(side="left", padx=(0, 14))
         auto = self.auto_settings
         self.auto_enabled_var = tk.BooleanVar(value=bool(auto.get("enabled")))
-        self.auto_prompt_var = tk.StringVar(value=str(auto.get("prompt") or self.t("继续")))
+        self.auto_prompt_var = tk.StringVar(value=str(auto.get("prompt") if auto_path().exists() else self.t("继续")))
         self.auto_remaining_var = tk.StringVar(value=str(auto.get("remaining_threshold", 10)))
         auto_card = tk.Frame(page, bg=p["panel"], highlightthickness=1, highlightbackground=p["line"])
         auto_card.pack(fill="x", pady=5)
