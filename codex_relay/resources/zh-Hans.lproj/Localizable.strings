@@ -97,7 +97,6 @@
 "codex CLI: {version} · {path}" = "codex CLI: {version} · {path}";
 "codex login 失败，退出码 {code}" = "codex login 失败，退出码 {code}";
 "codex-relay {version} · Python {python}" = "codex-relay {version} · Python {python}";
-"codex-relay 退出码 %d：%@" = "codex-relay 退出码 %d：%@";
 "config.toml 设置 cli_auth_credentials_store={mode}；本工具当前按 auth.json（file backend）工作，请改为 file" = "config.toml 设置 cli_auth_credentials_store={mode}；本工具当前按 auth.json（file backend）工作，请改为 file";
 "file backend（auth.json）" = "file backend（auth.json）";
 "integrity ok · {size}" = "integrity ok · {size}";
@@ -345,6 +344,7 @@
 "已停止共享 app-server daemon：{note}" = "已停止共享 app-server daemon：{note}";
 "已切换: {from} → {to} ({email})" = "已切换: {from} → {to} ({email})";
 "已切换到" = "已切换到";
+"已切换到 %@" = "已切换到 %@";
 "已切换到 %@（%@，%d ms）" = "已切换到 %@（%@，%d ms）";
 "已删除账号 {alias}" = "已删除账号 {alias}";
 "已发送续跑提示词" = "已发送续跑提示词";
@@ -689,14 +689,16 @@
 "缺少 access token" = "缺少 access token";
 "缺少 refresh_token，切换后无法续期" = "缺少 refresh_token，切换后无法续期";
 "缺少必需参数：{names}" = "缺少必需参数：{names}";
-"自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。" = "自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。";
+"自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。" = "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。";
 "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。" = "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。";
 "自动恢复备份并重启 ChatGPT" = "自动恢复备份并重启 ChatGPT";
 "自动接力会重启 ChatGPT，已默认禁用。" = "自动接力会重启 ChatGPT，已默认禁用。";
 "自动接力守护会重启 ChatGPT，已默认禁用。请先使用 `auto --once --dry-run` 查看建议；确认要长期自动重启再加 --allow-chatgpt-restart --yes。" = "自动接力守护会重启 ChatGPT，已默认禁用。请先使用 `auto --once --dry-run` 查看建议；确认要长期自动重启再加 --allow-chatgpt-restart --yes。";
 "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。" = "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。";
 "自动续跑" = "自动续跑";
+"自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。" = "自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。";
 "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true" = "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true";
+"自动续跑检查被阻止" = "自动续跑检查被阻止";
 "自动续跑设置已保存" = "自动续跑设置已保存";
 "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。" = "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。";
 "要恢复的会话 ID，或 last/none" = "要恢复的会话 ID，或 last/none";
@@ -773,7 +775,6 @@
 "输出" = "输出";
 "输出为空" = "输出为空";
 "边界: {boundary}" = "边界: {boundary}";
-"达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。" = "达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。";
 "运行中" = "运行中";
 "运行中（可能缓存旧账号）" = "运行中（可能缓存旧账号）";
 "运行信息" = "运行信息";

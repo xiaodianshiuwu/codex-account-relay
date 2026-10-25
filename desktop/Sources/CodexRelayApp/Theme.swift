@@ -768,7 +768,7 @@ struct HudProgressLine: View {
 
 enum AppVersion {
     static var display: String {
-        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.4.0"
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.4.1"
     }
 }
 
@@ -786,8 +786,10 @@ extension Error {
             return L10n.format("无法启动 codex-relay：%@", message)
         case .timeout(let command):
             return L10n.format("命令超时：%@", command)
-        case .commandFailed(let code, let message):
-            return L10n.format("codex-relay 退出码 %d：%@", code, message)
+        case .commandFailed(_, let message):
+            // `message` is already cleaned of progress-event JSON and the
+            // `codex-relay:` prefix; omit the exit-code noise from the alert.
+            return message.isEmpty ? L10n.text("未知错误") : message
         case .decoding(let message):
             let detail = message == "输出为空" ? L10n.text("输出为空") : message
             return L10n.format("无法解析 codex-relay 输出：%@", detail)

@@ -21,8 +21,8 @@ public enum RelayBackendError: LocalizedError {
             return "无法启动 codex-relay：\(message)"
         case .timeout(let command):
             return "命令超时：\(command)"
-        case .commandFailed(let code, let message):
-            return "codex-relay 退出码 \(code)：\(message)"
+        case .commandFailed(_, let message):
+            return message.isEmpty ? "codex-relay failed" : message
         case .decoding(let message):
             return "无法解析 codex-relay 输出：\(message)"
         }

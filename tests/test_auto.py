@@ -10,7 +10,13 @@ from unittest.mock import patch
 
 from codex_relay.auto_config import load_auto_settings, save_auto_settings
 from codex_relay.auto_continue import continue_thread
-from codex_relay.cli import _auto_once, _used_threshold
+from codex_relay.cli import _auto_once, _used_threshold, build_parser
+
+
+class AutoParserTests(unittest.TestCase):
+    def test_auto_once_has_timeout_default(self) -> None:
+        args = build_parser().parse_args(["auto", "--once", "--json"])
+        self.assertEqual(args.timeout, 60.0)
 
 
 class AutoSettingsTests(unittest.TestCase):

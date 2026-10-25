@@ -144,6 +144,8 @@ codex-relay resume <thread-id> --account work --allow-chatgpt-restart
 
 ## 自动续跑
 
+macOS SwiftUI App 运行时会读取 `~/.codex-relay/auto.json`，在应用内按间隔检查并执行；退出 App 后停止。下面的终端命令仅用于内部 CLI 调试。
+
 当当前账号的剩余额度低于阈值时，自动切换到仍有额度的账号，并在原 thread 上继续执行。提示词和阈值都可以自定义：
 
 ```sh
@@ -154,11 +156,11 @@ codex-relay auto --once --remaining-threshold 10 --prompt "继续完成当前任
 codex-relay auto --enable --remaining-threshold 10 --prompt "继续完成当前任务，不要重做已完成部分" --interval 60 --allow-chatgpt-restart --yes
 ```
 
-- 首次启动守护加 `--enable`（或先在桌面设置页勾选“启用自动续跑”）；设置写入 `~/.codex-relay/auto.json`，之后守护会读取这个开关。
+- SwiftUI App 用户只需在设置页勾选“启用自动续跑”；设置写入 `~/.codex-relay/auto.json`，App 运行期间会读取并执行。下面的 `--enable` 仅用于内部 CLI 守护。
 - `--remaining-threshold 10`：剩余额度低于 10% 时准备切换；默认值可在 GUI 设置页修改。
 - `--prompt "..."`：切换成功后通过官方 `codex exec resume` 发到原 thread；留空表示只切号、不续跑。
 - 默认提示词是“继续”；设置保存在 `~/.codex-relay/auto.json`，与 GUI 设置共用。
-- 守护仍然需要显式 `--allow-chatgpt-restart --yes`，不会在后台静默重启 ChatGPT。
+- App 内自动续跑只会在设置页启用后执行，并会重启 ChatGPT；终端守护仍需要显式 `--allow-chatgpt-restart --yes`。
 
 ## CLI 参考（内部）
 
@@ -273,6 +275,8 @@ Read-only commands support `--json`. Use `--lang zh-Hans|zh-Hant|en|ja` to overr
 
 ### Auto-continue
 
+While the macOS SwiftUI app is running it reads `~/.codex-relay/auto.json` and performs checks in-app; it stops when the app quits. The terminal commands below are for internal CLI debugging.
+
 When the remaining quota falls below a threshold, Relay can switch to another usable account and send a custom continuation prompt to the original thread:
 
 ```sh
@@ -280,7 +284,7 @@ codex-relay auto --once --remaining-threshold 10 --prompt "Continue the current 
 codex-relay auto --enable --remaining-threshold 10 --prompt "Continue the current task; do not redo completed work" --interval 60 --allow-chatgpt-restart --yes
 ```
 
-Settings live in `~/.codex-relay/auto.json` and are shared with the desktop settings page. The daemon still requires explicit `--allow-chatgpt-restart --yes`.
+Settings live in `~/.codex-relay/auto.json` and are shared with the settings page. The in-app check runs only after you enable auto-continue and restarts ChatGPT; the terminal daemon still requires explicit `--allow-chatgpt-restart --yes`.
 
 ### Security
 

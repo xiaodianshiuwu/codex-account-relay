@@ -155,6 +155,31 @@ final class ModelTests: XCTestCase {
         XCTAssertEqual(report.checks.first?.level, "pass")
     }
 
+    func testSwitchErrorStripsProgressJSON() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let script = dir.appendingPathComponent("codex-relay")
+        let body = """
+        #!/bin/sh
+        echo '{"event":"progress","stage":"resolve","message":"正在解析账号"}' >&2
+        echo '{"event":"progress","stage":"preflight","message":"正在检查进程"}' >&2
+        echo 'codex-relay: 检测到其他 Codex 进程仍在使用同一 CODEX_HOME：891(cli)' >&2
+        exit 1
+        """
+        try body.write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        let backend = RelayBackend(binaryPath: script.path)
+        do {
+            _ = try backend.switchAccount(alias: "main", threadID: "t1", allowRestart: true) { _ in }
+            XCTFail("expected switch failure")
+        } catch {
+            let message = error.localizedDescription
+            XCTAssertTrue(message.contains("CODEX_HOME"))
+            XCTAssertFalse(message.contains("\"event\""))
+            XCTAssertFalse(message.contains("preflight"))
+        }
+    }
+
     func testBackendAgainstFakeCLI() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -173,6 +198,9 @@ final class ModelTests: XCTestCase {
             ;;
           usage)
             echo '{"profiles":[{"id":"acct-a","alias":"main","account_id":"acct-a","active":true,"usage":{"primary":{"used_percent":4,"window_minutes":300}}}]}'
+            ;;
+          auto)
+            echo '{"action":"switched","from":"main","to":"personal","thread_id":"t1","continued":true}'
             ;;
           switch)
             echo '{"event":"progress","stage":"resolve","message":"ok"}' >&2
@@ -206,6 +234,12 @@ final class ModelTests: XCTestCase {
         XCTAssertTrue(result.ok == true)
         XCTAssertEqual(result.durationMs, 42)
         XCTAssertEqual(events, ["resolve"])
+
+        // Deep links must go through the CLI with the explicit permission flag.
+        let auto = try backend.autoContinueOnce()
+        XCTAssertEqual(auto.action, "switched")
+        XCTAssertEqual(auto.to, "personal")
+        XCTAssertEqual(auto.continued, true)
 
         // Deep links must go through the CLI with the explicit permission flag.
         XCTAssertNoThrow(try backend.resumeThread("t1", allowRestart: true))

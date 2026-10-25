@@ -20,7 +20,7 @@ struct ContentView: View {
         .environment(\.locale, preferences.language.locale)
         .preferredColorScheme(preferences.preferredColorScheme)
         .task {
-            model.start()
+            model.start(preferences: preferences)
         }
         .onAppear {
             AppAppearance.apply(preferences.appearance)

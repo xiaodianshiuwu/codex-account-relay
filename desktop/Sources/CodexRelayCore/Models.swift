@@ -368,6 +368,18 @@ public struct RelayProgressEvent: Decodable {
     public let message: String?
 }
 
+public struct RelayAutoResult: Decodable {
+    public let action: String?
+    public let reason: String?
+    public let from: String?
+    public let to: String?
+    public let continued: Bool?
+    public let continueError: String?
+    public let threadId: String?
+    public let usedPercent: Double?
+    public let threshold: Double?
+}
+
 public struct RelayVersionInfo {
     public let relay: String
     public let codex: String

@@ -37,6 +37,14 @@ class PlatformTests(unittest.TestCase):
             codex_env._role_for_command("/Users/me/Applications/Codex Relay.app/Contents/MacOS/Codex"),
             "other",
         )
+        # Finder can place a second copy under a numbered bundle name; the
+        # space in the path must not make the relay binary look like Codex CLI.
+        self.assertEqual(
+            codex_env._role_for_command(
+                "/private/var/folders/x/Codex Relay 2.app/Contents/MacOS/CodexRelay"
+            ),
+            "other",
+        )
         self.assertEqual(
             codex_env._role_for_command("/Users/me/.codex/plugins/cache/openai-bundled/chrome/latest/ChatGPT for Chrome chrome-extension://x"),
             "other",

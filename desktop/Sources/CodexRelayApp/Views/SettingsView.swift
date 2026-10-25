@@ -108,12 +108,15 @@ struct SettingsView: View {
                 RelayCard {
                     VStack(alignment: .leading, spacing: 14) {
                         HudLabel(text: "自动续跑", color: RelayTheme.accent)
-                        Text("达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。")
+                        Text(L10n.text("自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。"))
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
                         Toggle("启用自动续跑", isOn: $preferences.autoContinueEnabled)
                             .toggleStyle(.switch)
+                            .onChange(of: preferences.autoContinueEnabled) { _, enabled in
+                                if enabled { Task { await model.checkAutoContinue() } }
+                            }
 
                         VStack(alignment: .leading, spacing: 6) {
                             Text("续跑提示词")
@@ -139,7 +142,7 @@ struct SettingsView: View {
                                 .foregroundStyle(RelayTheme.textMuted)
                         }
 
-                        Text("自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。")
+                        Text(L10n.text("自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。"))
                             .font(.caption2)
                             .foregroundStyle(RelayTheme.textMuted)
                     }

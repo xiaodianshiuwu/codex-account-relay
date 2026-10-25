@@ -991,7 +991,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
     current = store.current_profile()
     if not current:
         raise RelayError(t("当前账号未纳入账号仓库；请先 add --capture"))
-    refresh_usage(store, current, timeout=args.timeout)
+    refresh_usage(store, current, timeout=float(getattr(args, "timeout", 60.0)))
     used = max_used_percent(current.get("usage"))
     threshold = _used_threshold(args)
     exhausted = bool((current.get("usage") or {}).get("rate_limit_reached_type"))
@@ -1033,7 +1033,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
     usable = []
     for candidate in candidates:
         try:
-            refresh_usage(store, candidate, timeout=args.timeout)
+            refresh_usage(store, candidate, timeout=float(getattr(args, "timeout", 60.0)))
         except RelayError as exc:
             print(t("跳过 {alias}: {error}", alias=candidate.get("alias"), error=tx(str(exc))), file=sys.stderr)
             continue
@@ -1612,7 +1612,7 @@ def build_parser(translator_: Optional[Translator] = None) -> argparse.ArgumentP
     )
     auto.add_argument("--yes", action="store_true", help=tr.t("与 --allow-chatgpt-restart 搭配，确认自动化"))
     auto.add_argument("--json", action="store_true")
-    auto.set_defaults(func=cmd_auto)
+    auto.set_defaults(func=cmd_auto, timeout=60.0)
 
     setup = sub.add_parser("setup", help=tr.t("检测并保存 Codex CLI/数据目录"), add_help=False, description=tr.t("检测并保存 Codex CLI/数据目录"))
     _add_help(setup, tr)

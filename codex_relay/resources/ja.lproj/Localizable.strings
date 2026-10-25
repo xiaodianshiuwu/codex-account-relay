@@ -97,7 +97,6 @@
 "codex CLI: {version} · {path}" = "codex CLI：{version} · {path}";
 "codex login 失败，退出码 {code}" = "codex login が失敗しました。終了コード {code}";
 "codex-relay {version} · Python {python}" = "codex-relay {version} · Python {python}";
-"codex-relay 退出码 %d：%@" = "codex-relay が終了コード %d で終了しました：%@";
 "config.toml 设置 cli_auth_credentials_store={mode}；本工具当前按 auth.json（file backend）工作，请改为 file" = "config.toml で cli_auth_credentials_store={mode} が設定されています。このツールは auth.json（file バックエンド）で動作するため、file に変更してください";
 "file backend（auth.json）" = "file バックエンド（auth.json）";
 "integrity ok · {size}" = "integrity ok · {size}";
@@ -345,6 +344,7 @@
 "已停止共享 app-server daemon：{note}" = "共有 app-server daemon を停止しました：{note}";
 "已切换: {from} → {to} ({email})" = "切り替えました：{from} → {to}（{email}）";
 "已切换到" = "切り替えました";
+"已切换到 %@" = "%@ に切り替えました";
 "已切换到 %@（%@，%d ms）" = "%@ に切り替えました（%@、%d ms）";
 "已删除账号 {alias}" = "アカウント {alias} を削除しました";
 "已发送续跑提示词" = "継続プロンプトを送信しました。";
@@ -689,14 +689,16 @@
 "缺少 access token" = "access token がありません";
 "缺少 refresh_token，切换后无法续期" = "refresh_token がないため、切り替え後に更新できません";
 "缺少必需参数：{names}" = "必須引数がありません：{names}";
-"自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。" = "自動切り替えは ChatGPT を再起動します。ターミナルで --allow-chatgpt-restart --yes を付けて明示的にデーモンを起動してください。バックグラウンドで勝手に実行されることはありません。";
+"自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。" = "自動切り替えは ChatGPT を再起動します。自動継続を有効にした場合にのみ実行されます。";
 "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。" = "自動検出を利用できます。カスタムパスを固定するには codex-relay setup --codex <パス> --codex-home <ディレクトリ> を実行してください。";
 "自动恢复备份并重启 ChatGPT" = "バックアップを復元し、ChatGPT を自動で再起動します";
 "自动接力会重启 ChatGPT，已默认禁用。" = "自動引き継ぎは ChatGPT を再起動するため、既定では無効です。";
 "自动接力守护会重启 ChatGPT，已默认禁用。请先使用 `auto --once --dry-run` 查看建议；确认要长期自动重启再加 --allow-chatgpt-restart --yes。" = "自動引き継ぎデーモンは ChatGPT を再起動するため、既定では無効です。まず `auto --once --dry-run` で提案を確認し、常時自動再起動を許可する場合のみ --allow-chatgpt-restart --yes を追加してください。";
 "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。" = "自動引き継ぎデーモンを開始しました（しきい値 {threshold}%、間隔 {interval}s）。Ctrl-C で終了します。";
 "自动续跑" = "自動継続";
+"自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。" = "自動継続は App の実行中に一定間隔で確認し、App を終了すると停止します。しきい値に達するとアカウントを切り替え、元の thread に継続プロンプトを送ります。";
 "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true" = "自動継続が有効になっていません。設定ページで有効にするか、auto.json の enabled を true にしてください。";
+"自动续跑检查被阻止" = "自動継続チェックがブロックされました。";
 "自动续跑设置已保存" = "自動継続設定を保存しました。";
 "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。" = "カスタム名はアカウント保管庫に保存され、更新や切り替え後も保持されます。";
 "要恢复的会话 ID，或 last/none" = "復元するセッション ID、または last/none";
@@ -773,7 +775,6 @@
 "输出" = "出力";
 "输出为空" = "出力が空です";
 "边界: {boundary}" = "境界：{boundary}";
-"达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。" = "残り枠がしきい値に達したらアカウントを切り替え、元の thread に継続プロンプトを送ります。設定は `codex-relay auto` デーモン用に ~/.codex-relay/auto.json へ保存されます。";
 "运行中" = "実行中";
 "运行中（可能缓存旧账号）" = "実行中（古いアカウントがキャッシュされている可能性）";
 "运行信息" = "実行情報";

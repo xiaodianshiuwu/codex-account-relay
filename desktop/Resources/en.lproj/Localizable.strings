@@ -97,7 +97,6 @@
 "codex CLI: {version} · {path}" = "codex CLI: {version} · {path}";
 "codex login 失败，退出码 {code}" = "codex login failed with exit code {code}";
 "codex-relay {version} · Python {python}" = "codex-relay {version} · Python {python}";
-"codex-relay 退出码 %d：%@" = "codex-relay exited with code %d: %@";
 "config.toml 设置 cli_auth_credentials_store={mode}；本工具当前按 auth.json（file backend）工作，请改为 file" = "config.toml sets cli_auth_credentials_store={mode}; this tool works with auth.json (file backend); change it to file";
 "file backend（auth.json）" = "File backend (auth.json)";
 "integrity ok · {size}" = "integrity ok · {size}";
@@ -345,6 +344,7 @@
 "已停止共享 app-server daemon：{note}" = "Stopped the shared app-server daemon: {note}";
 "已切换: {from} → {to} ({email})" = "Switched: {from} → {to} ({email})";
 "已切换到" = "Switched to";
+"已切换到 %@" = "Switched to %@";
 "已切换到 %@（%@，%d ms）" = "Switched to %@ (%@, %d ms)";
 "已删除账号 {alias}" = "Deleted account {alias}";
 "已发送续跑提示词" = "Continuation prompt sent.";
@@ -689,14 +689,16 @@
 "缺少 access token" = "Missing access token";
 "缺少 refresh_token，切换后无法续期" = "refresh_token is missing; credentials cannot be renewed after a switch";
 "缺少必需参数：{names}" = "Missing required argument(s): {names}";
-"自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。" = "Automatic switching restarts ChatGPT. Start the daemon explicitly in a terminal with --allow-chatgpt-restart --yes; nothing happens silently in the background.";
+"自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。" = "Automatic switching restarts ChatGPT; it only runs after you enable auto-continue.";
 "自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。" = "Automatic discovery works. To pin a custom path, run codex-relay setup --codex <path> --codex-home <directory>.";
 "自动恢复备份并重启 ChatGPT" = "Restore the backup and restart ChatGPT automatically";
 "自动接力会重启 ChatGPT，已默认禁用。" = "Auto handoff restarts ChatGPT and is disabled by default.";
 "自动接力守护会重启 ChatGPT，已默认禁用。请先使用 `auto --once --dry-run` 查看建议；确认要长期自动重启再加 --allow-chatgpt-restart --yes。" = "The auto-handoff daemon restarts ChatGPT and is disabled by default. Run `auto --once --dry-run` to see suggestions; add --allow-chatgpt-restart --yes only if you want long-running automatic restarts.";
 "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。" = "Auto-handoff daemon started (threshold {threshold}%, interval {interval}s). Press Ctrl-C to exit.";
 "自动续跑" = "Auto-continue";
+"自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。" = "Auto-continue checks on an interval while the app is running and stops when the app quits. At the threshold it switches accounts and sends the continuation prompt to the original thread.";
 "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true" = "Auto-continue is not enabled. Enable it in Settings or set enabled to true in auto.json.";
+"自动续跑检查被阻止" = "Auto-continue check was blocked.";
 "自动续跑设置已保存" = "Auto-continue settings saved.";
 "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。" = "Custom names are saved in the account store and survive refresh and switching.";
 "要恢复的会话 ID，或 last/none" = "Session ID to restore, or last/none";
@@ -773,7 +775,6 @@
 "输出" = "Output";
 "输出为空" = "No output";
 "边界: {boundary}" = "Boundary: {boundary}";
-"达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。" = "Switch accounts when the remaining quota reaches the threshold, then send a continuation prompt to the original thread. The setting is stored in ~/.codex-relay/auto.json for the `codex-relay auto` daemon.";
 "运行中" = "Running";
 "运行中（可能缓存旧账号）" = "Running (may be caching an old account)";
 "运行信息" = "Runtime";

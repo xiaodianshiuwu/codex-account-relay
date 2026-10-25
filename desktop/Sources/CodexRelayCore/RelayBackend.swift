@@ -54,6 +54,24 @@ public final class RelayBackend: @unchecked Sendable {
         return decoder
     }
 
+    /// The CLI writes progress events as JSON lines to stderr. Exposing those
+    /// lines in an alert turns a safety refusal into an unreadable dump. Keep
+    /// only human-readable error lines and drop the transport prefix.
+    private func cleanCLIError(_ text: String) -> String {
+        let decoder = decoder()
+        let lines = text.split(whereSeparator: \.isNewline).compactMap { raw -> String? in
+            let line = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !line.isEmpty else { return nil }
+            if line.hasPrefix("{"), let data = line.data(using: .utf8),
+               (try? decoder.decode(RelayProgressEvent.self, from: data)) != nil {
+                return nil
+            }
+            return line.replacingOccurrences(of: "codex-relay: ", with: "")
+        }
+        let joined = lines.suffix(5).joined(separator: "\n")
+        return joined.isEmpty ? text.trimmingCharacters(in: .whitespacesAndNewlines) : joined
+    }
+
     private var cliEnvironment: [String: String] {
         // AppPreferences stores the selected language in UserDefaults; the
         // core reads the same key so CLI diagnostics and human-readable output
@@ -74,7 +92,7 @@ public final class RelayBackend: @unchecked Sendable {
         )
         guard output.exitCode == 0 else {
             let message = output.stderr.isEmpty ? output.stdout : output.stderr
-            throw RelayBackendError.commandFailed(output.exitCode, message.trimmingCharacters(in: .whitespacesAndNewlines))
+            throw RelayBackendError.commandFailed(output.exitCode, cleanCLIError(message))
         }
         return output.stdout
     }
@@ -183,7 +201,7 @@ public final class RelayBackend: @unchecked Sendable {
         guard output.exitCode == 0 else {
             throw RelayBackendError.commandFailed(
                 output.exitCode,
-                output.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
+                cleanCLIError(output.stderr)
             )
         }
         do {
@@ -219,7 +237,7 @@ public final class RelayBackend: @unchecked Sendable {
         guard output.exitCode == 0 else {
             throw RelayBackendError.commandFailed(
                 output.exitCode,
-                output.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
+                cleanCLIError(output.stderr)
             )
         }
         do {
@@ -261,7 +279,7 @@ public final class RelayBackend: @unchecked Sendable {
         guard output.exitCode == 0 else {
             throw RelayBackendError.commandFailed(
                 output.exitCode,
-                output.stderr.trimmingCharacters(in: .whitespacesAndNewlines)
+                cleanCLIError(output.stderr)
             )
         }
     }
@@ -289,6 +307,31 @@ public final class RelayBackend: @unchecked Sendable {
         _ = try run(args, timeout: 45)
     }
 
+    /// One auto-continue tick executed by the app while it is running. The
+    /// CLI owns the quota comparison, switching and prompt delivery so the
+    /// app and the terminal daemon cannot drift into different policies.
+    public func autoContinueOnce() throws -> RelayAutoResult {
+        let binary = try requireBinary()
+        let output = try ProcessRunner.run(
+            executable: binary,
+            arguments: ["auto", "--once", "--allow-chatgpt-restart", "--yes", "--json"],
+            timeout: 360,
+            environment: cliEnvironment
+        )
+        guard [0, 1, 2, 3].contains(output.exitCode) else {
+            let message = output.stderr.isEmpty ? output.stdout : output.stderr
+            throw RelayBackendError.commandFailed(output.exitCode, cleanCLIError(message))
+        }
+        guard let data = output.stdout.data(using: .utf8), !data.isEmpty else {
+            throw RelayBackendError.decoding("auto-continue returned no result")
+        }
+        do {
+            return try decoder().decode(RelayAutoResult.self, from: data)
+        } catch {
+            throw RelayBackendError.decoding("\(error.localizedDescription)\n\(output.stdout.prefix(1200))")
+        }
+    }
+
     public func openPath(_ path: String) throws {
         let output = try ProcessRunner.run(
             executable: "/usr/bin/open",
@@ -296,7 +339,7 @@ public final class RelayBackend: @unchecked Sendable {
             timeout: 10
         )
         guard output.exitCode == 0 else {
-            throw RelayBackendError.commandFailed(output.exitCode, output.stderr)
+            throw RelayBackendError.commandFailed(output.exitCode, cleanCLIError(output.stderr))
         }
     }
 

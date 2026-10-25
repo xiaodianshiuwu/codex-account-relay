@@ -329,12 +329,6 @@
     "zh-Hans": "Token 统计",
     "zh-Hant": "Token 統計"
   },
-  "codex-relay 退出码 %d：%@": {
-    "en": "codex-relay exited with code %d: %@",
-    "ja": "codex-relay が終了コード %d で終了しました：%@",
-    "zh-Hans": "codex-relay 退出码 %d：%@",
-    "zh-Hant": "codex-relay 結束碼 %d：%@"
-  },
   "refresh token 已失效或被撤销。请重新添加/登录后再切换。": {
     "en": "The refresh token is invalid or revoked. Sign in again before switching.",
     "ja": "refresh token が無効または取り消されています。再サインインしてから切り替えてください。",
@@ -2243,12 +2237,6 @@
     "zh-Hans": "缓存与推理分析失败",
     "zh-Hant": "快取與推理分析失敗"
   },
-  "自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。": {
-    "en": "Automatic switching restarts ChatGPT. Start the daemon explicitly in a terminal with --allow-chatgpt-restart --yes; nothing happens silently in the background.",
-    "ja": "自動切り替えは ChatGPT を再起動します。ターミナルで --allow-chatgpt-restart --yes を付けて明示的にデーモンを起動してください。バックグラウンドで勝手に実行されることはありません。",
-    "zh-Hans": "自动切换会重启 ChatGPT，必须由用户在终端显式启动守护并加 --allow-chatgpt-restart --yes；不会在后台静默操作。",
-    "zh-Hant": "自動切換會重新啟動 ChatGPT，必須由使用者在終端機明確啟動守護並加上 --allow-chatgpt-restart --yes；不會在背景默默操作。"
-  },
   "自动恢复备份并重启 ChatGPT": {
     "en": "Restore the backup and restart ChatGPT automatically",
     "ja": "バックアップを復元し、ChatGPT を自動で再起動します",
@@ -2261,11 +2249,35 @@
     "zh-Hans": "自动续跑",
     "zh-Hant": "自動續跑"
   },
+  "自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。": {
+    "en": "Auto-continue checks on an interval while the app is running and stops when the app quits. At the threshold it switches accounts and sends the continuation prompt to the original thread.",
+    "ja": "自動継続は App の実行中に一定間隔で確認し、App を終了すると停止します。しきい値に達するとアカウントを切り替え、元の thread に継続プロンプトを送ります。",
+    "zh-Hans": "自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。",
+    "zh-Hant": "自動續跑會在 App 執行時按間隔檢查；結束 App 後停止。達到閾值會切換帳號並在原 thread 傳送續跑提示詞。"
+  },
+  "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。": {
+    "en": "Automatic switching restarts ChatGPT; it only runs after you enable auto-continue.",
+    "ja": "自動切り替えは ChatGPT を再起動します。自動継続を有効にした場合にのみ実行されます。",
+    "zh-Hans": "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。",
+    "zh-Hant": "自動切換會重新啟動 ChatGPT；只有在你啟用自動續跑後才會執行。"
+  },
   "自动续跑设置已保存": {
     "en": "Auto-continue settings saved.",
     "ja": "自動継続設定を保存しました。",
     "zh-Hans": "自动续跑设置已保存",
     "zh-Hant": "自動續跑設定已儲存"
+  },
+  "自动续跑检查被阻止": {
+    "en": "Auto-continue check was blocked.",
+    "ja": "自動継続チェックがブロックされました。",
+    "zh-Hans": "自动续跑检查被阻止",
+    "zh-Hant": "自動續跑檢查被封鎖"
+  },
+  "已切换到 %@": {
+    "en": "Switched to %@",
+    "ja": "%@ に切り替えました",
+    "zh-Hans": "已切换到 %@",
+    "zh-Hant": "已切換到 %@"
   },
   "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。": {
     "en": "Custom names are saved in the account store and survive refresh and switching.",
@@ -2536,12 +2548,6 @@
     "ja": "出力が空です",
     "zh-Hans": "输出为空",
     "zh-Hant": "輸出為空"
-  },
-  "达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。": {
-    "en": "Switch accounts when the remaining quota reaches the threshold, then send a continuation prompt to the original thread. The setting is stored in ~/.codex-relay/auto.json for the `codex-relay auto` daemon.",
-    "ja": "残り枠がしきい値に達したらアカウントを切り替え、元の thread に継続プロンプトを送ります。設定は `codex-relay auto` デーモン用に ~/.codex-relay/auto.json へ保存されます。",
-    "zh-Hans": "达到剩余额度阈值时切换账号，并在原 thread 上发送续跑提示词。配置会写入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守护读取。",
-    "zh-Hant": "達到剩餘額度閾值時切換帳號，並在原 thread 上傳送續跑提示詞。設定會寫入 ~/.codex-relay/auto.json，供 `codex-relay auto` 守護讀取。"
   },
   "运行中": {
     "en": "Running",

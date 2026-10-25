@@ -220,7 +220,8 @@ def _role_for_command(command: str) -> str:
         or "chatgpt for chrome" in lowered
         or "/chatgpt.app/contents/frameworks/" in lowered
         or "codex framework.framework" in lowered
-        or "/codex relay.app/" in lowered
+        or ("/codex relay" in lowered and (".app/" in lowered or "/contents/macos/" in lowered))
+        or name.startswith("codexrelay")
         or "codex helper" in lowered
         or name in ("ssh", "ssh.exe")
     ):

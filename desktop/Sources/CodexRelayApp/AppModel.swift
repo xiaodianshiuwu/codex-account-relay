@@ -117,6 +117,9 @@ final class AppModel: ObservableObject {
     private var timer: Timer?
     private var usageTimer: Timer?
     private var fullUsageTimer: Timer?
+    private var autoTimer: Timer?
+    private weak var autoPreferences: AppPreferences?
+    private var autoCheckRunning = false
     private var started = false
     private var dataGeneration = 0
 
@@ -191,9 +194,10 @@ final class AppModel: ObservableObject {
         return result
     }
 
-    func start() {
+    func start(preferences: AppPreferences? = nil) {
         guard !started else { return }
         started = true
+        autoPreferences = preferences
         let backend = self.backend
         Task {
             backendVersion = await Task.detached { backend.versionLine() }.value
@@ -233,12 +237,81 @@ final class AppModel: ObservableObject {
         if let fullUsageTimer {
             RunLoop.main.add(fullUsageTimer, forMode: .common)
         }
+        // The SwiftUI app is the supported frontend. Run the same `auto
+        // --once` policy in-process instead of requiring a terminal daemon;
+        // this is what makes the Settings toggle effective.
+        autoTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                await self?.checkAutoContinue()
+            }
+        }
+        if let autoTimer {
+            RunLoop.main.add(autoTimer, forMode: .common)
+        }
+        if preferences?.autoContinueEnabled == true {
+            Task { await checkAutoContinue() }
+        }
+    }
+
+    func checkAutoContinue() async {
+        guard let preferences = autoPreferences,
+              preferences.autoContinueEnabled,
+              !autoCheckRunning,
+              !isSwitching,
+              !isOpeningProcess,
+              !isAdding,
+              !isRefreshing,
+              !isRefreshingUsage,
+              pendingProcessAction == nil else {
+            return
+        }
+        autoCheckRunning = true
+        defer { autoCheckRunning = false }
+        let backend = self.backend
+        do {
+            let result = try await Task.detached(priority: .utility) {
+                try backend.autoContinueOnce()
+            }.value
+            if result.action == "switched", let target = result.to {
+                // The account switch can succeed while the continuation command
+                // fails; surface both facts instead of pretending the whole
+                // operation failed or succeeded silently.
+                if let continuationError = result.continueError, !continuationError.isEmpty {
+                    toast = continuationError
+                } else {
+                    toast = L10n.format("已切换到 %@", target)
+                }
+                clearToastLater()
+                await refreshAll(silent: true)
+                await refreshActiveUsage(auto: true)
+            } else if result.action == "blocked" {
+                // Never show a modal from a background check; a toast keeps
+                // the user informed without interrupting their work.
+                switch result.reason {
+                case "active-turn":
+                    toast = L10n.text("检测到 Codex 正在执行一轮任务，拒绝重启。等待完成或使用 --force。")
+                case "no-usable-candidate":
+                    toast = L10n.text("没有仍有额度的其他账号")
+                case "no-candidate":
+                    toast = L10n.text("没有其他可用账号")
+                case "process-control-disabled":
+                    toast = L10n.text("自动接力会重启 ChatGPT，已默认禁用。")
+                default:
+                    toast = L10n.text("自动续跑检查被阻止")
+                }
+                clearToastLater()
+            }
+        } catch {
+            toast = error.relayLocalizedDescription
+            clearToastLater()
+        }
     }
 
     deinit {
         timer?.invalidate()
         usageTimer?.invalidate()
         fullUsageTimer?.invalidate()
+        autoTimer?.invalidate()
     }
 
     // MARK: - Account avatars
@@ -589,7 +662,7 @@ final class AppModel: ObservableObject {
     }
 
     private func performSwitch(_ account: RelayAccount, threadID: String) {
-        guard !isSwitching else { return }
+        guard !isSwitching, !autoCheckRunning else { return }
         isSwitching = true
         switchStage = "准备切换…"
         switchLog = [
