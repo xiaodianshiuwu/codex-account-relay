@@ -136,9 +136,16 @@ final class AppPreferences: ObservableObject {
         appearance = RelayAppearance(rawValue: appearanceRaw ?? "") ?? .dark
         language = AppLanguage(rawValue: languageRaw ?? "") ?? .systemDefault
         let auto = AutoSettingsFile.load()
-        autoContinueEnabled = defaults.object(forKey: Keys.autoEnabled) as? Bool ?? auto.enabled
-        autoContinuePrompt = defaults.string(forKey: Keys.autoPrompt) ?? (auto.prompt.isEmpty ? L10n.text("继续") : auto.prompt)
-        autoRemainingThreshold = defaults.object(forKey: Keys.autoRemaining) as? Double ?? auto.remainingThreshold
+        if AutoSettingsFile.exists {
+            // auto.json is the shared source of truth with `codex-relay auto`.
+            autoContinueEnabled = auto.enabled
+            autoContinuePrompt = auto.prompt
+            autoRemainingThreshold = auto.remainingThreshold
+        } else {
+            autoContinueEnabled = defaults.object(forKey: Keys.autoEnabled) as? Bool ?? false
+            autoContinuePrompt = L10n.text("继续")
+            autoRemainingThreshold = defaults.object(forKey: Keys.autoRemaining) as? Double ?? 10
+        }
         L10n.language = language
         AppAppearance.apply(appearance)
     }
@@ -169,6 +176,10 @@ private struct AutoSettingsFile: Codable {
     enum CodingKeys: String, CodingKey {
         case enabled, prompt, interval, strategy
         case remainingThreshold = "remaining_threshold"
+    }
+
+    static var exists: Bool {
+        FileManager.default.fileExists(atPath: url.path)
     }
 
     static var url: URL {

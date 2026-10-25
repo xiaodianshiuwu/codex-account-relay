@@ -79,6 +79,51 @@ class AutoSettingsTests(unittest.TestCase):
         self.assertIn('"threshold": 90.0', output.getvalue())
         self.assertIn('"remaining_threshold": 10.0', output.getvalue())
 
+    def test_switch_sends_continuation_prompt(self) -> None:
+        current = {
+            "id": "a",
+            "alias": "personal",
+            "status": "ok",
+            "usage": {"primary": {"used_percent": 96.0}},
+        }
+        candidate = {
+            "id": "b",
+            "alias": "work",
+            "status": "ok",
+            "usage": {"primary": {"used_percent": 10.0}},
+        }
+
+        class Store:
+            def current_profile(self):
+                return current
+
+            def profiles(self):
+                return [current, candidate]
+
+        args = Namespace(
+            threshold=None,
+            remaining_threshold=10.0,
+            json=True,
+            timeout=1.0,
+            dry_run=False,
+            force=False,
+            allow_chatgpt_restart=True,
+            yes=True,
+            strategy="best",
+            prompt="继续处理",
+            continue_timeout=5.0,
+        )
+        output = __import__("io").StringIO()
+        with patch("codex_relay.cli.refresh_usage", return_value=None), patch(
+            "codex_relay.cli.idle_check", return_value={"idle": True, "active": [], "app_running": False}
+        ), patch("codex_relay.cli.switch", return_value={"thread_id": "thread-1"}), patch(
+            "codex_relay.cli.continue_thread", return_value="ok"
+        ) as cont, __import__("contextlib").redirect_stdout(output):
+            result = _auto_once(Store(), args)
+        self.assertEqual(result, 0)
+        cont.assert_called_once_with("thread-1", "继续处理", timeout=5.0)
+        self.assertIn('"continued": true', output.getvalue())
+
 
 class ContinueTests(unittest.TestCase):
     def test_continue_thread_calls_resume_with_prompt(self) -> None:
