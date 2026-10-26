@@ -10,7 +10,26 @@ permissions:
   contents: write
 
 jobs:
+  validate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate release tag and tests
+        env:
+          CODEX_RELAY_TEST_MODE: "1"
+        run: |
+          [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" == v* ]]
+          python -c 'import os; from codex_relay import __version__; assert os.environ["GITHUB_REF_NAME"] == "v" + __version__'
+          python tests/run.py
+          python tools/build_strings.py --check
+          python tools/i18n_audit.py --json
+          swift test --package-path desktop
+
   build-backend:
+    needs: validate
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +37,9 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip pyinstaller
+      - run: test "$(uname -m)" = arm64
       - run: python tools/build_cli_bundle.py
+      - run: python tools/smoke_bundle.py dist-cli/codex-relay
       - name: Verify bundled backend
         run: ./dist-cli/codex-relay --version
       - uses: actions/upload-artifact@v4
@@ -40,10 +61,13 @@ jobs:
           CODEX_RELAY_GUI_APP: ${{ runner.temp }}/Codex Relay.app
           CODEX_RELAY_OPEN_AFTER: "0"
         run: |
+          chmod +x dist-cli/codex-relay
           cd desktop
           ./build.sh
           test -x "$RUNNER_TEMP/Codex Relay.app/Contents/Resources/codex-relay"
           "$RUNNER_TEMP/Codex Relay.app/Contents/Resources/codex-relay" --version
+          CODEX_RELAY_HOME="$RUNNER_TEMP/relay-smoke" "$RUNNER_TEMP/Codex Relay.app/Contents/Resources/codex-relay" guard settings
+          codesign --verify --deep --strict "$RUNNER_TEMP/Codex Relay.app"
           ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Codex Relay.app" "$RUNNER_TEMP/CodexRelay-${GITHUB_REF_NAME}-macOS-SwiftUI.zip"
       - uses: actions/upload-artifact@v4
         with:
@@ -58,9 +82,6 @@ jobs:
         with:
           name: macos-app
           path: release-assets
-      - name: Flatten release assets
-        run: |
-          find release-assets -type f -exec cp {} release-assets/ \;
       - name: Generate checksums
         run: |
           cd release-assets

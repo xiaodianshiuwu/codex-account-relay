@@ -76,7 +76,8 @@ extension Date {
 
 extension String {
     func localized(locale: Locale) -> String {
-        let language = AppLanguage.allCases.first(where: { locale.identifier.hasPrefix($0.rawValue) })
+        let identifier = locale.identifier.replacingOccurrences(of: "_", with: "-")
+        let language = AppLanguage.allCases.first(where: { identifier.hasPrefix($0.rawValue) })
             ?? .zhCN
         return L10n.localized(self, language: language)
     }

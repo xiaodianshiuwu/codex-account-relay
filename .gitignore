@@ -10,6 +10,11 @@ venv/
 build/
 dist/
 dist-cli/
+build-cli/
+.build/
+# Guard runtime records are never source.
+.state/
+
 *.spec
 *.whl
 *.app

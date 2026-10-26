@@ -12,7 +12,7 @@ struct MenuBarView: View {
             Text(L10n.format("当前：%@ · %@", account.preferredName, account.plan ?? "-"))
             Text(account.email ?? "-")
         } else {
-            Text("当前未登录 Codex")
+            Text(L10n.text("当前未登录 Codex"))
         }
         Divider()
 
@@ -43,22 +43,22 @@ struct MenuBarView: View {
         }
 
         Divider()
-        Button("打开 Codex Relay") {
+        Button(L10n.text("打开 Codex Relay")) {
             openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)
         }
-        Button("刷新账号用量") {
+        Button(L10n.text("刷新账号用量")) {
             Task { await model.refreshUsage() }
         }
         .disabled(model.isRefreshingUsage || model.isSwitching)
         Menu("外观") {
-            Picker("外观", selection: $preferences.appearance) {
+            Picker(L10n.text("外观"), selection: $preferences.appearance) {
                 ForEach(RelayAppearance.allCases) { appearance in
                     Label(L10n.text(appearance.title), systemImage: appearance.icon).tag(appearance)
                 }
             }
         }
-        Button("打开最近会话") {
+        Button(L10n.text("打开最近会话")) {
             openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -66,7 +66,7 @@ struct MenuBarView: View {
             }
         }
         Divider()
-        Button("退出 Codex Relay") {
+        Button(L10n.text("退出 Codex Relay")) {
             NSApp.terminate(nil)
         }
     }

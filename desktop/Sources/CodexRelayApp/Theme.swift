@@ -768,7 +768,7 @@ struct HudProgressLine: View {
 
 enum AppVersion {
     static var display: String {
-        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.4.2"
+        (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "0.5.0"
     }
 }
 

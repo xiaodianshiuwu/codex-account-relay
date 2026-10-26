@@ -1,72 +1,58 @@
-"""Auto-continue/switch settings shared by the CLI and desktop clients.
-
-The file lives next to the account state and contains no credentials. It is
-intentionally separate from Codex's own configuration so uninstalling Relay
-does not alter the user's Codex setup.
-"""
+"""Validated settings shared by the CLI and native app."""
 from __future__ import annotations
-
 import json
-import os
+import math
 from pathlib import Path
 from typing import Any, Dict, Optional
-
 from .config import relay_home
+from .util import atomic_write_json, file_lock, RelayError
 
 DEFAULTS: Dict[str, Any] = {
-    "enabled": False,
-    "prompt": "",
-    "remaining_threshold": 10.0,
-    "interval": 60.0,
-    "strategy": "best",
+    "enabled": False, "prompt": "", "remaining_threshold": 10.0,
+    "interval": 60.0, "strategy": "best", "allow_chatgpt_restart": False,
+    "thread_id": "",
 }
-
 
 def auto_path() -> Path:
     return relay_home() / "auto.json"
 
+def validate(values: Dict[str, Any]) -> Dict[str, Any]:
+    result = dict(DEFAULTS, **values)
+    for key in ("enabled", "allow_chatgpt_restart"):
+        if not isinstance(result[key], bool):
+            raise RelayError(f"{key} must be a boolean")
+    for key in ("remaining_threshold", "interval"):
+        value = result[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise RelayError(f"{key} must be a finite number")
+    if not 0 <= result["remaining_threshold"] <= 100 or result["interval"] <= 0:
+        raise RelayError("remaining_threshold must be 0–100; interval must be positive")
+    if result["strategy"] not in ("next", "best"):
+        raise RelayError("strategy must be next or best")
+    for key in ("prompt", "thread_id"):
+        if not isinstance(result[key], str) or "\0" in result[key]:
+            raise RelayError(f"{key} must be text without NUL")
+    if result["thread_id"]:
+        import uuid
+        try: result["thread_id"] = str(uuid.UUID(result["thread_id"]))
+        except ValueError as exc: raise RelayError("thread_id must be a full UUID") from exc
+    return result
 
 def load_auto_settings(path: Optional[Path] = None) -> Dict[str, Any]:
     target = Path(path) if path else auto_path()
-    result = dict(DEFAULTS)
+    if not target.exists(): return dict(DEFAULTS)
     try:
         data = json.loads(target.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return result
-    if not isinstance(data, dict):
-        return result
-    if isinstance(data.get("enabled"), bool):
-        result["enabled"] = data["enabled"]
-    if isinstance(data.get("prompt"), str):
-        result["prompt"] = data["prompt"]
-    for key in ("remaining_threshold", "interval"):
-        try:
-            value = float(data.get(key))
-        except (TypeError, ValueError):
-            continue
-        if key == "remaining_threshold":
-            result[key] = max(0.0, min(100.0, value))
-        elif value > 0:
-            result[key] = value
-    if data.get("strategy") in ("next", "best"):
-        result["strategy"] = data["strategy"]
-    return result
-
+        if not isinstance(data, dict): return dict(DEFAULTS)
+        return validate(data)
+    except (OSError, ValueError, RelayError):
+        # Invalid automation configuration must never enable actions.
+        return dict(DEFAULTS)
 
 def save_auto_settings(values: Dict[str, Any], path: Optional[Path] = None) -> Path:
     target = Path(path) if path else auto_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
-    current = load_auto_settings(target)
-    current.update({key: values[key] for key in DEFAULTS if key in values})
-    try:
-        os.chmod(target.parent, 0o700)
-    except OSError:
-        pass
-    temporary = target.with_name(target.name + ".tmp")
-    temporary.write_text(json.dumps(current, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    try:
-        os.chmod(temporary, 0o600)
-    except OSError:
-        pass
-    os.replace(temporary, target)
+    with file_lock(target.with_suffix(".lock")):
+        current = load_auto_settings(target)
+        current.update(values)
+        atomic_write_json(target, validate(current), mode=0o600)
     return target

@@ -35,6 +35,7 @@ public struct RelayAccount: Decodable, Identifiable, Hashable {
     public let usage: RelayUsage?
     public let active: Bool?
     public let usageText: String?
+    public let lastError: String?
 
     public init(
         id: String,
@@ -50,7 +51,8 @@ public struct RelayAccount: Decodable, Identifiable, Hashable {
         lastVerifiedAt: String? = nil,
         usage: RelayUsage? = nil,
         active: Bool? = nil,
-        usageText: String? = nil
+        usageText: String? = nil,
+        lastError: String? = nil
     ) {
         self.id = id
         self.alias = alias
@@ -66,6 +68,7 @@ public struct RelayAccount: Decodable, Identifiable, Hashable {
         self.usage = usage
         self.active = active
         self.usageText = usageText
+        self.lastError = lastError
     }
 
     public var isActive: Bool { active == true }
@@ -99,7 +102,8 @@ public struct RelayAccount: Decodable, Identifiable, Hashable {
             lastVerifiedAt: lastVerifiedAt,
             usage: usage,
             active: value ?? active,
-            usageText: usageText
+            usageText: usageText,
+            lastError: lastError
         )
     }
     public var maxUsedPercent: Double {
@@ -349,6 +353,8 @@ public struct RelayTurnUsage: Decodable, Identifiable, Hashable {
 }
 
 public struct RelaySwitchResult: Decodable {
+    public let continued: Bool?
+    public let continueError: String?
     public let ok: Bool?
     public let changed: Bool?
     public let reason: String?

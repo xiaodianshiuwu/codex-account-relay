@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 import urllib.error
 import urllib.request
@@ -157,8 +158,13 @@ def refresh_usage(
     auth = store.read_secret(str(profile["id"]))
     identity = validate_auth(auth)
     live_processes = bool(codex_env.codex_processes())
-    if is_active and live_processes and not force_refresh:
-        usage = fetch_usage_http(auth, timeout=min(timeout, 20.0), translator=tr)
+    if is_active and live_processes:
+        try:
+            usage = fetch_usage_http(auth, timeout=min(timeout, 20.0), translator=tr)
+        except RelayError as exc:
+            profile.update(status='error', last_error=str(exc)[:500], last_error_at=now_iso())
+            store.save_state()
+            raise
         profile["usage"] = usage
         profile["last_verified_at"] = now_iso()
         profile["status"] = "ok"
@@ -196,10 +202,28 @@ def refresh_usage(
     return usage
 
 
+def usage_known(usage: Optional[Dict[str, Any]]) -> bool:
+    if not isinstance(usage, dict): return False
+    if usage.get('rate_limit_reached_type') or usage.get('ordinary_usage_allowed') is False: return True
+    windows = [usage.get('primary'), usage.get('secondary')]
+    valid = 0
+    for window in windows:
+        if window is None: continue
+        if not isinstance(window, dict): return False
+        value = window.get('used_percent')
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 100:
+            return False
+        reset = window.get('resets_at')
+        if reset is not None and (not isinstance(reset, (int, float)) or not math.isfinite(reset) or reset <= time.time()):
+            return False
+        valid += 1
+    return valid > 0
+
+
 def max_used_percent(usage: Optional[Dict[str, Any]]) -> float:
     if not isinstance(usage, dict):
         return 0.0
-    if usage.get("rate_limit_reached_type"):
+    if usage.get("rate_limit_reached_type") or usage.get("ordinary_usage_allowed") is False:
         return 100.0
     values = []
     for key in ("primary", "secondary"):
@@ -271,7 +295,7 @@ def usage_dict(profile: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def idle_check(store: Store, window_seconds: float = 180.0) -> Dict[str, Any]:
+def idle_check(store: Store, window_seconds: float = 180.0, ignore_thread_id: Optional[str] = None) -> Dict[str, Any]:
     """Return whether a Codex turn appears to be actively running.
 
     `thread_turns.status` can be left at `inProgress` after a crash or a UI
@@ -280,6 +304,14 @@ def idle_check(store: Store, window_seconds: float = 180.0) -> Dict[str, Any]:
     now = time.time()
     active = []
     for turn in active_turn_status(store.paths):
+        if turn.get('thread_id') == ignore_thread_id: continue
+        try:
+            from .desktop_continue import runtime_task
+            runtime, _ = runtime_task(store, str(turn.get('thread_id')))
+            if runtime.kind in ('finished', 'interrupted', 'quota_error', 'goal_wait'):
+                continue
+        except (RuntimeError, OSError, TimeoutError, ValueError):
+            pass
         started = turn.get("started_at")
         age = now - started if isinstance(started, (int, float)) else None
         try:
@@ -298,7 +330,9 @@ def idle_check(store: Store, window_seconds: float = 180.0) -> Dict[str, Any]:
         recent_mtime = bool(mtime and now - mtime < window_seconds)
         recent_start = bool(age is not None and age < window_seconds)
         pending_tools = int(activity.get("pending_tool_calls") or 0)
-        if recent_mtime or recent_start or pending_tools:
+        # A quiet reasoning/network wait is still an active turn. A stale
+        # inProgress row is uncertainty, not permission to restart the app.
+        if turn.get("status") in ("inProgress", "in_progress", "running") or recent_mtime or recent_start or pending_tools:
             active.append(
                 {
                     "thread_id": turn.get("thread_id"),

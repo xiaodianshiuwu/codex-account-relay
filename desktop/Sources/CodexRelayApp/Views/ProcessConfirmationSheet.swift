@@ -8,6 +8,14 @@ struct ProcessConfirmationSheet: View {
     let action: PendingProcessAction
 
     @State private var confirmed = false
+    @State private var selectedThreadID: String
+    @State private var continueAfterSwitch = false
+    @State private var continuationText = ""
+
+    init(action: PendingProcessAction) {
+        self.action = action
+        _selectedThreadID = State(initialValue: action.threadID == "last" ? "none" : action.threadID)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -79,7 +87,18 @@ struct ProcessConfirmationSheet: View {
                         } else {
                             KVRow(key: "操作", value: L10n.text("仅重启 ChatGPT，不切换账号"))
                         }
-                        KVRow(key: "恢复会话", value: action.threadID)
+                        Picker(L10n.text("恢复会话"), selection: $selectedThreadID) {
+                            Text(L10n.text("仅切换账号")).tag("none")
+                            if selectedThreadID != "none" && !model.sessions.contains(where: { $0.id == selectedThreadID }) {
+                                Text(selectedThreadID).tag(selectedThreadID)
+                            }
+                            ForEach(model.sessions) { session in
+                                Text(session.displayTitle(locale: locale)).tag(session.id)
+                            }
+                        }
+                        if selectedThreadID != "none" {
+                            Text(selectedThreadID).font(.system(.caption2, design: .monospaced)).textSelection(.enabled)
+                        }
                         KVRow(key: "预计耗时", value: L10n.text("6–20 秒"))
                         KVRow(key: "失败处理", value: L10n.text("自动恢复备份并重启 ChatGPT"))
                     }
@@ -91,12 +110,20 @@ struct ProcessConfirmationSheet: View {
                     bullet("会通过 CLI 向 ChatGPT 发送深链接；CLI 必须收到 --allow-chatgpt-restart。")
                     bullet("如果 ChatGPT 未运行，macOS 会按需启动它。")
                     bullet("不会退出或重启 ChatGPT，也不会修改账号凭据。")
-                    bullet("本工具不会在后台自动执行此操作。")
+                    bullet("此处只执行你确认的操作；自动接力在设置中单独启用。")
                 } else {
-                    bullet("会先安全退出 ChatGPT；如果还有 Codex 轮次在跑，默认拒绝。")
+                    bullet("勾选续跑时会先确认中断所选轮次；其他活动聊天仍会阻止切号。")
                     bullet("会备份 auth.json 和 state，再写入目标凭据。")
                     bullet("切换期间不要操作 ChatGPT。")
-                    bullet("本工具不会在后台自动执行此操作。")
+                    bullet("此处只执行你确认的操作；自动接力在设置中单独启用。")
+                }
+            }
+
+            if action.kind == .switchAccount {
+                Toggle(L10n.text("切号后继续原聊天"), isOn: $continueAfterSwitch)
+                    .disabled(selectedThreadID == "none")
+                if continueAfterSwitch {
+                    TextField(L10n.text("续跑提示词"), text: $continuationText).textFieldStyle(.roundedBorder)
                 }
             }
 
@@ -111,24 +138,25 @@ struct ProcessConfirmationSheet: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 8) {
-                Button("取消") {
+                Button(L10n.text("取消")) {
                     model.cancelPendingProcessAction()
                 }
                 .buttonStyle(HudButtonStyle(primary: false))
                 .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button("确认并继续") {
-                    model.confirmPendingProcessAction()
+                Button(L10n.text("确认并继续")) {
+                    model.confirmPendingProcessAction(threadID: action.kind.isOpen ? action.threadID : selectedThreadID, continuationPrompt: continueAfterSwitch ? continuationText : nil)
                 }
                 .buttonStyle(HudButtonStyle(primary: true))
                 .keyboardShortcut(.defaultAction)
-                .disabled(!confirmed || (!action.kind.isOpen && (action.account?.isHealthy == false || action.account?.isExhausted == true)))
+                .disabled(!confirmed || (continueAfterSwitch && (selectedThreadID == "none" || continuationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)) || (!action.kind.isOpen && (action.account?.isHealthy == false || action.account?.isExhausted == true)))
             }
         }
         .padding(22)
-        .frame(width: 600, height: 500)
+        .frame(width: 650, height: 640)
         .background(HudBackground())
         .interactiveDismissDisabled()
+        .onAppear { continuationText = preferences.autoContinuePrompt.isEmpty ? L10n.text("继续") : preferences.autoContinuePrompt }
     }
 
     private func usageText(_ account: RelayAccount) -> String {

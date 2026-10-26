@@ -26,8 +26,9 @@ def continue_thread(
     if not thread_id:
         raise RelayError(tr.t("没有可续跑的会话"))
     result = run_capture(
-        [codex, "exec", "resume", "--json", "--skip-git-repo-check", thread_id, prompt],
+        [codex, "exec", "resume", "--json", "--skip-git-repo-check", thread_id, "-"],
         timeout=timeout,
+        input_text=prompt,
     )
     output = (result.stdout or "").strip()
     if result.returncode != 0:

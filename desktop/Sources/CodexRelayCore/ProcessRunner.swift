@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 public struct RelayProcessOutput {
     public let stdout: String
@@ -51,35 +52,36 @@ private final class LineReader {
     private let onLine: (String) -> Void
     private let completion: () -> Void
     private var buffer = Data()
+    private let lock = NSLock()
+    private var stopped = false
 
     init(handle: FileHandle, onLine: @escaping (String) -> Void, completion: @escaping () -> Void) {
-        self.handle = handle
-        self.onLine = onLine
-        self.completion = completion
+        self.handle = handle; self.onLine = onLine; self.completion = completion
     }
-
+    func stop() { lock.lock(); stopped = true; lock.unlock() }
+    private var shouldStop: Bool { lock.lock(); defer { lock.unlock() }; return stopped }
     func start() {
+        let fd = handle.fileDescriptor
+        _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
         DispatchQueue.global(qos: .userInitiated).async {
+            var bytes = [UInt8](repeating: 0, count: 8192)
             while true {
-                let chunk: Data?
-                do {
-                    chunk = try self.handle.read(upToCount: 4096)
-                } catch {
-                    break
-                }
-                guard let chunk, !chunk.isEmpty else { break }
-                self.buffer.append(chunk)
-                while let index = self.buffer.firstIndex(of: 0x0A) {
-                    let lineData = self.buffer[..<index]
-                    self.buffer.removeSubrange(self.buffer.startIndex...index)
-                    if let line = String(data: lineData, encoding: .utf8) {
+                let count = Darwin.read(fd, &bytes, bytes.count)
+                if count > 0 {
+                    self.buffer.append(contentsOf: bytes.prefix(count))
+                    while let index = self.buffer.firstIndex(of: 0x0A) {
+                        let line = String(decoding: self.buffer[..<index], as: UTF8.self)
+                        self.buffer.removeSubrange(self.buffer.startIndex...index)
                         self.onLine(line)
                     }
-                }
+                } else if count == 0 { break }
+                else if errno == EINTR { continue }
+                else if errno == EAGAIN || errno == EWOULDBLOCK {
+                    if self.shouldStop { break }
+                    usleep(10_000)
+                } else { break }
             }
-            if !self.buffer.isEmpty, let line = String(data: self.buffer, encoding: .utf8), !line.isEmpty {
-                self.onLine(line)
-            }
+            if !self.buffer.isEmpty { self.onLine(String(decoding: self.buffer, as: UTF8.self)) }
             self.completion()
         }
     }
@@ -158,39 +160,44 @@ public enum ProcessRunner {
         group.enter()
         group.enter()
 
-        LineReader(handle: stdoutPipe.fileHandleForReading, onLine: { line in
+        let stdoutReader = LineReader(handle: stdoutPipe.fileHandleForReading, onLine: { line in
             stdoutBox.append((line + "\n").data(using: .utf8) ?? Data())
             onStdoutLine(line)
         }, completion: {
             group.leave()
-        }).start()
+        })
 
-        LineReader(handle: stderrPipe.fileHandleForReading, onLine: { line in
+        let stderrReader = LineReader(handle: stderrPipe.fileHandleForReading, onLine: { line in
             stderrBox.append((line + "\n").data(using: .utf8) ?? Data())
             onStderrLine(line)
         }, completion: {
             group.leave()
-        }).start()
+        })
 
-        let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning && Date() < deadline {
+        stdoutReader.start()
+        stderrReader.start()
+        let deadline = timeout > 0 ? ProcessInfo.processInfo.systemUptime + timeout : .infinity
+        while process.isRunning && ProcessInfo.processInfo.systemUptime < deadline {
             usleep(50_000)
         }
         if process.isRunning {
             process.terminate()
-            let graceDeadline = Date().addingTimeInterval(2)
+            let graceDeadline = Date().addingTimeInterval(10)
             while process.isRunning && Date() < graceDeadline {
                 usleep(50_000)
             }
             if process.isRunning {
                 kill(process.processIdentifier, SIGKILL)
             }
-            group.wait()
-            throw RelayBackendError.timeout("\(executable) " + arguments.joined(separator: " "))
+            process.waitUntilExit()
+            stdoutReader.stop(); stderrReader.stop()
+            _ = group.wait(timeout: .now() + 2)
+            throw RelayBackendError.timeout(URL(fileURLWithPath: executable).lastPathComponent + " " + (arguments.first ?? ""))
         }
 
         process.waitUntilExit()
-        group.wait()
+        stdoutReader.stop(); stderrReader.stop()
+        _ = group.wait(timeout: .now() + 2)
 
         let stdout = String(data: stdoutBox.value(), encoding: .utf8) ?? ""
         let stderr = String(data: stderrBox.value(), encoding: .utf8) ?? ""

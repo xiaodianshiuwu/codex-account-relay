@@ -252,11 +252,13 @@ def list_threads(
             sql += " AND creator_account_id = ?"
             params.append(account_id)
         if search:
-            sql += " AND (title LIKE ? OR preview LIKE ? OR name LIKE ?)"
-            term = f"%{search}%"
-            params.extend([term, term, term])
-        sql += " ORDER BY updated_at DESC LIMIT ?"
-        params.append(max(1, min(limit, 500)))
+            searchable = [name for name in ("title", "preview", "name") if name in columns]
+            sql += " AND (" + " OR ".join(name + " LIKE ?" for name in searchable) + ")"
+            params.extend([f"%{search}%"] * len(searchable))
+        sql += " ORDER BY updated_at DESC"
+        if limit > 0:
+            sql += " LIMIT ?"
+            params.append(limit)
         rows = connection.execute(sql, params).fetchall()
         return [
             ThreadInfo(
@@ -337,7 +339,7 @@ def active_turn_status(paths: RelayPaths) -> List[Dict[str, Any]]:
         rows = connection.execute(
             "SELECT thread_id, turn_id, status, started_at, completed_at "
             "FROM thread_turns WHERE status IN ('inProgress', 'in_progress', 'running') "
-            "ORDER BY started_at DESC LIMIT 20"
+            "ORDER BY started_at DESC"
         ).fetchall()
         result = []
         for row in rows:

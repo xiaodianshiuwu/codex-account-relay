@@ -34,10 +34,10 @@ struct AddAccountSheet: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     HudLabel(text: "添加账号", color: RelayTheme.accent)
-                    Text("添加 ChatGPT 账号")
+                    Text(L10n.text("添加 ChatGPT 账号"))
                         .font(.hudDisplay(23))
                         .foregroundStyle(RelayTheme.text)
-                    Text("使用隔离 CODEX_HOME 登录，不撤销当前账号")
+                    Text(L10n.text("使用隔离 CODEX_HOME 登录，不撤销当前账号"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                 }
@@ -46,15 +46,15 @@ struct AddAccountSheet: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 HudLabel(text: "账号别名", color: RelayTheme.textMuted)
-                TextField("可留空，自动使用 accountN", text: $alias)
+                TextField(L10n.text("可留空，自动使用 accountN"), text: $alias)
                     .textFieldStyle(HudTextFieldStyle())
                     .disabled(model.isAdding)
-                Text("别名仅用于内部识别和历史 CLI 命令；列表优先显示账号真实名称。实际身份按 chatgpt_account_id 匹配。")
+                Text(L10n.text("别名仅用于内部识别和历史 CLI 命令；列表优先显示账号真实名称。实际身份按 chatgpt_account_id 匹配。"))
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
             }
 
-            Toggle("使用设备码登录（浏览器不方便打开时）", isOn: $deviceAuth)
+            Toggle(L10n.text("使用设备码登录（浏览器不方便打开时）"), isOn: $deviceAuth)
                 .toggleStyle(.switch)
                 .tint(RelayTheme.accent)
                 .disabled(model.isAdding)
@@ -63,7 +63,7 @@ struct AddAccountSheet: View {
                 HStack(alignment: .top, spacing: 9) {
                     Image(systemName: "info.circle")
                         .foregroundStyle(RelayTheme.accent)
-                    Text("点击开始后会在浏览器打开官方登录页。请选择要添加的那个账号；建议使用无痕窗口，避免又登进当前账号。")
+                    Text(L10n.text("点击开始后会在浏览器打开官方登录页。请选择要添加的那个账号；建议使用无痕窗口，避免又登进当前账号。"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                 }
@@ -74,7 +74,7 @@ struct AddAccountSheet: View {
                     HStack {
                         if model.isAdding {
                             ProgressView().controlSize(.small)
-                            Text("登录进行中…")
+                            Text(L10n.text("登录进行中…"))
                                 .font(.hudLabel(8))
                                 .foregroundStyle(RelayTheme.accent)
                         } else {
@@ -117,19 +117,19 @@ struct AddAccountSheet: View {
 
             HStack(spacing: 8) {
                 if model.isAdding {
-                    Button("取消登录") {
+                    Button(L10n.text("取消登录")) {
                         model.cancelAdd()
                     }
                     .buttonStyle(HudButtonStyle(primary: false))
                 }
                 Spacer()
-                Button("关闭") {
+                Button(L10n.text("关闭")) {
                     if model.isAdding { model.cancelAdd() }
                     dismiss()
                 }
                 .buttonStyle(HudButtonStyle(primary: false))
                 .keyboardShortcut(.cancelAction)
-                Button("开始登录") {
+                Button(L10n.text("开始登录")) {
                     model.addAccount(alias: effectiveAlias, deviceAuth: deviceAuth)
                 }
                 .buttonStyle(HudButtonStyle(primary: true))
@@ -178,7 +178,7 @@ struct SwitchProgressSheet: View {
                     .font(.hudDisplay(18))
                     .foregroundStyle(RelayTheme.text)
                     .multilineTextAlignment(.center)
-                Text("切换过程中请勿操作 ChatGPT。通常需要 6–20 秒。")
+                Text(L10n.text("切换过程中请勿操作 ChatGPT。通常需要 6–20 秒。"))
                     .font(.caption)
                     .foregroundStyle(RelayTheme.textMuted)
             }
@@ -192,7 +192,7 @@ struct SwitchProgressSheet: View {
                     Text(L10n.format("已用时 %d 秒", Int(max(0, timeline.date.timeIntervalSince(startedAt)))))
                         .font(.hudMono(9))
                         .foregroundStyle(RelayTheme.textMuted)
-                    Text("· 正在处理，请保持 ChatGPT 运行")
+                    Text(L10n.text("· 正在处理，请保持 ChatGPT 运行"))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                     Spacer()
@@ -235,7 +235,7 @@ struct SwitchProgressSheet: View {
                 }
             }
 
-            Text("失败会自动恢复备份并重启 ChatGPT。")
+            Text(L10n.text("失败会自动恢复备份并重启 ChatGPT。"))
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }

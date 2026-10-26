@@ -75,7 +75,7 @@ struct AccountsView: View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 HudLabel(text: "02 / 账号", color: RelayTheme.accent)
-                Text("账号")
+                Text(L10n.text("账号"))
                     .font(.hudDisplay(24))
                     .foregroundStyle(RelayTheme.text)
                 Text(L10n.format("%d 个已保存账号", model.accounts.count))
@@ -179,17 +179,16 @@ private struct AccountDetailView: View {
     @Environment(\.locale) private var locale
     let account: RelayAccount
 
-    @State private var threadChoice = "last"
+    @State private var threadChoice = "none"
     @State private var initialized = false
     @State private var showingRename = false
 
     private var recentSessions: [RelaySession] {
-        let owned = model.sessions.filter { $0.creatorAlias == account.alias }
-        return owned.isEmpty ? Array(model.sessions.prefix(12)) : Array(owned.prefix(12))
+        model.sessions
     }
 
     private var selectedThreadLabel: String {
-        if threadChoice == "last" { return "最近会话".localized(locale: locale) }
+        if threadChoice == "none" { return L10n.text("仅切换账号") }
         return recentSessions.first(where: { $0.id == threadChoice })?.displayTitle.shortened ?? "最近会话".localized(locale: locale)
     }
 
@@ -204,8 +203,8 @@ private struct AccountDetailView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundStyle(RelayTheme.red)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("该账号需要重新登录").font(.callout.weight(.semibold))
-                                Text("refresh token 已失效或被撤销。请重新添加/登录后再切换。")
+                                Text(L10n.text("该账号需要重新登录")).font(.callout.weight(.semibold))
+                                Text(L10n.text("refresh token 已失效或被撤销。请重新添加/登录后再切换。"))
                                     .font(.caption)
                                     .foregroundStyle(RelayTheme.textMuted)
                             }
@@ -220,8 +219,8 @@ private struct AccountDetailView: View {
                             Image(systemName: "bolt.slash.fill")
                                 .foregroundStyle(RelayTheme.red)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("当前额度已耗尽").font(.callout.weight(.semibold))
-                                Text("CLI 默认会拒绝切换到该账号；等待重置或使用 --force。")
+                                Text(L10n.text("当前额度已耗尽")).font(.callout.weight(.semibold))
+                                Text(L10n.text("CLI 默认会拒绝切换到该账号；等待重置或使用 --force。"))
                                     .font(.caption)
                                     .foregroundStyle(RelayTheme.textMuted)
                             }
@@ -267,17 +266,17 @@ private struct AccountDetailView: View {
                         Text((account.isActive ? "恢复会话" : "切换并恢复").localized(locale: locale))
                             .font(.hudDisplay(18))
                             .foregroundStyle(RelayTheme.text)
-                        Text("选择一条原会话；切换后会重启 ChatGPT，并用目标账号打开同一会话。")
+                        Text(L10n.text("选择一条原会话；切换后会重启 ChatGPT，并用目标账号打开同一会话。"))
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
                         Menu {
                             Button {
-                                threadChoice = "last"
+                                threadChoice = "none"
                             } label: {
                                 HStack {
-                                    Text("最近会话")
-                                    if threadChoice == "last" {
+                                    Text(L10n.text("仅切换账号"))
+                                    if threadChoice == "none" {
                                         Image(systemName: "checkmark")
                                     }
                                 }
@@ -323,7 +322,7 @@ private struct AccountDetailView: View {
                                 Button {
                                     model.requestRestart(threadID: threadChoice)
                                 } label: {
-                                    Label("重启并恢复此会话", systemImage: "arrow.clockwise.circle")
+                                    Label(L10n.text("重启并恢复此会话"), systemImage: "arrow.clockwise.circle")
                                 }
                                 .buttonStyle(HudButtonStyle(primary: true))
                                 .disabled(model.isSwitching || model.isOpeningProcess)
@@ -331,7 +330,7 @@ private struct AccountDetailView: View {
                                 Button {
                                     model.requestSwitch(account, threadID: threadChoice)
                                 } label: {
-                                    Label("切换到此账号并恢复", systemImage: "arrow.triangle.2.circlepath")
+                                    Label(L10n.text("切换到此账号并恢复"), systemImage: "arrow.triangle.2.circlepath")
                                 }
                                 .buttonStyle(HudButtonStyle(primary: true))
                                 .disabled(!account.isHealthy || account.isExhausted || model.isSwitching || model.isOpeningProcess)
@@ -339,13 +338,13 @@ private struct AccountDetailView: View {
                             Button {
                                 model.requestOpenApp()
                             } label: {
-                                Label("打开最近会话", systemImage: "arrow.up.forward.app")
+                                Label(L10n.text("打开最近会话"), systemImage: "arrow.up.forward.app")
                             }
                             .buttonStyle(HudButtonStyle(primary: false))
                             Spacer()
                         }
                         if !account.isActive {
-                            Text("切换通常需要 6–20 秒：校验账号 → 退出 App → 备份 → 写入凭据 → 重启 → 恢复会话。")
+                            Text(L10n.text("切换通常需要 6–20 秒：校验账号 → 退出 App → 备份 → 写入凭据 → 重启 → 恢复会话。"))
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }
@@ -379,11 +378,11 @@ private struct AccountDetailView: View {
     private var header: some View {
         HStack(spacing: 14) {
             Menu {
-                Button("更换头像…") {
+                Button(L10n.text("更换头像…")) {
                     model.chooseAvatar(for: account)
                 }
                 if model.hasCustomAvatar(for: account) {
-                    Button("恢复默认头像", role: .destructive) {
+                    Button(L10n.text("恢复默认头像"), role: .destructive) {
                         model.resetAvatar(for: account)
                     }
                 }
@@ -429,7 +428,7 @@ private struct AccountDetailView: View {
             Button {
                 showingRename = true
             } label: {
-                Label("重命名", systemImage: "pencil")
+                Label(L10n.text("重命名"), systemImage: "pencil")
             }
             .buttonStyle(HudButtonStyle(primary: false, compact: true))
             .disabled(model.isRenamingAccount)
@@ -440,7 +439,7 @@ private struct AccountDetailView: View {
                 if model.isRefreshingUsage {
                     ProgressView().controlSize(.small)
                 } else {
-                    Label("刷新额度", systemImage: "arrow.clockwise")
+                    Label(L10n.text("刷新额度"), systemImage: "arrow.clockwise")
                 }
             }
             .buttonStyle(HudButtonStyle(primary: false, compact: true))
@@ -464,7 +463,7 @@ private struct AccountDetailView: View {
                         .font(.hudLabel(8))
                         .foregroundStyle(.tertiary)
                 } else {
-                    Text("暂无数据")
+                    Text(L10n.text("暂无数据"))
                         .font(.hudLabel(10))
                         .foregroundStyle(RelayTheme.amber)
                 }
@@ -504,10 +503,10 @@ private struct RenameAccountSheet: View {
                 }
                 VStack(alignment: .leading, spacing: 3) {
                     HudLabel(text: "账号管理", color: RelayTheme.accent)
-                    Text("重命名账号")
+                    Text(L10n.text("重命名账号"))
                         .font(.hudDisplay(21))
                         .foregroundStyle(RelayTheme.text)
-                    Text("自定义名称会保存在账号仓库中，刷新和切换后仍会保留。")
+                    Text(L10n.text("自定义名称会保存在账号仓库中，刷新和切换后仍会保留。"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                 }
@@ -515,7 +514,7 @@ private struct RenameAccountSheet: View {
             }
 
             HudLabel(text: "显示名称", color: RelayTheme.textMuted)
-            TextField("例如：工作账号、个人账号", text: $name)
+            TextField(L10n.text("例如：工作账号、个人账号"), text: $name)
                 .textFieldStyle(HudTextFieldStyle())
                 .onSubmit { save() }
 
@@ -530,11 +529,11 @@ private struct RenameAccountSheet: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 8) {
-                Button("取消") { dismiss() }
+                Button(L10n.text("取消")) { dismiss() }
                     .buttonStyle(HudButtonStyle(primary: false))
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button("保存名称") { save() }
+                Button(L10n.text("保存名称")) { save() }
                     .buttonStyle(HudButtonStyle(primary: true))
                     .keyboardShortcut(.defaultAction)
                     .disabled(!valid || model.isRenamingAccount)

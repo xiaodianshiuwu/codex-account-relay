@@ -9,6 +9,7 @@ enum SidebarSection: String, CaseIterable, Identifiable {
     case overview
     case accounts
     case sessions
+    case guardMonitor
     case diagnostics
     case settings
     case about
@@ -19,6 +20,7 @@ enum SidebarSection: String, CaseIterable, Identifiable {
         case .overview: return "概览"
         case .accounts: return "账号"
         case .sessions: return "会话"
+        case .guardMonitor: return "额度守护"
         case .diagnostics: return "诊断"
         case .settings: return "设置"
         case .about: return "关于"
@@ -29,6 +31,7 @@ enum SidebarSection: String, CaseIterable, Identifiable {
         case .overview: return "rectangle.grid.2x2"
         case .accounts: return "person.2"
         case .sessions: return "bubble.left.and.bubble.right"
+        case .guardMonitor: return "pause.circle"
         case .diagnostics: return "stethoscope"
         case .settings: return "gearshape"
         case .about: return "info.circle"
@@ -51,6 +54,7 @@ struct PendingProcessAction: Identifiable {
     let account: RelayAccount?
     let threadID: String
     let kind: PendingProcessActionKind
+    var continuationPrompt: String? = nil
 
     func title(locale: Locale) -> String {
         switch kind {
@@ -120,6 +124,7 @@ final class AppModel: ObservableObject {
     private var autoTimer: Timer?
     private weak var autoPreferences: AppPreferences?
     private var autoCheckRunning = false
+    private var lastAutoCheck = Date.distantPast
     private var started = false
     private var dataGeneration = 0
 
@@ -174,7 +179,7 @@ final class AppModel: ObservableObject {
     }
 
     var bestThreadID: String {
-        selectedSession?.id ?? lastThreadID ?? "last"
+        selectedSession?.id ?? "none"
     }
 
     var filteredSessions: [RelaySession] {
@@ -240,7 +245,7 @@ final class AppModel: ObservableObject {
         // The SwiftUI app is the supported frontend. Run the same `auto
         // --once` policy in-process instead of requiring a terminal daemon;
         // this is what makes the Settings toggle effective.
-        autoTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+        autoTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.checkAutoContinue()
             }
@@ -256,6 +261,9 @@ final class AppModel: ObservableObject {
     func checkAutoContinue() async {
         guard let preferences = autoPreferences,
               preferences.autoContinueEnabled,
+              preferences.autoAllowRestart,
+              preferences.autoInterval.isFinite, preferences.autoInterval > 0,
+              Date().timeIntervalSince(lastAutoCheck) >= preferences.autoInterval,
               !autoCheckRunning,
               !isSwitching,
               !isOpeningProcess,
@@ -265,6 +273,7 @@ final class AppModel: ObservableObject {
               pendingProcessAction == nil else {
             return
         }
+        lastAutoCheck = Date()
         autoCheckRunning = true
         defer { autoCheckRunning = false }
         let backend = self.backend
@@ -297,7 +306,7 @@ final class AppModel: ObservableObject {
                 case "process-control-disabled":
                     toast = L10n.text("自动接力会重启 ChatGPT，已默认禁用。")
                 default:
-                    toast = L10n.text("自动续跑检查被阻止")
+                    toast = result.continueError ?? L10n.text("自动续跑检查被阻止")
                 }
                 clearToastLater()
             }
@@ -433,7 +442,7 @@ final class AppModel: ObservableObject {
         do {
             async let accountList = detached { try backend.listAccounts(refresh: false) }
             async let statusValue = detached { try backend.status() }
-            async let sessionList = detached { try backend.sessions(limit: 100) }
+            async let sessionList = detached { try backend.sessions(limit: 0) }
             let (newAccounts, newStatus, newSessions) = try await (accountList, statusValue, sessionList)
             // Do not overwrite a usage refresh that finished while we were reading
             // the local state snapshot.
@@ -446,8 +455,8 @@ final class AppModel: ObservableObject {
             if selectedAccountID == nil {
                 selectedAccountID = accounts.first(where: \.isActive)?.id ?? accounts.first?.id
             }
-            if selectedSessionID == nil {
-                selectedSessionID = newSessions.first?.id
+            if let selectedSessionID, !newSessions.contains(where: { $0.id == selectedSessionID }) {
+                self.selectedSessionID = nil
             }
         } catch {
             if !silent {
@@ -517,7 +526,7 @@ final class AppModel: ObservableObject {
                 lastUsageSync = Date()
             }
             if updated.status != "ok" {
-                let message = L10n.format("%@ 同步失败：%@", alias, updated.status ?? "unknown")
+                let message = L10n.format("%@ 同步失败：%@", alias, updated.lastError ?? updated.status ?? "unknown")
                 if isCurrent { usageSyncError = message }
                 if !auto { presentError(L10n.text("同步用量失败"), message) }
             } else {
@@ -639,8 +648,9 @@ final class AppModel: ObservableObject {
         )
     }
 
-    func confirmPendingProcessAction() {
-        guard let action = pendingProcessAction else { return }
+    func confirmPendingProcessAction(threadID: String? = nil, continuationPrompt: String? = nil) {
+        guard let pending = pendingProcessAction else { return }
+        let action = PendingProcessAction(account: pending.account, threadID: threadID ?? pending.threadID, kind: pending.kind, continuationPrompt: continuationPrompt)
         pendingProcessAction = nil
         // Let the confirmation sheet dismiss before presenting the next step.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -649,7 +659,7 @@ final class AppModel: ObservableObject {
                 self.performRestart(threadID: action.threadID)
             case .switchAccount:
                 if let account = action.account {
-                    self.performSwitch(account, threadID: action.threadID)
+                    self.performSwitch(account, threadID: action.threadID, continuationPrompt: action.continuationPrompt)
                 }
             case .openThread, .openApp:
                 self.performOpen(action)
@@ -661,7 +671,7 @@ final class AppModel: ObservableObject {
         pendingProcessAction = nil
     }
 
-    private func performSwitch(_ account: RelayAccount, threadID: String) {
+    private func performSwitch(_ account: RelayAccount, threadID: String, continuationPrompt: String? = nil) {
         guard !isSwitching, !autoCheckRunning else { return }
         isSwitching = true
         switchStage = "准备切换…"
@@ -677,7 +687,8 @@ final class AppModel: ObservableObject {
                     try backend.switchAccount(
                         alias: alias,
                         threadID: threadID,
-                        allowRestart: true
+                        allowRestart: true,
+                        continuationPrompt: continuationPrompt
                     ) { event in
                         Task { @MainActor in
                             self.applyProgress(event)
@@ -685,6 +696,9 @@ final class AppModel: ObservableObject {
                     }
                 }.value
                 isSwitching = false
+                if let error = result.continueError {
+                    presentError(L10n.text("账号已切换，原聊天未续跑"), error)
+                }
                 let mode = result.mode ?? "desktop"
                 toast = L10n.format("已切换到 %@（%@，%d ms）", result.to?.alias ?? alias, mode, result.durationMs ?? 0)
                 clearToastLater()

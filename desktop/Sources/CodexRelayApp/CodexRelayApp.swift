@@ -20,6 +20,10 @@ struct CodexRelayApp: App {
     @StateObject private var preferences = AppPreferences()
 
     init() {
+        if let index = CommandLine.arguments.firstIndex(of: "--render-review"), CommandLine.arguments.count > index + 1 {
+            do { try renderReview(to: URL(fileURLWithPath: CommandLine.arguments[index + 1])); exit(0) }
+            catch { fputs("review render failed: \(error)\n", stderr); exit(1) }
+        }
         if CommandLine.arguments.contains("--i18n-self-test") {
             let keys = [
                 "设置", "概览", "账号", "会话", "诊断", "关于",

@@ -118,16 +118,17 @@ class AutoSettingsTests(unittest.TestCase):
             strategy="best",
             prompt="继续处理",
             continue_timeout=5.0,
+            thread="thread-1",
         )
         output = __import__("io").StringIO()
         with patch("codex_relay.cli.refresh_usage", return_value=None), patch(
             "codex_relay.cli.idle_check", return_value={"idle": True, "active": [], "app_running": False}
         ), patch("codex_relay.cli.switch", return_value={"thread_id": "thread-1"}), patch(
-            "codex_relay.cli.continue_thread", return_value="ok"
-        ) as cont, __import__("contextlib").redirect_stdout(output):
+            "codex_relay.cli.continue_desktop_thread", return_value="new-turn"
+        ) as cont, patch("codex_relay.cli.prepare_handoff", return_value={"thread_id":"thread-1"}) as prepare, __import__("contextlib").redirect_stdout(output):
             result = _auto_once(Store(), args)
         self.assertEqual(result, 0)
-        cont.assert_called_once_with("thread-1", "继续处理", timeout=5.0)
+        cont.assert_called_once_with(__import__("unittest.mock").mock.ANY, {"thread_id":"thread-1"}, "继续处理")
         self.assertIn('"continued": true', output.getvalue())
 
 
@@ -148,7 +149,8 @@ class ContinueTests(unittest.TestCase):
             self.assertEqual(command[:3], ["/usr/bin/codex", "exec", "resume"])
             self.assertIn("--json", command)
             self.assertIn("thread-123", command)
-            self.assertEqual(command[-1], "继续")
+            self.assertEqual(command[-1], "-")
+            self.assertEqual(run.call_args.kwargs["input_text"], "继续")
             self.assertEqual(run.call_args.kwargs["timeout"], 42)
 
 

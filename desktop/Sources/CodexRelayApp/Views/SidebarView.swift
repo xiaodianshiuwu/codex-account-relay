@@ -57,7 +57,7 @@ struct SidebarView: View {
                     .font(.hudDisplay(17))
                     .tracking(1.1)
                     .foregroundStyle(RelayTheme.text)
-                Text("// 账号与会话接力")
+                Text(L10n.text("// 账号与会话接力"))
                     .font(.hudLabel(8))
                     .tracking(1.4)
                     .foregroundStyle(RelayTheme.accent)
@@ -122,7 +122,7 @@ struct SidebarView: View {
                 UsageBar(title: "5 小时", window: account.usage?.primary, compact: true, mode: preferences.quotaDisplayMode)
                 UsageBar(title: "1 周", window: account.usage?.secondary, compact: true, mode: preferences.quotaDisplayMode)
                 if let error = model.usageSyncError {
-                    Label("同步失败", systemImage: "exclamationmark.triangle.fill")
+                    Label(L10n.text("同步失败"), systemImage: "exclamationmark.triangle.fill")
                         .font(.hudLabel(8))
                         .foregroundStyle(RelayTheme.red)
                         .help(error)
@@ -132,16 +132,16 @@ struct SidebarView: View {
                         .foregroundStyle(.tertiary)
                 }
             } else if let auth = model.unmanagedAuth {
-                Text("未纳入账号仓库")
+                Text(L10n.text("未纳入账号仓库"))
                     .font(.hudLabel(8))
                     .foregroundStyle(RelayTheme.amber)
                 Text(auth.email ?? "-")
                     .font(.caption2)
                     .foregroundStyle(RelayTheme.textMuted)
-                Button("捕获当前账号") { model.captureCurrentAccount() }
+                Button(L10n.text("捕获当前账号")) { model.captureCurrentAccount() }
                     .buttonStyle(HudButtonStyle(primary: true))
             } else {
-                Text("未检测到活动账号")
+                Text(L10n.text("未检测到活动账号"))
                     .font(.hudLabel(9))
                     .foregroundStyle(RelayTheme.amber)
             }
@@ -150,13 +150,13 @@ struct SidebarView: View {
                 Button {
                     Task { await model.refreshUsage() }
                 } label: {
-                    Label("同步", systemImage: "arrow.triangle.2.circlepath")
+                    Label(L10n.text("同步"), systemImage: "arrow.triangle.2.circlepath")
                 }
                 .buttonStyle(HudButtonStyle(primary: false, compact: true))
                 .disabled(model.isRefreshingUsage || model.isSwitching || model.isOpeningProcess)
 
                 Menu {
-                    Picker("外观", selection: $preferences.appearance) {
+                    Picker(L10n.text("外观"), selection: $preferences.appearance) {
                         ForEach(RelayAppearance.allCases) { option in
                             Label(L10n.text(option.title), systemImage: option.icon).tag(option)
                         }

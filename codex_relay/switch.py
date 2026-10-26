@@ -28,6 +28,7 @@ class SwitchOptions:
     # Explicit, per-invocation consent for quitting/launching ChatGPT.
     allow_chatgpt_restart: bool = False
     dry_run: bool = False
+    operation_guard: Optional[Callable[[], bool]] = None
 
 
 def _identity_of(profile: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -61,6 +62,10 @@ def resolve_thread(store: Store, thread_option: Optional[str]) -> Optional[str]:
 
 def preflight_processes(mode: str, force: bool) -> List[str]:
     notes: List[str] = []
+    from .guard_cli import default_state_dir
+    from desktop_guard.store import statuses
+    if any(item.get('monitoring') and item.get('hostId', 'local') == 'local' for item in statuses(default_state_dir())):
+        raise RelayError("本机原聊天额度守护正在运行；请先停止守护再切换账号")
     cli = codex_env.other_codex_processes(exclude_desktop=True)
     if mode != "desktop" and codex_env.desktop_bundle_processes():
         if not force:
@@ -113,6 +118,8 @@ def _rollback(store: Store, backup: Optional[Path], restarted: bool) -> List[str
         else:
             notes.append("尚未替换 auth.json，无需回滚")
         return notes
+    if restarted and codex_env.app_running():
+        codex_env.quit_desktop(timeout=20.0, force=False)
     backup_auth = backup / "auth.json"
     if backup_auth.exists():
         data = backup_auth.read_bytes()
@@ -125,8 +132,8 @@ def _rollback(store: Store, backup: Optional[Path], restarted: bool) -> List[str
         notes.append("切换前没有 auth.json，已移除新写入的文件")
     backup_state = backup / "state.json"
     if backup_state.exists():
-        shutil.copy2(backup_state, store.paths.state_path)
-        os.chmod(store.paths.state_path, 0o600)
+        from .util import atomic_write_bytes
+        atomic_write_bytes(store.paths.state_path, backup_state.read_bytes(), mode=0o600)
         store.reload()
         notes.append("已恢复切换前的 state.json")
     if restarted:
@@ -263,6 +270,8 @@ def switch(
     if options.mode == "desktop" and not options.restart and codex_env.app_running():
         raise RelayError("桌面 App 正在运行；--no-restart 下无法安全替换 auth.json")
 
+    if options.operation_guard is not None and not options.operation_guard():
+        raise RelayError("Automation settings changed before switching; account unchanged")
     desktop_was_running = codex_env.app_running() or bool(codex_env.desktop_bundle_processes())
     app_server_pid: Optional[int] = None
     # Safety backup before stopping the app, then a second exact backup after
@@ -295,7 +304,7 @@ def switch(
         launch_epoch = time.time()
         _progress(progress, "write", "正在写入目标账号凭据")
         written = _snapshot_and_write(store, target)
-        if options.mode == "desktop":
+        if options.mode == "desktop" and options.restart:
             _progress(progress, "launch", "正在启动 ChatGPT App")
             codex_env.launch_desktop()
             restarted = True
@@ -356,10 +365,14 @@ def switch(
         )
         _progress(progress, "done", "切换完成")
         return result
-    except Exception as exc:
+    except BaseException as exc:
+        # Also unwind interrupted transactions before reporting cancellation.
         # Only relaunch if this transaction actually stopped/started the app.
         # In cli/none mode with --force, a running app must be left alone.
-        rollback_notes = _rollback(store, backup, restarted=restarted)
+        try:
+            rollback_notes = _rollback(store, backup, restarted=restarted)
+        except Exception as rollback_error:
+            rollback_notes = [f"自动回滚未完成：{rollback_error}；备份保留于 {backup}"]
         store.journal(
             {
                 "event": "switch",

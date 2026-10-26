@@ -178,8 +178,9 @@ def redact(value: Any) -> Any:
         return result
     if isinstance(value, list):
         return [redact(item) for item in value]
-    if isinstance(value, str) and looks_like_jwt(value):
-        return "<redacted-jwt>"
+    if isinstance(value, str):
+        value = re.sub(r"(?i)Bearer\s+[^\s\"']+", "Bearer <redacted>", value)
+        return re.sub(r"[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}", "<redacted-jwt>", value)
     return value
 
 
@@ -234,7 +235,7 @@ def executable_command(args: Iterable[str]) -> list:
     return command
 
 
-def run_capture(args: Iterable[str], timeout: float = 15.0, env: Optional[dict] = None) -> subprocess.CompletedProcess:
+def run_capture(args: Iterable[str], timeout: float = 15.0, env: Optional[dict] = None, input_text: Optional[str] = None) -> subprocess.CompletedProcess:
     try:
         kwargs = {}
         if sys.platform == "win32":
@@ -242,6 +243,7 @@ def run_capture(args: Iterable[str], timeout: float = 15.0, env: Optional[dict] 
         return subprocess.run(
             executable_command(args),
             capture_output=True,
+            input=input_text,
             text=True,
             encoding="utf-8",
             errors="replace",

@@ -35,7 +35,7 @@ struct AboutView: View {
                         Text("Codex Relay")
                             .font(.hudDisplay(30))
                             .foregroundStyle(RelayTheme.text)
-                        Text("多账号 · 原会话接力 · 推理与缓存诊断")
+                        Text(L10n.text("多账号 · 原会话接力 · 推理与缓存诊断"))
                             .font(.callout)
                             .foregroundStyle(RelayTheme.textMuted)
                         Text(L10n.format("桌面版 %@", AppVersion.display))
@@ -74,19 +74,19 @@ struct AboutView: View {
                     Button {
                         model.openDocs()
                     } label: {
-                        Label("打开完整文档", systemImage: "book")
+                        Label(L10n.text("打开完整文档"), systemImage: "book")
                     }
                     .buttonStyle(HudButtonStyle(primary: true))
                     Button {
                         model.openStore()
                     } label: {
-                        Label("打开凭据仓库", systemImage: "folder")
+                        Label(L10n.text("打开凭据仓库"), systemImage: "folder")
                     }
                     .buttonStyle(HudButtonStyle(primary: false))
                     Button {
                         model.requestOpenApp()
                     } label: {
-                        Label("打开最近会话", systemImage: "arrow.up.forward.app")
+                        Label(L10n.text("打开最近会话"), systemImage: "arrow.up.forward.app")
                     }
                     .buttonStyle(HudButtonStyle(primary: false))
                     Spacer()

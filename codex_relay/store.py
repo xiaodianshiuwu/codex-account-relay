@@ -30,7 +30,7 @@ PROFILE_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,80}$")
 
 
 def _safe_component(value: str) -> str:
-    if PROFILE_ID_RE.match(value):
+    if value not in (".", "..") and PROFILE_ID_RE.fullmatch(value):
         return value
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:32]
 
@@ -286,7 +286,9 @@ class Store:
 
     def remove_profile(self, needle: str) -> Dict[str, Any]:
         profile = self.resolve(needle)
-        if profile.get("id") == self.state.get("active_profile_id"):
+        actual = self.current_profile()
+        active_id = actual.get("id") if actual else (self.state.get("active_profile_id") if self.current_auth() is None else None)
+        if active_id == profile.get("id"):
             raise RelayError("不能删除当前活动账号；请先切换到其他账号")
         self.state["profiles"] = [p for p in self.profiles() if p.get("id") != profile.get("id")]
         if self.state.get("active_profile_id") == profile.get("id"):
@@ -411,15 +413,17 @@ class Store:
             shutil.copy2(self.paths.state_path, target / "state.json")
             os.chmod(target / "state.json", 0o600)
         atomic_write_json(target / "meta.json", meta, mode=0o600)
-        self.prune_backups()
+        keep = self.state.get("settings", {}).get("backup_keep", 0)
+        if isinstance(keep, int) and not isinstance(keep, bool) and keep > 0:
+            self.prune_backups(keep)
         return target
 
-    def prune_backups(self, keep: int = 20) -> None:
-        if not self.paths.backups_dir.exists():
+    def prune_backups(self, keep: int = 0) -> None:
+        if keep <= 0 or not self.paths.backups_dir.exists():
             return
         entries = sorted(
             [p for p in self.paths.backups_dir.iterdir() if p.is_dir()],
-            key=lambda p: p.name,
+            key=lambda p: (p.stat().st_mtime_ns, p.name),
         )
         for old in entries[:-keep]:
             shutil.rmtree(old, ignore_errors=True)
@@ -465,6 +469,7 @@ class Store:
             "last_refresh": profile.get("last_refresh"),
             "last_used_at": profile.get("last_used_at"),
             "last_verified_at": profile.get("last_verified_at"),
+            "last_error": profile.get("last_error"),
             "usage": usage,
         }
 

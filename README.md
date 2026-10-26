@@ -1,481 +1,133 @@
 # Codex Relay
 
-**一个账号切换后还能继续原来会话的 Codex 小工具。** 不用重新开 thread，不用手动搬上下文。
+macOS 上的 Codex 多账号管理与原聊天额度守护工具。原生 SwiftUI 界面，内置后端；支持简体中文、繁體中文、English、日本語。
 
-[English](#english) · [日本語](#日本語) · [繁體中文](#繁體中文)
+[下载最新版本](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) · [使用说明](docs/OPERATIONS.md) · [开发与验证](docs/DEVELOPMENT.md) · [English](#english)
 
-## 3 步开始
+## 两种工作方式
 
-1. **准备 Codex**：先安装并登录 [Codex CLI](https://github.com/openai/codex)。如果已经能运行 `codex`，这一步可以跳过。
-2. **下载 Codex Relay**：到 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-<version>-macOS-SwiftUI.zip`，解压后把 `Codex Relay.app` 拖入“应用程序”。
-3. **打开 App**：App 已内置 Codex Relay 后端；只需要提前安装并登录 [Codex CLI](https://github.com/openai/codex)。首次启动会引导你完成路径检查。
-
-> **不需要**改源代码、手写配置文件或研究项目结构。默认自动发现；只有 Codex 装在非标准位置时，才需要手动指定一次。
-
-## 它适合谁
-
-- 有多个 ChatGPT/Codex 账号，想快速切换但不想丢当前 thread 的人。
-- 希望在切换前自动备份、失败能回滚，不想手动改 `auth.json` 的人。
-- 使用 macOS 14+，希望用一个原生 SwiftUI App 管理 Codex 多账号的人。
-
-## 你能得到什么
-
-- **原会话继续**：切换账号后恢复同一个 thread，rollout、工具结果、压缩检查点和加密 reasoning 项尽量保留。
-- **安全切换**：账号隔离保存；切换前备份，失败回滚；退出/重启 ChatGPT 必须明确确认。
-- **少折腾**：自动发现 Codex CLI 和数据目录；找不到时有清楚的手动设置入口。
-- **自动续跑**：剩余额度低于阈值时切换账号，并向原 thread 发送可自定义的续跑提示词。
-- **看得懂**：账号、额度、Token、缓存、推理、会话和进程诊断集中在一个界面/CLI。
-- **四种语言**：简体中文、繁體中文、English、日本語。
-
-## 平台与下载
-
-| 支持范围 | 唯一支持方式 | 下载文件 |
+| 目标 | 使用入口 | 行为 |
 |---|---|---|
-| macOS 14+ | 原生 SwiftUI App | `CodexRelay-<version>-macOS-SwiftUI.zip` |
+| 管理多个账号、手动切换 | 账号 | 校验目标账号，备份凭据，切换账号；可明确选择需要恢复的本机聊天 |
+| 低额度时换账号继续任务 | 设置 → 自动接力 | 明确指定本机聊天，确认中断原轮次后切号，重新打开原聊天，通过桌面端接口启动下一轮 |
+| 保持原账号，等额度恢复后继续 | 额度守护 | 支持本机及 SSH 原聊天；低额度中断，恢复后继续，不切号、不重启 ChatGPT |
 
-> **0.4.0 起只支持 macOS 14+ 的 SwiftUI App。** Windows、Linux、macOS Tk 回退版和独立 CLI/wheel 不再发布、不再提供使用支持。Tk/CLI 源码仍保留在仓库中作为历史实现和内部后端代码，但不属于公开支持范围。
+**自动接力切号需要重启 ChatGPT。** 不希望重启时，使用“额度守护”。两种自动化不能同时接管本机聊天；切号前需停止本机守护。
 
 ## 安装
 
-最新版本与下载：[GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest)。
+支持 **macOS 14+ SwiftUI App**。Apple Silicon 是本次验证平台；其他架构没有实机验收。
 
-### 从 Release 安装
+1. 安装并登录 [Codex CLI](https://github.com/openai/codex)，并安装 Codex 桌面应用。
+2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.0-macOS-SwiftUI.zip`。
+3. 解压，将 `Codex Relay.app` 拖到应用程序目录后打开。Release 的 `SHA256SUMS.txt` 可用于核对下载内容。
 
-Release 只提供：
+App 已包含 Relay 后端和 Python 运行时，无需另外安装 Python 或 Relay CLI。当前使用 ad-hoc 签名，尚无 Apple Developer ID 签名及公证。
 
-- macOS 14+：`CodexRelay-<version>-macOS-SwiftUI.zip`，内含 App 和内置 Codex Relay 后端。
+**从 0.4.x 升级：** 账号及自动配置保留。旧配置中的 `enabled=true` 不再自动取得重启许可；请检查设置页的独立重启开关，并明确选择续跑聊天。
 
-下载后解压，把 `Codex Relay.app` 拖入“应用程序”。**首次启动前请先安装并登录 Codex CLI**；找不到 Codex 时，App 会显示诊断和手动指定入口。
+## 添加账号与手动切换
 
-### 从源码安装
+在“账号”中捕获当前登录账号，或添加其他账号完成隔离登录。切号确认页列出目标账号、额度和恢复聊天，可选择“仅切换账号”。聊天不按创建账号过滤，不再只显示前 12 条，也不会隐式猜测最近聊天。
+
+手动切换会备份 `auth.json` 和 Relay 状态，退出桌面应用后写入目标凭据，再启动并打开选定聊天。失败时尝试恢复备份。**打开聊天与发送续跑文字是两个不同结果**；确认页可勾选“切号后继续原聊天”并填写提示词；不勾选时只恢复聊天，勾选时与自动接力共用桌面原聊天续跑链路。
+
+## 自动接力
+
+在“设置”中配置：
+
+- 开启自动续跑，并单独允许自动接力重启 ChatGPT。
+- 选择**明确的本机聊天**和非空续跑提示词；空提示词表示只切号。
+- 设置剩余额度阈值、检查间隔、按账号顺序或最佳额度选择候选。
+
+执行时重新读取账号额度；缺失、非有限或过期的数据不当作可用额度。原聊天运行中时，先取得指定轮次的中断确认；其他活动聊天会阻止切号。切号后等待原聊天加载，核验原轮次、模型、目录及权限，通过桌面端原聊天接口发送提示词。收到新轮次 ID 后才显示续跑成功。
+
+结果不确定时保留操作记录且不自动重发。已完成、由用户停止、等待审批或输入的聊天不会自动重新开始。没有可用候选或无法确认原聊天时显示原因。自动接力只在 Relay 运行期间执行，退出后停止；尚未开始的检查会尊重最新的关闭设置。
+
+## 原聊天额度守护
+
+在“额度守护”查看本机与 Codex 已配置的 SSH 主机。先在 Codex 中打开目标聊天，再选择“开始守护”。
+
+- 默认小时剩余 **≤5%** 时中断，恢复到 **≥10%** 后继续；两项阈值均可调整。
+- 周额度只显示，不触发本地百分比阈值；服务明确拒绝额度时仍会等待。
+- 可调整检查间隔及续跑文字。间隔接受有限正数，提示词无任意长度上限，默认不限制续跑次数。
+- 继续使用原聊天、模型、工作目录和权限。不响应审批，不转移到另一个 CLI 任务。
+- 后续窗口根据接口重置时间和窗口长度估算，不是可用额度承诺。
+- **开始后独立后台运行，退出 Relay 后仍会监控。** 使用“停止守护”取消后续操作；不会结束当前运行中的任务。Mac 睡眠期间无法检查。
+- 修改设置影响下次开始的监控；已有进程继续使用启动时的配置。发现协议不兼容或操作回执未知时，显示原因并停止发送。
+
+本项目集成本机 CodexDesktopGuard 2.2 后端，并保留第三方 MIT 声明。已有守护记录继续从 `~/Library/Application Support/CodexDesktopGuard/` 读取，不删除历史记录。
+
+## 数据位置与路径设置
+
+| 内容 | 默认位置 |
+|---|---|
+| Relay 账号、配置、备份 | `~/.codex-relay/` |
+| 自动接力设置 | `~/.codex-relay/auto.json` |
+| 自动接力回执 | `~/.codex-relay/continuations/` |
+| Codex 数据及当前认证 | `~/.codex/` |
+| 原聊天守护设置、状态和日志 | `~/Library/Application Support/CodexDesktopGuard/` |
+
+自动发现失败可用内置后端的 `setup` 命令保存路径；详见[使用说明](docs/OPERATIONS.md)。`CODEX_RELAY_HOME`、`CODEX_HOME`、`CODEX_RELAY_CODEX`、`CODEX_RELAY_GUARD_HOME` 可覆盖默认位置。设置了 `CODEX_RELAY_HOME` 且未单独指定守护目录时，守护记录写入其 `guard/` 子目录，便于隔离测试。
+
+账号凭据保存在各 profile 的本机文件中，**没有额外加密**；文件权限为当前用户可读写。不要把凭据、运行数据或真实聊天截图上传到仓库。备份默认全部保留；需要自动清理时，可在 `state.json` 的 `settings.backup_keep` 设置保留数量，`0` 表示全部保留。
+
+## 源码构建与测试
 
 ```sh
 git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay
-cd desktop
-./build.sh
-open "$HOME/Applications/Codex Relay.app"
+cd codex-account-relay
+python3 -m venv .venv
+.venv/bin/python -m pip install pyinstaller
+.venv/bin/python tools/build_cli_bundle.py
+./desktop/build.sh
 ```
 
-需要 macOS 14+、Xcode Command Line Tools 和 Swift 5.9+。`desktop/build.sh` 在发布流程中会把内置后端一起装入 App；本地源码构建若未准备 `dist-cli/codex-relay`，会回退到 PATH 中的 `codex-relay`。
-
-### macOS 原生桌面端
-
-```sh
-cd desktop
-./build.sh
-open "$HOME/Applications/Codex Relay.app"
-```
-
-需要 macOS 14+、Xcode Command Line Tools 和 Swift 5.9+。
-
-### 历史代码（不支持、不发布）
-
-`portable/`、`codex_relay/portable_gui.py`、Windows/Linux 安装脚本和独立 CLI wheel 构建仍保留在仓库中，方便维护历史实现和内部后端，但**不属于 0.4.0 的公开支持范围，也不应作为下载或安装入口**。
-
-## 首次启动与 Codex 自动发现
-
-应用和 CLI 使用同一套发现顺序：
-
-1. `CODEX_RELAY_CODEX` 环境变量（显式路径优先）。
-2. `~/.codex-relay/config.json` 中已经验证并保存的 `codex_binary`。
-3. 系统 `PATH` 中的 `codex`。
-4. 常见安装目录（macOS Homebrew、`~/.local/bin` 等）。
-
-Codex 数据目录默认是 `~/.codex`，按以下顺序确定：
-
-1. `CODEX_HOME` 环境变量。
-2. `~/.codex-relay/config.json` 中的 `codex_home`。
-3. `~/.codex`。
-
-### 自动发现失败时
-
-先安装 Codex CLI，然后运行：
-
-```sh
-codex-relay setup
-```
-
-如果 Codex 安装在非标准位置：
-
-```sh
-codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
-```
-
-`setup` 会验证 CLI 是否可执行、读取版本，并把路径写入 `~/.codex-relay/config.json`（`0600`）。之后 `codex-relay doctor`、GUI 和 CLI 都会使用这个配置。清除手动配置：
-
-```sh
-codex-relay setup --reset
-```
-
-> 不需要修改源代码，也不需要编辑复杂配置文件。环境变量只作为自动化/高级覆盖手段。
-
-## 内部 CLI（开发 / 内置后端）
-
-> 从 0.4.0 起 CLI 不作为独立产品发布；它是 SwiftUI App 的内置后端和开发诊断入口。以下命令仅用于源码开发和故障排查。
-
-
-```sh
-# 1. 查看环境和诊断
-codex-relay setup
-codex-relay doctor
-
-# 2. 把当前已登录账号加入仓库
-codex-relay add --capture personal
-
-# 3. 添加第二个账号（浏览器会打开官方登录）
-codex-relay add work
-
-# 4. 查看账号和额度
-codex-relay list --refresh
-
-# 5. 先看切换计划，不修改任何凭据或进程
-codex-relay switch work --dry-run
-
-# 6. 明确允许重启 ChatGPT 后执行切换
-codex-relay switch work --allow-chatgpt-restart
-
-# 7. 查看并恢复原会话
-codex-relay sessions
-codex-relay resume <thread-id> --account work --allow-chatgpt-restart
-```
-
-默认不会自动重启 ChatGPT。`switch --cli` / `switch --none` 可以在没有桌面 App 或不允许进程控制的环境中使用；自动化脚本必须显式传递 `--allow-chatgpt-restart`，并自行确保没有其他 Codex 进程共享同一 `CODEX_HOME`。
-
-## 自动续跑
-
-macOS SwiftUI App 运行时会读取 `~/.codex-relay/auto.json`，在应用内按间隔检查并执行；退出 App 后停止。下面的终端命令仅用于内部 CLI 调试。
-
-当当前账号的剩余额度低于阈值时，自动切换到仍有额度的账号，并在原 thread 上继续执行。提示词和阈值都可以自定义：
-
-```sh
-# 先看计划，不切换、不重启、不发送提示词
-codex-relay auto --once --remaining-threshold 10 --prompt "继续完成当前任务，不要重做已完成部分" --dry-run
-
-# 确认后启动守护（会重启 ChatGPT，必须显式确认）
-codex-relay auto --enable --remaining-threshold 10 --prompt "继续完成当前任务，不要重做已完成部分" --interval 60 --allow-chatgpt-restart --yes
-```
-
-- SwiftUI App 用户只需在设置页勾选“启用自动续跑”；设置写入 `~/.codex-relay/auto.json`，App 运行期间会读取并执行。下面的 `--enable` 仅用于内部 CLI 守护。
-- `--remaining-threshold 10`：剩余额度低于 10% 时准备切换；默认值可在 GUI 设置页修改。
-- `--prompt "..."`：切换成功后通过官方 `codex exec resume` 发到原 thread；留空表示只切号、不续跑。
-- 默认提示词是“继续”；设置保存在 `~/.codex-relay/auto.json`，与 GUI 设置共用。
-- App 内自动续跑只会在设置页启用后执行，并会重启 ChatGPT；终端守护仍需要显式 `--allow-chatgpt-restart --yes`。
-
-## CLI 参考（内部）
-
-```sh
-codex-relay --help
-codex-relay status
-codex-relay doctor
-codex-relay list
-codex-relay sessions --limit 20
-codex-relay inspect <thread-id>
-codex-relay usage --cached
-codex-relay setup
-```
-
-所有只读命令都支持 `--json`。`--lang zh-Hans|zh-Hant|en|ja` 可以覆盖界面语言。
-
-## 数据与安全
-
-- `~/.codex-relay/state.json`：账号元数据、活动账号、最近切换记录（`0600`）。
-- `~/.codex-relay/profiles/<account_id>/auth.json`：各账号凭据（`0600`）。
-- `~/.codex-relay/backups/`：切换前备份。
-- `~/.codex-relay/journal.jsonl`：不包含 token 的切换审计。
-- `~/.codex/auth.json`：Codex 当前活动凭据；Codex Relay 只按用户确认替换它。
-
-请勿把上述目录、日志、截图或 `auth.json` 提交到 Git。应用不会把凭据写入日志；如果发现泄密，请立即撤销/轮换对应凭据，而不是只删除文件。
-
-## 开发
+结果位于 `desktop/build/Codex Relay.app`。构建不会结束已有应用或自动启动新应用；需要复制到其他位置时使用 `CODEX_RELAY_GUI_APP=/new/path/Codex\ Relay.app`。需要 Swift 6 工具链（Swift 5 语言模式）。
 
 ```sh
 python3 tests/run.py
-python3 -m codex_relay.portable_gui --self-test
-swift test --package-path desktop --scratch-path /tmp/codex-relay-swift
+swift test --package-path desktop
 python3 tools/build_strings.py --check
 python3 tools/i18n_audit.py --json
 ```
 
-见 [开发说明](docs/DEVELOPMENT.md)、[贡献指南](CONTRIBUTING.md) 和 [安全策略](SECURITY.md)。
+CLI 是 App 的内部后端，不单独发布。Windows、Linux 和 Tk 源码作为历史实现保留，不属于支持及发布范围。
 
+## 验证边界
 
----
+v0.5.0 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
+
+按用户要求，本次没有重启 ChatGPT，没有在真实账号间切换，也没有向业务聊天发送续跑文字。因此，**隔离测试通过不等于真实切号续跑已验收**。桌面 IPC 不是稳定公共 API；升级后按实际协议响应检查，不使用精确版本白名单，也不保证未来版本自动兼容。详情见[审查报告](docs/AUDIT-2026-10-26.md)。
+
+保留原聊天可以继续使用其持久历史；不承诺冻结服务端推理或保证缓存命中。
 
 ## English
 
-**Start in three steps:** (1) install and sign in to the Codex CLI; (2) download `CodexRelay-<version>-macOS-SwiftUI.zip` on macOS 14+; (3) open the app. If Codex is already on your `PATH`, Relay finds it automatically.
+Codex Relay combines account management and original-chat quota monitoring in a native macOS 14+ SwiftUI app. The release includes its Python backend. Install the Codex CLI and desktop app separately.
 
-**Codex Relay** is a macOS SwiftUI handoff tool for Codex accounts. It stores each ChatGPT/Codex account in an isolated profile, atomically switches the active `auth.json`, and resumes the same thread whenever possible so rollout history, tool results, compaction checkpoints and encrypted reasoning items stay usable.
+- **Account relay:** select an exact local chat, explicitly permit ChatGPT restarts, check candidate quota, interrupt the original turn with a confirmed receipt, switch credentials, reopen that chat, and continue through the desktop protocol. Success requires a new turn ID. An uncertain request is never resent.
+- **Quota guard:** monitor an explicitly selected local or SSH chat without switching accounts or restarting ChatGPT. Pause at a configurable hourly quota threshold, wait for recovery, then continue with the original execution settings. Weekly quota is display only. Background monitors continue after Relay quits; stop them from the guard page.
+- **Chat discovery:** no account-origin filtering, first-12 truncation, or first-100 cut-off. Switching and continuation never silently select a recent chat.
+- **Upgrade:** legacy `enabled=true` does not grant restart permission. Review the separate permission and exact target chat.
+- Four UI languages, shared persistent settings, atomic credentials and state, retained backups, durable operation receipts. Credential files are private local files, not an encrypted vault.
 
-### What you get
+Download the macOS SwiftUI archive and checksum file from [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest). Apple Silicon is the verified build target; the app is ad-hoc signed and not notarized. Windows/Linux/Tk sources are historical and unsupported.
 
-- A native SwiftUI macOS app (the only supported distribution since 0.4.0).
-- Four UI languages: Simplified Chinese, Traditional Chinese, English and Japanese.
-- Quota, token, cache, reasoning and process diagnostics.
-- Explicit confirmation before quitting or restarting ChatGPT; no silent background restarts.
-
-### Platform status
-
-| Platform | Desktop client | Status |
-|---|---|---|
-| macOS 14+ | SwiftUI | Built and smoke-tested on macOS |
-
-Starting with 0.4.0, only the macOS 14+ SwiftUI app is supported and released. Windows/Linux, the macOS Tk fallback and the standalone CLI/wheel are not published or supported. The Tk/CLI source remains in the repository as historical and internal backend code only.
-
-### Install
-
-Download the latest release from [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest), then choose the asset for your platform:
-
-- macOS 14+: unzip `CodexRelay-*-macOS-SwiftUI.zip` and move the app to Applications. The app contains the Relay backend; install Codex CLI separately.
-From source:
-
-```sh
-git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay/desktop
-./build.sh
-open "$HOME/Applications/Codex Relay.app"
-```
-
-### First run and Codex discovery
-
-Codex Relay looks for the Codex CLI in this order:
-
-1. `CODEX_RELAY_CODEX`.
-2. `~/.codex-relay/config.json` (`codex_binary`).
-3. `PATH`.
-4. Common installation directories.
-
-The Codex data directory is selected from `CODEX_HOME`, then the saved `codex_home`, then `~/.codex`.
-
-If automatic discovery fails, install Codex first. To pin a non-standard installation:
-
-```sh
-codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
-codex-relay setup --json
-```
-
-The path is validated and saved with user-only permissions. Clear it with `codex-relay setup --reset`. Existing `auth.json`, configuration and sessions are never overwritten by setup.
-
-### CLI quick start
-
-```sh
-codex-relay setup
-codex-relay doctor
-codex-relay add --capture personal
-codex-relay add work
-codex-relay list --refresh
-codex-relay switch work --dry-run
-codex-relay switch work --allow-chatgpt-restart
-codex-relay sessions
-codex-relay resume <thread-id> --account work --allow-chatgpt-restart
-```
-
-Read-only commands support `--json`. Use `--lang zh-Hans|zh-Hant|en|ja` to override the UI language.
-
-### Auto-continue
-
-While the macOS SwiftUI app is running it reads `~/.codex-relay/auto.json` and performs checks in-app; it stops when the app quits. The terminal commands below are for internal CLI debugging.
-
-When the remaining quota falls below a threshold, Relay can switch to another usable account and send a custom continuation prompt to the original thread:
-
-```sh
-codex-relay auto --once --remaining-threshold 10 --prompt "Continue the current task; do not redo completed work" --dry-run
-codex-relay auto --enable --remaining-threshold 10 --prompt "Continue the current task; do not redo completed work" --interval 60 --allow-chatgpt-restart --yes
-```
-
-Settings live in `~/.codex-relay/auto.json` and are shared with the settings page. The in-app check runs only after you enable auto-continue and restarts ChatGPT; the terminal daemon still requires explicit `--allow-chatgpt-restart --yes`.
-
-### Security
-
-Never commit `auth.json`, tokens, cookies, account emails, thread IDs or full session logs. If a credential is exposed, revoke/rotate it; deleting a file is not enough. See [SECURITY.md](SECURITY.md), [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-Codex, ChatGPT and OpenAI are trademarks of their respective owners. This is not an official OpenAI product.
-
----
+Validation includes isolated switch/rollback and original-chat protocol tests, plus live read-only local/SSH discovery. **No real account switch, ChatGPT restart, or business-chat continuation was performed in this audit.** Desktop IPC compatibility is checked at runtime and may change with app updates.
 
 ## 日本語
 
-**3 ステップで開始：**（1）Codex CLI をインストールしてログイン、（2）お使いの OS 用の Release をダウンロード、（3）アプリを開くか、ターミナルで `codex-relay setup` と `codex-relay doctor` を実行。Codex が `PATH` にあれば自動検出されます。
+macOS 14+ 向けのアカウント管理・元のチャットの利用枠監視ツールです。自動アカウント切り替えには ChatGPT の再起動許可と明示的なローカルチャットの選択が必要です。再起動しない場合は「利用枠ガード」で本機または SSH の元チャットを監視できます。監視は Relay 終了後も続くため、画面から停止してください。
 
-**Codex Relay** は、Codex の複数アカウントを切り替えるためのコミュニティ製クロスプラットフォームツールです。アカウントごとに認証情報を分離して保存し、`auth.json` をアトミックに切り替えたうえで、できるだけ同じ thread を再開します。rollout、ツール結果、圧縮チェックポイント、暗号化された reasoning item を維持できます。
-
-### 主な機能
-
-- macOS のネイティブ SwiftUI アプリ（0.4.0 以降の唯一のサポート対象）。
-- 簡体字中国語、繁体字中国語、英語、日本語の 4 言語 UI。
-- クォータ、Token、キャッシュ、reasoning、プロセスの診断。
-- ChatGPT の終了・再起動前には必ず明示確認。バックグラウンドで勝手に再起動しません。
-
-### 対応状況
-
-| 環境 | デスクトップ | 状態 |
-|---|---|---|
-| macOS 14+ | SwiftUI | macOS でビルドとスモークテスト済み |
-
-0.4.0 以降、サポートおよび配布するのは macOS 14+ の SwiftUI App のみです。Windows/Linux、macOS Tk フォールバック、単体 CLI/wheel は配布もサポートも行いません。Tk/CLI のソースは歴史的実装および内部バックエンドとしてリポジトリに残ります。
-
-### インストール
-
-[GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) から環境に合うファイルをダウンロードします。
-
-- macOS 14+: `CodexRelay-*-macOS-SwiftUI.zip` を展開して Applications に移動。Relay バックエンドは App に同梱されています。Codex CLI は別途インストールしてください。
-ソースからインストールする場合:
-
-```sh
-git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay/desktop
-./build.sh
-open "$HOME/Applications/Codex Relay.app"
-```
-
-### 初回セットアップと Codex の自動検出
-
-検出順序は次のとおりです。
-
-1. `CODEX_RELAY_CODEX` 環境変数。
-2. `~/.codex-relay/config.json` の `codex_binary`。
-3. `PATH` 上の `codex`。
-4. 一般的なインストール先。
-
-データディレクトリは `CODEX_HOME`、保存済みの `codex_home`、`~/.codex` の順で決定します。
-
-自動検出できない場合は、先に Codex CLI をインストールしてください。標準外の場所にある場合は次のように指定できます。
-
-```sh
-codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
-codex-relay setup --json
-```
-
-パスは検証後にユーザー専用権限で保存されます。設定を消すには `codex-relay setup --reset` を実行します。既存の `auth.json`、設定、セッションは setup では上書きされません。
-
-### CLI クイックスタート
-
-```sh
-codex-relay setup
-codex-relay doctor
-codex-relay add --capture personal
-codex-relay add work
-codex-relay list --refresh
-codex-relay switch work --dry-run
-codex-relay switch work --allow-chatgpt-restart
-codex-relay sessions
-codex-relay resume <thread-id> --account work --allow-chatgpt-restart
-```
-
-読み取り専用コマンドは `--json` に対応しています。UI 言語は `--lang zh-Hans|zh-Hant|en|ja` で切り替えられます。
-
-### 自動継続
-
-残り枠がしきい値を下回ったら、別の使用可能なアカウントへ切り替え、元の thread にカスタムの継続プロンプトを送れます：
-
-```sh
-codex-relay auto --once --remaining-threshold 10 --prompt "現在のタスクを続行し、完了済みの作業はやり直さないでください" --dry-run
-codex-relay auto --enable --remaining-threshold 10 --prompt "現在のタスクを続行し、完了済みの作業はやり直さないでください" --interval 60 --allow-chatgpt-restart --yes
-```
-
-設定は `~/.codex-relay/auto.json` に保存され、デスクトップの設定ページと共有されます。デーモンには引き続き明示的な `--allow-chatgpt-restart --yes` が必要です。
-
-### セキュリティ
-
-`auth.json`、Token、Cookie、アカウントのメールアドレス、thread ID、完全なセッションログを Git にコミットしないでください。漏えいが疑われる場合は、ファイルを削除するだけでなく、必ず認証情報を失効・ローテーションしてください。詳細は [SECURITY.md](SECURITY.md)、[LICENSE](LICENSE)、[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を参照してください。
-
-Codex、ChatGPT、OpenAI は各権利者の商標です。本プロジェクトは OpenAI 公式製品ではありません。
-
----
+本監査では実アカウントの切り替え、ChatGPT の再起動、業務チャットへの送信は行っていません。分離テストと実環境の読み取り確認を区別しています。
 
 ## 繁體中文
 
-**3 個步驟開始：**（1）安裝並登入 Codex CLI；（2）在 macOS 14+ 下載 `CodexRelay-<version>-macOS-SwiftUI.zip`；（3）開啟 App。如果 Codex 已在 `PATH`，Relay 會自動找到它。
+macOS 14+ 原生帳號管理與原聊天額度守護工具。自動切換帳號需要獨立的 ChatGPT 重啟許可，並明確選擇本機聊天；不希望重啟時，使用「額度守護」監控本機或 SSH 原聊天。守護啟動後會在背景持續執行，退出 Relay 不會停止，請在介面中停止守護。
 
-**Codex Relay** 是社群開發的 Codex 多帳號接力工具。它將每個 ChatGPT/Codex 帳號的認證資料隔離保存，以原子方式切換目前的 `auth.json`，並盡可能在同一條 thread 上繼續原會話，保留 rollout、工具結果、壓縮檢查點與加密 reasoning 項目。
+本次沒有執行真實切號、重啟 ChatGPT 或向業務聊天傳送續跑文字；隔離測試與真實唯讀驗證分別記錄。
 
-### 主要功能
+## License
 
-- macOS 原生 SwiftUI 應用程式（0.4.0 起唯一支援的版本）。
-- 四種介面語言：簡體中文、繁體中文、English、日本語。
-- 額度、Token、快取、reasoning 與程序診斷。
-- 結束或重新啟動 ChatGPT 前一定要求明確確認，不會在背景自行重啟。
-
-### 平台狀態
-
-| 環境 | 桌面用戶端 | 狀態 |
-|---|---|---|
-| macOS 14+ | SwiftUI | 已在 macOS 建置與煙霧測試 |
-
-自 0.4.0 起，只支援並發布 macOS 14+ SwiftUI App。Windows/Linux、macOS Tk 回退版與獨立 CLI/wheel 不再發布、不再支援。Tk/CLI 原始碼仍保留於倉庫，作為歷史實作與內部後端。
-
-### 安裝
-
-從 [GitHub Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下載適合的檔案：
-
-- macOS 14+：解壓縮 `CodexRelay-*-macOS-SwiftUI.zip`，將 App 拖到「應用程式」。Relay 後端已內建於 App；Codex CLI 需另行安裝。
-從原始碼安裝：
-
-```sh
-git clone https://github.com/xiaodianshiuwu/codex-account-relay.git
-cd codex-relay/desktop
-./build.sh
-open "$HOME/Applications/Codex Relay.app"
-```
-
-### 首次啟動與 Codex 自動偵測
-
-偵測順序如下：
-
-1. `CODEX_RELAY_CODEX` 環境變數。
-2. `~/.codex-relay/config.json` 的 `codex_binary`。
-3. `PATH` 中的 `codex`。
-4. 常見安裝目錄。
-
-資料目錄依序使用 `CODEX_HOME`、已保存的 `codex_home`、`~/.codex`。
-
-若無法自動偵測，請先安裝 Codex CLI。若 Codex 安裝在非標準位置：
-
-```sh
-codex-relay setup --codex /path/to/codex --codex-home /path/to/.codex
-codex-relay setup --json
-```
-
-路徑會經驗證後以使用者專用權限保存；執行 `codex-relay setup --reset` 可清除。setup 不會覆寫既有 `auth.json`、設定或會話。
-
-### CLI 快速開始
-
-```sh
-codex-relay setup
-codex-relay doctor
-codex-relay add --capture personal
-codex-relay add work
-codex-relay list --refresh
-codex-relay switch work --dry-run
-codex-relay switch work --allow-chatgpt-restart
-codex-relay sessions
-codex-relay resume <thread-id> --account work --allow-chatgpt-restart
-```
-
-唯讀命令支援 `--json`。可用 `--lang zh-Hans|zh-Hant|en|ja` 覆寫介面語言。
-
-### 自動續跑
-
-當目前帳號的剩餘額度低於閾值時，可以切換到仍有額度的帳號，並將自訂續跑提示詞送到原 thread：
-
-```sh
-codex-relay auto --once --remaining-threshold 10 --prompt "繼續目前任務，不要重做已完成的部分" --dry-run
-codex-relay auto --enable --remaining-threshold 10 --prompt "繼續目前任務，不要重做已完成的部分" --interval 60 --allow-chatgpt-restart --yes
-```
-
-設定保存在 `~/.codex-relay/auto.json`，與桌面設定頁共用。守護仍需要明確加上 `--allow-chatgpt-restart --yes`。
-
-### 安全性
-
-請勿將 `auth.json`、Token、Cookie、帳號電子郵件、thread ID 或完整會話日誌提交到 Git。若憑證可能外洩，請立即撤銷/輪換，而不是只刪除檔案。詳見 [SECURITY.md](SECURITY.md)、[LICENSE](LICENSE) 與 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-
-Codex、ChatGPT、OpenAI 為其各自權利人的商標；本專案不是 OpenAI 官方產品。
-
----
-
-## 许可证
-
-MIT License。详见 [LICENSE](LICENSE) 与 [第三方声明](THIRD_PARTY_NOTICES.md)。
-
-Codex、ChatGPT、OpenAI 是其各自权利人的商标；本项目不是 OpenAI 官方产品。
+[MIT](LICENSE) · [第三方声明](THIRD_PARTY_NOTICES.md)。Codex、ChatGPT 和 OpenAI 商标属于其各自权利人；本项目不是 OpenAI 官方产品。

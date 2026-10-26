@@ -63,7 +63,7 @@ struct OverviewView: View {
                 Image(systemName: "hand.raised.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(RelayTheme.accent)
-                Text("安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。")
+                Text(L10n.text("安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。"))
                     .font(.caption)
                     .foregroundStyle(RelayTheme.textMuted)
                 Spacer()
@@ -128,12 +128,12 @@ struct OverviewView: View {
                     Text("\(auth.plan ?? "-") · \(auth.accountId ?? "-")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Text("该账号尚未纳入账号仓库，切换前请先捕获。")
+                    Text(L10n.text("该账号尚未纳入账号仓库，切换前请先捕获。"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.orange)
                 } else {
-                    Text("未登录 Codex").font(.hudDisplay(19))
-                    Text("请先在 ChatGPT/Codex 中登录，或添加账号。")
+                    Text(L10n.text("未登录 Codex")).font(.hudDisplay(19))
+                    Text(L10n.text("请先在 ChatGPT/Codex 中登录，或添加账号。"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -180,8 +180,8 @@ struct OverviewView: View {
                             .foregroundStyle(.tertiary)
                     }
                 } else {
-                    Text("暂无数据").font(.hudLabel(10)).foregroundStyle(RelayTheme.amber)
-                    Text("点击“刷新用量”通过官方接口读取。")
+                    Text(L10n.text("暂无数据")).font(.hudLabel(10)).foregroundStyle(RelayTheme.amber)
+                    Text(L10n.text("点击“刷新用量”通过官方接口读取。"))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
@@ -261,13 +261,13 @@ struct OverviewView: View {
                 HStack {
                     HudLabel(text: "最近会话", color: RelayTheme.accent)
                     Spacer()
-                    Button("查看全部") {
+                    Button(L10n.text("查看全部")) {
                         model.section = .sessions
                     }
                     .buttonStyle(HudButtonStyle(primary: false))
                 }
                 if model.sessions.isEmpty {
-                    Text("暂无会话").font(.callout).foregroundStyle(.secondary)
+                    Text(L10n.text("暂无会话")).font(.callout).foregroundStyle(.secondary)
                 } else {
                     ForEach(model.sessions.prefix(6)) { session in
                         Button {
@@ -310,7 +310,7 @@ struct OverviewView: View {
             message: L10n.format("%@。捕获后才能安全地切走并切回。", auth.email ?? "-"),
             color: RelayTheme.amber
         ) {
-            Button("捕获当前账号") { model.captureCurrentAccount() }
+            Button(L10n.text("捕获当前账号")) { model.captureCurrentAccount() }
                 .buttonStyle(HudButtonStyle(primary: true, compact: true))
         }
     }
@@ -322,7 +322,7 @@ struct OverviewView: View {
             message: "该账号的 refresh token 已被撤销或失效。切换前请重新登录。",
             color: RelayTheme.red
         ) {
-            Button("添加/重新登录") { model.beginAddAccount() }
+            Button(L10n.text("添加/重新登录")) { model.beginAddAccount() }
                 .buttonStyle(HudButtonStyle(primary: true, compact: true))
         }
     }

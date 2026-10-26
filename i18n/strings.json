@@ -311,6 +311,24 @@
     "zh-Hans": "Relay 数据目录",
     "zh-Hant": "Relay 資料目錄"
   },
+  "SSH 主机连接或原聊天会话已改变，请重新选择监控": {
+    "en": "SSH connection or original chat session changed; select monitoring again",
+    "ja": "SSH 接続または元のセッションが変わりました。監視を選び直してください",
+    "zh-Hans": "SSH 主机连接或原聊天会话已改变，请重新选择监控",
+    "zh-Hant": "SSH 主機連接或原聊天會話已改變，請重新選擇監控"
+  },
+  "SSH 状态缺少可核验的主机或会话绑定": {
+    "en": "SSH state lacks a verifiable host or session binding",
+    "ja": "SSH 状態に確認可能なホストまたはセッションの対応情報がありません",
+    "zh-Hans": "SSH 状态缺少可核验的主机或会话绑定",
+    "zh-Hant": "SSH 狀態缺少可核驗的主機或會話綁定"
+  },
+  "SSH 聊天不允许直接输入，或缺少执行模型信息": {
+    "en": "SSH chat disallows direct input or lacks model information",
+    "ja": "SSH チャットで直接入力が許可されていないかモデル情報がありません",
+    "zh-Hans": "SSH 聊天不允许直接输入，或缺少执行模型信息",
+    "zh-Hant": "SSH 聊天不允許直接輸入，或缺少執行模型信息"
+  },
   "Thread ID": {
     "en": "Thread ID",
     "ja": "Thread ID",
@@ -365,6 +383,12 @@
     "zh-Hans": "上次刷新失败",
     "zh-Hant": "上次更新失敗"
   },
+  "上次操作结果未确认，请检查原聊天；不会自动重试": {
+    "en": "Previous operation is unconfirmed; inspect the original chat; no automatic retry",
+    "ja": "前の操作の結果が不明です。元のチャットを確認してください。自動再試行しません",
+    "zh-Hans": "上次操作结果未确认，请检查原聊天；不会自动重试",
+    "zh-Hant": "上次操作結果未確認，請檢查原聊天；不會自動重試"
+  },
   "不会后台自动启停 ChatGPT；每次切换/重启/打开会话都要在确认框勾选，CLI 必须显式 --allow-chatgpt-restart。": {
     "en": "ChatGPT is never started or stopped automatically in the background. Every switch, restart, or session open requires confirmation; the CLI requires an explicit --allow-chatgpt-restart.",
     "ja": "ChatGPT をバックグラウンドで自動的に起動・終了することはありません。切り替え、再起動、セッションを開くたびに確認が必要で、CLI では --allow-chatgpt-restart を明示する必要があります。",
@@ -383,11 +407,53 @@
     "zh-Hans": "不修改账号凭据",
     "zh-Hant": "不修改帳號憑證"
   },
+  "不允许重启时，请使用额度守护等待原账号额度恢复。": {
+    "en": "Use the quota guard to wait for the original account when restarts are disabled.",
+    "ja": "再起動を許可しない場合は、利用枠ガードで元のアカウントの回復を待ってください。",
+    "zh-Hans": "不允许重启时，请使用额度守护等待原账号额度恢复。",
+    "zh-Hant": "不允許重啟時，請使用額度守護等待原帳號額度恢復。"
+  },
   "不可用": {
     "en": "Unavailable",
     "ja": "利用不可",
     "zh-Hans": "不可用",
     "zh-Hant": "無法使用"
+  },
+  "中断已确认，但两分钟内未同步到终止状态": {
+    "en": "Interrupt acknowledged but termination was not visible within two minutes",
+    "ja": "中断の応答後、2 分以内に終了状態を確認できませんでした",
+    "zh-Hans": "中断已确认，但两分钟内未同步到终止状态",
+    "zh-Hant": "中斷已確認，但兩分鐘內未同步到終止狀態"
+  },
+  "中断已确认，等待额度恢复": {
+    "en": "Interrupt confirmed; waiting for quota recovery",
+    "ja": "中断を確認しました。利用枠の回復を待ちます",
+    "zh-Hans": "中断已确认，等待额度恢复",
+    "zh-Hant": "中斷已確認，等待額度恢復"
+  },
+  "中断操作结果未确认，请检查原聊天；不会自动重试": {
+    "en": "Interrupt result is unconfirmed; inspect the original chat; no automatic retry",
+    "ja": "中断結果が不明です。元のチャットを確認してください。自動再試行しません",
+    "zh-Hans": "中断操作结果未确认，请检查原聊天；不会自动重试",
+    "zh-Hant": "中斷操作結果未確認，請檢查原聊天；不會自動重試"
+  },
+  "临时聊天不支持自动监控": {
+    "en": "Temporary chats cannot be monitored automatically",
+    "ja": "一時チャットの自動監視には対応していません",
+    "zh-Hans": "临时聊天不支持自动监控",
+    "zh-Hant": "臨時聊天不支持自動監控"
+  },
+  "主机": {
+    "en": "Host",
+    "ja": "ホスト",
+    "zh-Hans": "主机",
+    "zh-Hant": "主機"
+  },
+  "主窗口不是可识别的小时额度，暂不操作": {
+    "en": "Primary window is not a recognized hourly quota; no action taken",
+    "ja": "主枠を時間単位の利用枠として認識できないため操作しません",
+    "zh-Hans": "主窗口不是可识别的小时额度，暂不操作",
+    "zh-Hant": "主窗口不是可識別的小時額度，暫不操作"
   },
   "主题": {
     "en": "Theme",
@@ -406,6 +472,12 @@
     "ja": "ライトテーマ",
     "zh-Hans": "亮色档案",
     "zh-Hant": "淺色主題"
+  },
+  "仅切换账号": {
+    "en": "Switch account only",
+    "ja": "アカウントのみ切り替え",
+    "zh-Hans": "仅切换账号",
+    "zh-Hant": "僅切換帳號"
   },
   "仅打开会话": {
     "en": "Open session only",
@@ -436,12 +508,6 @@
     "ja": "ストア",
     "zh-Hans": "仓库",
     "zh-Hant": "儲存庫"
-  },
-  "会先安全退出 ChatGPT；如果还有 Codex 轮次在跑，默认拒绝。": {
-    "en": "ChatGPT will be safely quit first; if a Codex turn is still running, the action is rejected by default.",
-    "ja": "最初に ChatGPT を安全に終了します。Codex のターンが実行中の場合は既定で拒否します。",
-    "zh-Hans": "会先安全退出 ChatGPT；如果还有 Codex 轮次在跑，默认拒绝。",
-    "zh-Hant": "會先安全結束 ChatGPT；如果還有 Codex 回合在執行，預設會拒絕。"
   },
   "会备份 auth.json 和 state，再写入目标凭据。": {
     "en": "auth.json and state are backed up before writing the target credentials.",
@@ -551,6 +617,36 @@
     "zh-Hans": "保存自动续跑设置",
     "zh-Hant": "儲存自動續跑設定"
   },
+  "保存设置": {
+    "en": "Save settings",
+    "ja": "設定を保存",
+    "zh-Hans": "保存设置",
+    "zh-Hant": "儲存設定"
+  },
+  "修改只影响下次开始的监控": {
+    "en": "Changes apply to the next monitor start",
+    "ja": "変更は次に開始する監視に適用されます",
+    "zh-Hans": "修改只影响下次开始的监控",
+    "zh-Hant": "修改只影響下次開始的監控"
+  },
+  "停止守护": {
+    "en": "Stop guard",
+    "ja": "監視を停止",
+    "zh-Hans": "停止守护",
+    "zh-Hant": "停止守護"
+  },
+  "停止阈值（%）": {
+    "en": "Pause threshold (%)",
+    "ja": "中断しきい値（%）",
+    "zh-Hans": "停止阈值（%）",
+    "zh-Hant": "停止閾值（%）"
+  },
+  "允许自动接力重启 ChatGPT": {
+    "en": "Allow automatic relay to restart ChatGPT",
+    "ja": "自動切り替えによる ChatGPT の再起動を許可",
+    "zh-Hans": "允许自动接力重启 ChatGPT",
+    "zh-Hant": "允許自動接力重啟 ChatGPT"
+  },
   "先捕获当前账号，或添加另一个 ChatGPT 账号。": {
     "en": "Capture the current account or add another ChatGPT account.",
     "ja": "現在のアカウントを取り込むか、別の ChatGPT アカウントを追加してください。",
@@ -641,6 +737,12 @@
     "zh-Hans": "分析失败",
     "zh-Hant": "分析失敗"
   },
+  "切号后继续原聊天": {
+    "en": "Continue the original chat after switching",
+    "ja": "切り替え後に元のチャットを続行",
+    "zh-Hans": "切号后继续原聊天",
+    "zh-Hant": "切號後繼續原聊天"
+  },
   "切换到": {
     "en": "Switch to",
     "ja": "切り替え先",
@@ -718,6 +820,12 @@
     "ja": "切り替え中は ChatGPT を操作しないでください。",
     "zh-Hans": "切换期间不要操作 ChatGPT。",
     "zh-Hant": "切換期間請勿操作 ChatGPT。"
+  },
+  "切换策略": {
+    "en": "Switch strategy",
+    "ja": "切り替え方法",
+    "zh-Hans": "切换策略",
+    "zh-Hant": "切換策略"
   },
   "切换账号": {
     "en": "Switch account",
@@ -887,6 +995,12 @@
     "zh-Hans": "加密推理项会原样回放，但服务端是否实际复用无法从客户端证明。",
     "zh-Hant": "加密推理項目會原樣重送，但伺服器是否實際重用，用戶端無法證明。"
   },
+  "勾选续跑时会先确认中断所选轮次；其他活动聊天仍会阻止切号。": {
+    "en": "With continuation selected, the chosen turn is interrupted first; other active chats still block switching.",
+    "ja": "続行を選ぶと対象ターンの中断を先に確認します。他の実行中チャットは切り替えを阻止します。",
+    "zh-Hans": "勾选续跑时会先确认中断所选轮次；其他活动聊天仍会阻止切号。",
+    "zh-Hant": "勾選續跑時會先確認中斷所選輪次；其他活動聊天仍會阻止切號。"
+  },
   "压缩检查点": {
     "en": "Compaction checkpoints",
     "ja": "圧縮チェックポイント",
@@ -982,6 +1096,18 @@
     "ja": "バックエンドネットワーク",
     "zh-Hans": "后端网络",
     "zh-Hant": "後端網路"
+  },
+  "后续窗口估算": {
+    "en": "Estimated future windows",
+    "ja": "以後の時間枠の推定",
+    "zh-Hans": "后续窗口估算",
+    "zh-Hant": "後續時段估算"
+  },
+  "后续窗口按立即持续使用估算；实际可用时间以接口为准。": {
+    "en": "Estimates assume immediate continuous use. Actual availability follows the service.",
+    "ja": "推定は直ちに継続使用する想定です。実際の利用可能時間はサービスの応答に従います。",
+    "zh-Hans": "后续窗口按立即持续使用估算；实际可用时间以接口为准。",
+    "zh-Hant": "後續時段按立即持續使用估算；實際可用時間以介面為準。"
   },
   "含推理": {
     "en": "With reasoning",
@@ -1115,6 +1241,30 @@
     "zh-Hans": "如果 ChatGPT 未运行，macOS 会按需启动它。",
     "zh-Hant": "如果 ChatGPT 未執行，macOS 會視需要啟動它。"
   },
+  "存在结果不确定的操作，请先检查原聊天；禁止自动重试": {
+    "en": "An operation has an uncertain result; inspect the original chat before retrying",
+    "ja": "結果不明の操作があります。再試行せず元のチャットを確認してください",
+    "zh-Hans": "存在结果不确定的操作，请先检查原聊天；禁止自动重试",
+    "zh-Hant": "存在結果不確定的操作，請先檢查原聊天；禁止自動重試"
+  },
+  "存在非窗口额度限制": {
+    "en": "A non-window quota restriction is active",
+    "ja": "時間枠以外の利用制限があります",
+    "zh-Hans": "存在非窗口额度限制",
+    "zh-Hant": "存在非窗口額度限制"
+  },
+  "存在额外账户限制，需在 Codex 中检查": {
+    "en": "Additional account limits require inspection in Codex",
+    "ja": "追加のアカウント制限を Codex で確認してください",
+    "zh-Hans": "存在额外账户限制，需在 Codex 中检查",
+    "zh-Hant": "存在額外賬戶限制，需在 Codex 中檢查"
+  },
+  "守护设置": {
+    "en": "Guard settings",
+    "ja": "監視設定",
+    "zh-Hans": "守护设置",
+    "zh-Hant": "守護設定"
+  },
   "安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。": {
     "en": "Safety mode: the tool never starts or stops ChatGPT in the background. Every switch, restart, or session open requires confirmation and the CLI requires --allow-chatgpt-restart.",
     "ja": "安全モード：ChatGPT をバックグラウンドで自動起動・終了しません。切り替え、再起動、セッションを開くたびに確認が必要で、CLI には --allow-chatgpt-restart の明示が必要です。",
@@ -1138,6 +1288,42 @@
     "ja": "省略なしの数値",
     "zh-Hans": "完整数值",
     "zh-Hant": "完整數值"
+  },
+  "小时额度低时中断，恢复后在原聊天继续；无需重启 ChatGPT": {
+    "en": "Pause at low hourly quota and continue the original chat after recovery; no ChatGPT restart",
+    "ja": "時間枠の残量が少ないと中断し、回復後に元のチャットで続行。ChatGPT の再起動は不要",
+    "zh-Hans": "小时额度低时中断，恢复后在原聊天继续；无需重启 ChatGPT",
+    "zh-Hant": "小時額度低時中斷，恢復後在原聊天繼續；無需重啟 ChatGPT"
+  },
+  "小时额度尚未达到续跑阈值": {
+    "en": "Hourly quota has not reached the recovery threshold",
+    "ja": "時間枠の残量が続行しきい値に達していません",
+    "zh-Hans": "小时额度尚未达到续跑阈值",
+    "zh-Hant": "小時額度尚未達到續跑閾值"
+  },
+  "小时额度已恢复": {
+    "en": "Hourly quota recovered",
+    "ja": "時間枠の利用可能量が回復しました",
+    "zh-Hans": "小时额度已恢复",
+    "zh-Hant": "小時額度已恢復"
+  },
+  "小时额度数据缺失或无效": {
+    "en": "Hourly quota data is missing or invalid",
+    "ja": "時間枠のデータが不足しているか無効です",
+    "zh-Hans": "小时额度数据缺失或无效",
+    "zh-Hant": "小時額度數據缺失或無效"
+  },
+  "小时额度达到暂停阈值": {
+    "en": "Hourly quota reached the pause threshold",
+    "ja": "時間枠の残量が中断しきい値に達しました",
+    "zh-Hans": "小时额度达到暂停阈值",
+    "zh-Hant": "小時額度達到暫停閾值"
+  },
+  "小时额度重置时间已过期，等待服务刷新": {
+    "en": "Reset time has passed; waiting for fresh service data",
+    "ja": "リセット時刻を過ぎています。サービスの更新を待ちます",
+    "zh-Hans": "小时额度重置时间已过期，等待服务刷新",
+    "zh-Hant": "小時額度重置時間已過期，等待服務刷新"
   },
   "尚未运行诊断": {
     "en": "Diagnostics have not run yet",
@@ -1168,6 +1354,12 @@
     "ja": "切り替えました",
     "zh-Hans": "已切换到",
     "zh-Hant": "已切換到"
+  },
+  "已切换到 %@": {
+    "en": "Switched to %@",
+    "ja": "%@ に切り替えました",
+    "zh-Hans": "已切换到 %@",
+    "zh-Hant": "已切換到 %@"
   },
   "已切换到 %@（%@，%d ms）": {
     "en": "Switched to %@ (%@, %d ms)",
@@ -1229,11 +1421,35 @@
     "zh-Hans": "已经有账号使用「%@」，请换一个名称以便区分。",
     "zh-Hant": "已經有帳號使用「%@」，請換一個名稱以便區分。"
   },
+  "已续跑 %d 次": {
+    "en": "Continued %d times",
+    "ja": "続行回数：%d",
+    "zh-Hans": "已续跑 %d 次",
+    "zh-Hant": "已續跑 %d 次"
+  },
+  "已连接": {
+    "en": "Connected",
+    "ja": "接続済み",
+    "zh-Hans": "已连接",
+    "zh-Hant": "已連線"
+  },
   "并重启 ChatGPT？": {
     "en": "and restart ChatGPT?",
     "ja": "して ChatGPT を再起動しますか？",
     "zh-Hans": "并重启 ChatGPT？",
     "zh-Hant": "並重新啟動 ChatGPT？"
+  },
+  "开始后在后台运行，退出 Relay 也会继续；停止守护仅取消后续操作。周额度只显示；未知回执不会自动重发。": {
+    "en": "The guard keeps running after Relay quits. Stopping cancels future actions. Weekly quota is display only; uncertain operations are never resent.",
+    "ja": "Relay 終了後もバックグラウンドで動作します。停止は以後の操作を取り消します。週枠は表示のみ。不確定な操作は再送しません。",
+    "zh-Hans": "开始后在后台运行，退出 Relay 也会继续；停止守护仅取消后续操作。周额度只显示；未知回执不会自动重发。",
+    "zh-Hant": "開始後在背景執行，退出 Relay 也會繼續；停止守護僅取消後續操作。週額度僅顯示；未知回執不會自動重送。"
+  },
+  "开始守护": {
+    "en": "Start guard",
+    "ja": "監視を開始",
+    "zh-Hans": "开始守护",
+    "zh-Hant": "開始守護"
   },
   "开始登录": {
     "en": "Start sign-in",
@@ -1337,6 +1553,12 @@
     "zh-Hans": "恢复会话",
     "zh-Hant": "恢復工作階段"
   },
+  "恢复阈值（%）": {
+    "en": "Recovery threshold (%)",
+    "ja": "回復しきい値（%）",
+    "zh-Hans": "恢复阈值（%）",
+    "zh-Hant": "恢復閾值（%）"
+  },
   "恢复默认头像": {
     "en": "Reset avatar",
     "ja": "既定のアバターに戻す",
@@ -1361,11 +1583,35 @@
     "zh-Hans": "我确认现在退出并重启 ChatGPT",
     "zh-Hant": "我確認現在結束並重新啟動 ChatGPT"
   },
+  "所有主机": {
+    "en": "All hosts",
+    "ja": "すべてのホスト",
+    "zh-Hans": "所有主机",
+    "zh-Hant": "所有主機"
+  },
   "所有文件": {
     "en": "All files",
     "ja": "すべてのファイル",
     "zh-Hans": "所有文件",
     "zh-Hant": "所有檔案"
+  },
+  "所选对话暂未连接到 App": {
+    "en": "Selected chat is not currently connected to the app",
+    "ja": "選択したチャットは現在アプリに接続されていません",
+    "zh-Hans": "所选对话暂未连接到 App",
+    "zh-Hant": "所選對話暫未連接到 App"
+  },
+  "所选应用不是可识别的 Codex App": {
+    "en": "Selected app is not a recognized Codex app",
+    "ja": "選択したアプリは認識可能な Codex アプリではありません",
+    "zh-Hans": "所选应用不是可识别的 Codex App",
+    "zh-Hant": "所選應用不是可識別的 Codex App"
+  },
+  "所选聊天已经归档": {
+    "en": "Selected chat is archived",
+    "ja": "選択したチャットはアーカイブ済みです",
+    "zh-Hans": "所选聊天已经归档",
+    "zh-Hant": "所選聊天已經歸檔"
   },
   "打开 ChatGPT 失败": {
     "en": "Failed to open ChatGPT",
@@ -1445,6 +1691,12 @@
     "zh-Hans": "找不到 codex-relay。请确认已运行 install.sh，或设置 CODEX_RELAY_BIN。",
     "zh-Hant": "找不到 codex-relay。請確認已執行 install.sh，或設定 CODEX_RELAY_BIN。"
   },
+  "找不到可识别的 Codex App": {
+    "en": "Recognized Codex app not found",
+    "ja": "認識可能な Codex アプリが見つかりません",
+    "zh-Hans": "找不到可识别的 Codex App",
+    "zh-Hant": "找不到可識別的 Codex App"
+  },
   "捕获失败": {
     "en": "Capture failed",
     "ja": "取り込みに失敗しました",
@@ -1456,6 +1708,12 @@
     "ja": "現在のアカウントを取り込む",
     "zh-Hans": "捕获当前账号",
     "zh-Hant": "擷取目前帳號"
+  },
+  "接口重置时间": {
+    "en": "Reported reset time",
+    "ja": "サービスが示すリセット時刻",
+    "zh-Hans": "接口重置时间",
+    "zh-Hant": "介面重設時間"
   },
   "推理": {
     "en": "Reasoning",
@@ -1486,6 +1744,12 @@
     "ja": "タイトル・ディレクトリ・ID を検索",
     "zh-Hans": "搜索标题、目录、ID",
     "zh-Hant": "搜尋標題、目錄、ID"
+  },
+  "搜索聊天": {
+    "en": "Search chats",
+    "ja": "チャットを検索",
+    "zh-Hans": "搜索聊天",
+    "zh-Hant": "搜尋聊天"
   },
   "操作": {
     "en": "Action",
@@ -1595,11 +1859,23 @@
     "zh-Hans": "暂无会话",
     "zh-Hant": "尚無工作階段"
   },
+  "暂无可显示的聊天": {
+    "en": "No chats to display",
+    "ja": "表示できるチャットがありません",
+    "zh-Hans": "暂无可显示的聊天",
+    "zh-Hant": "暫無可顯示的聊天"
+  },
   "暂无数据": {
     "en": "No data",
     "ja": "データはありません",
     "zh-Hans": "暂无数据",
     "zh-Hant": "尚無資料"
+  },
+  "暂未核验聊天持久性，请在 Codex 中打开原聊天后刷新": {
+    "en": "Persistence not verified; open the original chat in Codex and refresh",
+    "ja": "永続性を確認できません。Codex で元のチャットを開いて更新してください",
+    "zh-Hans": "暂未核验聊天持久性，请在 Codex 中打开原聊天后刷新",
+    "zh-Hant": "暫未核驗聊天持久性，請在 Codex 中打開原聊天後刷新"
   },
   "暗色": {
     "en": "Dark",
@@ -1630,6 +1906,12 @@
     "ja": "更新日時",
     "zh-Hans": "更新时间",
     "zh-Hant": "更新時間"
+  },
+  "最佳额度": {
+    "en": "Most remaining quota",
+    "ja": "残量の多い順",
+    "zh-Hans": "最佳额度",
+    "zh-Hant": "最佳額度"
   },
   "最新会话": {
     "en": "Latest session",
@@ -1666,6 +1948,18 @@
     "ja": "有効／更新可能",
     "zh-Hans": "有效/可续期",
     "zh-Hant": "有效／可續期"
+  },
+  "有结构化额度耗尽错误": {
+    "en": "The turn has a structured quota-exhaustion error",
+    "ja": "ターンに利用枠超過の構造化エラーがあります",
+    "zh-Hans": "有结构化额度耗尽错误",
+    "zh-Hant": "有結構化額度耗盡錯誤"
+  },
+  "服务器仍报告额度限制，等待状态刷新": {
+    "en": "Service still reports a quota restriction; waiting for an update",
+    "ja": "サービスが利用制限を返しています。状態の更新を待ちます",
+    "zh-Hans": "服务器仍报告额度限制，等待状态刷新",
+    "zh-Hant": "服務器仍報告額度限制，等待狀態刷新"
   },
   "未刷新": {
     "en": "Not refreshed",
@@ -1739,6 +2033,12 @@
     "zh-Hans": "未运行",
     "zh-Hant": "未執行"
   },
+  "未连接": {
+    "en": "Disconnected",
+    "ja": "未接続",
+    "zh-Hans": "未连接",
+    "zh-Hant": "未連線"
+  },
   "末缓存": {
     "en": "Last cached",
     "ja": "最後のキャッシュ",
@@ -1757,11 +2057,23 @@
     "zh-Hans": "本地文件",
     "zh-Hant": "本機檔案"
   },
-  "本工具不会在后台自动执行此操作。": {
-    "en": "This tool never performs this action automatically in the background.",
-    "ja": "このツールはバックグラウンドで自動実行しません。",
-    "zh-Hans": "本工具不会在后台自动执行此操作。",
-    "zh-Hant": "本工具不會在背景自動執行此操作。"
+  "本地监控记录格式不兼容；请保留记录并检查，不会自动重试": {
+    "en": "Local monitor record is incompatible; retain it for inspection; no automatic retry",
+    "ja": "監視記録の形式に対応していません。記録を保管して確認してください。自動再試行しません",
+    "zh-Hans": "本地监控记录格式不兼容；请保留记录并检查，不会自动重试",
+    "zh-Hant": "本地監控記錄格式不兼容；請保留記錄並檢查，不會自動重試"
+  },
+  "本轮已中断": {
+    "en": "Turn interrupted",
+    "ja": "ターンは中断されています",
+    "zh-Hans": "本轮已中断",
+    "zh-Hant": "本輪已中斷"
+  },
+  "本轮正常结束，停止监控": {
+    "en": "Turn completed normally; monitoring stopped",
+    "ja": "ターンが正常に完了したため監視を終了しました",
+    "zh-Hans": "本轮正常结束，停止监控",
+    "zh-Hant": "本輪正常結束，停止監控"
   },
   "来源": {
     "en": "Source",
@@ -1817,6 +2129,18 @@
     "zh-Hans": "桌面版 %@",
     "zh-Hant": "桌面版 %@"
   },
+  "桌面状态正在变化，中断请求未发送，稍后重新检查": {
+    "en": "Desktop state changed; interrupt not sent; checking again later",
+    "ja": "状態が変化しました。中断要求は送信せず、後で再確認します",
+    "zh-Hans": "桌面状态正在变化，中断请求未发送，稍后重新检查",
+    "zh-Hant": "桌面狀態正在變化，中斷請求未發送，稍後重新檢查"
+  },
+  "桌面端已确认续跑，继续监控原聊天": {
+    "en": "Continuation confirmed; monitoring the original chat",
+    "ja": "続行を確認しました。元のチャットを引き続き監視します",
+    "zh-Hans": "桌面端已确认续跑，继续监控原聊天",
+    "zh-Hant": "桌面端已確認續跑，繼續監控原聊天"
+  },
   "桌面进程": {
     "en": "Desktop processes",
     "ja": "デスクトッププロセス",
@@ -1828,6 +2152,18 @@
     "ja": "チェック詳細",
     "zh-Hans": "检查详情",
     "zh-Hant": "檢查詳情"
+  },
+  "检查间隔必须为有限正数": {
+    "en": "Check interval must be a finite positive number",
+    "ja": "確認間隔には有限の正の数値を指定してください",
+    "zh-Hans": "检查间隔必须为有限正数",
+    "zh-Hant": "檢查間隔必須為有限正數"
+  },
+  "检查间隔（秒）": {
+    "en": "Check interval (seconds)",
+    "ja": "確認間隔（秒）",
+    "zh-Hans": "检查间隔（秒）",
+    "zh-Hant": "檢查間隔（秒）"
   },
   "检查项": {
     "en": "Checks",
@@ -1883,6 +2219,18 @@
     "zh-Hans": "正在打开 ChatGPT",
     "zh-Hant": "正在開啟 ChatGPT"
   },
+  "正在执行": {
+    "en": "Running",
+    "ja": "実行中",
+    "zh-Hans": "正在执行",
+    "zh-Hant": "正在執行"
+  },
+  "正在执行，小时额度高于暂停阈值": {
+    "en": "Running; hourly quota is above the pause threshold",
+    "ja": "実行中。時間枠の残量は中断しきい値を上回っています",
+    "zh-Hans": "正在执行，小时额度高于暂停阈值",
+    "zh-Hant": "正在執行，小時額度高於暫停閾值"
+  },
   "正在确认没有执行中的轮次": {
     "en": "Confirming no turn is currently running",
     "ja": "実行中のターンがないことを確認しています",
@@ -1900,6 +2248,12 @@
     "ja": "キャッシュと推論データを読み込み中…",
     "zh-Hans": "正在读取缓存与推理数据…",
     "zh-Hant": "正在讀取快取與推理資料…"
+  },
+  "此处只执行你确认的操作；自动接力在设置中单独启用。": {
+    "en": "This dialog performs only the confirmed action. Automatic relay is enabled separately in Settings.",
+    "ja": "ここでは確認した操作のみ実行します。自動切り替えは設定で別途有効にします。",
+    "zh-Hans": "此处只执行你确认的操作；自动接力在设置中单独启用。",
+    "zh-Hant": "此處僅執行你確認的操作；自動接力在設定中單獨啟用。"
   },
   "此操作会向 ChatGPT 发送深链接；需要你明确确认。": {
     "en": "This action sends a deep link to ChatGPT and requires your explicit confirmation.",
@@ -2081,6 +2435,12 @@
     "zh-Hans": "登录进行中…",
     "zh-Hant": "登入進行中…"
   },
+  "监控已取消，不再中断或发送续跑消息": {
+    "en": "Monitoring cancelled; no further interrupts or continuation messages",
+    "ja": "監視を取り消しました。以後の中断や続行メッセージは送信しません",
+    "zh-Hans": "监控已取消，不再中断或发送续跑消息",
+    "zh-Hant": "監控已取消，不再中斷或發送續跑消息"
+  },
   "目标会话：%@": {
     "en": "Target session: %@",
     "ja": "対象セッション：%@",
@@ -2147,6 +2507,48 @@
     "zh-Hans": "立即同步",
     "zh-Hant": "立即同步"
   },
+  "等待 Codex 的目标继续执行": {
+    "en": "Waiting for Codex to continue the active goal",
+    "ja": "Codex がアクティブな目標を続行するのを待っています",
+    "zh-Hans": "等待 Codex 的目标继续执行",
+    "zh-Hant": "等待 Codex 的目標繼續執行"
+  },
+  "等待原聊天加载完成": {
+    "en": "Waiting for the original chat to load",
+    "ja": "元のチャットの読み込みを待っています",
+    "zh-Hans": "等待原聊天加载完成",
+    "zh-Hant": "等待原聊天加載完成"
+  },
+  "等待小时额度恢复；最多 60 秒重读额度，持续检查原聊天": {
+    "en": "Waiting for hourly quota recovery; rereading quota within 60 seconds and checking the original chat",
+    "ja": "時間枠の回復を待っています。60 秒以内に利用枠を再取得し元のチャットを確認します",
+    "zh-Hans": "等待小时额度恢复；最多 60 秒重读额度，持续检查原聊天",
+    "zh-Hant": "等待小時額度恢復；最多 60 秒重讀額度，持續檢查原聊天"
+  },
+  "等待期间终止原因改变，不再自动续跑": {
+    "en": "Termination reason changed while waiting; no automatic continuation",
+    "ja": "待機中に終了理由が変化したため自動続行しません",
+    "zh-Hans": "等待期间终止原因改变，不再自动续跑",
+    "zh-Hant": "等待期間終止原因改變，不再自動續跑"
+  },
+  "等待期间聊天轮次或执行设置改变，请重新选择监控": {
+    "en": "Turn or execution settings changed while waiting; select monitoring again",
+    "ja": "待機中にターンまたは実行設定が変わりました。監視を選び直してください",
+    "zh-Hans": "等待期间聊天轮次或执行设置改变，请重新选择监控",
+    "zh-Hant": "等待期間聊天輪次或執行設置改變，請重新選擇監控"
+  },
+  "等待桌面端状态同步": {
+    "en": "Waiting for desktop state synchronization",
+    "ja": "デスクトップの状態同期を待っています",
+    "zh-Hans": "等待桌面端状态同步",
+    "zh-Hant": "等待桌面端狀態同步"
+  },
+  "等待桌面端确认中断状态": {
+    "en": "Waiting for the desktop interrupt state",
+    "ja": "デスクトップの中断状態を待っています",
+    "zh-Hans": "等待桌面端确认中断状态",
+    "zh-Hant": "等待桌面端確認中斷狀態"
+  },
   "简体中文": {
     "en": "简体中文",
     "ja": "简体中文",
@@ -2207,11 +2609,59 @@
     "zh-Hans": "继续",
     "zh-Hant": "繼續"
   },
+  "续跑前状态改变，消息未发送，请检查原聊天": {
+    "en": "State changed before continuation; message not sent",
+    "ja": "続行前に状態が変化しました。メッセージは送信していません",
+    "zh-Hans": "续跑前状态改变，消息未发送，请检查原聊天",
+    "zh-Hant": "續跑前狀態改變，消息未發送，請檢查原聊天"
+  },
+  "续跑后服务器再次拒绝额度，小时数据未能解释此限制；请检查原聊天，不会循环发送": {
+    "en": "Service rejected quota again after continuation; inspect the original chat; no repeated sends",
+    "ja": "続行後もサービスが利用枠を拒否しました。元のチャットを確認してください。繰り返し送信しません",
+    "zh-Hans": "续跑后服务器再次拒绝额度，小时数据未能解释此限制；请检查原聊天，不会循环发送",
+    "zh-Hant": "續跑後服務器再次拒絕額度，小時數據未能解釋此限制；請檢查原聊天，不會循環發送"
+  },
+  "续跑已确认，等待新轮次同步": {
+    "en": "Continuation confirmed; waiting for the new turn",
+    "ja": "続行を確認しました。新しいターンの同期を待っています",
+    "zh-Hans": "续跑已确认，等待新轮次同步",
+    "zh-Hant": "續跑已確認，等待新輪次同步"
+  },
   "续跑提示词": {
     "en": "Continuation prompt",
     "ja": "継続プロンプト",
     "zh-Hans": "续跑提示词",
     "zh-Hant": "續跑提示詞"
+  },
+  "续跑操作结果未确认，请检查原聊天；不会自动重发": {
+    "en": "Continuation result is unconfirmed; inspect the original chat; no automatic resend",
+    "ja": "続行結果が不明です。元のチャットを確認してください。自動再送しません",
+    "zh-Hans": "续跑操作结果未确认，请检查原聊天；不会自动重发",
+    "zh-Hant": "續跑操作結果未確認，請檢查原聊天；不會自動重發"
+  },
+  "续跑文字不能为空，不能包含空字符": {
+    "en": "Continuation text must be nonempty and contain no NUL",
+    "ja": "続行文は空欄にできず、ヌル文字を含めることもできません",
+    "zh-Hans": "续跑文字不能为空，不能包含空字符",
+    "zh-Hant": "續跑文字不能為空，不能包含空字符"
+  },
+  "续跑次数已用完，停止监控；没有中断当前工作": {
+    "en": "Configured continuation count reached; monitoring stopped without interrupting current work",
+    "ja": "続行回数の上限に達しました。現在の作業を中断せず監視を停止しました",
+    "zh-Hans": "续跑次数已用完，停止监控；没有中断当前工作",
+    "zh-Hant": "續跑次數已用完，停止監控；沒有中斷當前工作"
+  },
+  "续跑目标聊天": {
+    "en": "Continuation target chat",
+    "ja": "続行先のチャット",
+    "zh-Hans": "续跑目标聊天",
+    "zh-Hant": "續跑目標聊天"
+  },
+  "续跑确认与桌面端最新轮次不匹配，请检查原聊天": {
+    "en": "Continuation receipt differs from the latest desktop turn",
+    "ja": "続行の応答と最新のデスクトップターンが一致しません",
+    "zh-Hans": "续跑确认与桌面端最新轮次不匹配，请检查原聊天",
+    "zh-Hant": "續跑確認與桌面端最新輪次不匹配，請檢查原聊天"
   },
   "缓存": {
     "en": "Cached",
@@ -2237,6 +2687,84 @@
     "zh-Hans": "缓存与推理分析失败",
     "zh-Hant": "快取與推理分析失敗"
   },
+  "缺少主窗口数据": {
+    "en": "Primary window data is missing",
+    "ja": "主時間枠のデータがありません",
+    "zh-Hans": "缺少主窗口数据",
+    "zh-Hant": "缺少主窗口數據"
+  },
+  "缺少匹配的中断确认，不能认定这轮由本工具暂停": {
+    "en": "No matching interrupt receipt; this tool cannot claim the pause",
+    "ja": "一致する中断応答がないため、このツールによる中断とは判断できません",
+    "zh-Hans": "缺少匹配的中断确认，不能认定这轮由本工具暂停",
+    "zh-Hant": "缺少匹配的中斷確認，不能認定這輪由本工具暫停"
+  },
+  "缺少审批和用户输入状态": {
+    "en": "Approval and user-input state is missing",
+    "ja": "承認とユーザー入力の状態がありません",
+    "zh-Hans": "缺少审批和用户输入状态",
+    "zh-Hant": "缺少審批和用戶輸入狀態"
+  },
+  "缺少所选额度桶，不能判断可用额度": {
+    "en": "Selected quota bucket is missing",
+    "ja": "選択した利用枠のデータがありません",
+    "zh-Hans": "缺少所选额度桶，不能判断可用额度",
+    "zh-Hant": "缺少所選額度桶，不能判斷可用額度"
+  },
+  "缺少执行中的等待条件状态": {
+    "en": "Active wait-condition state is missing",
+    "ja": "実行中の待機条件の状態がありません",
+    "zh-Hans": "缺少执行中的等待条件状态",
+    "zh-Hant": "缺少執行中的等待條件狀態"
+  },
+  "缺少桌面端实时运行状态": {
+    "en": "Live desktop runtime state is missing",
+    "ja": "デスクトップの実行状態がありません",
+    "zh-Hans": "缺少桌面端实时运行状态",
+    "zh-Hant": "缺少桌面端實時運行狀態"
+  },
+  "缺少稳定轮次标识": {
+    "en": "Stable turn identifier is missing",
+    "ja": "安定したターン ID がありません",
+    "zh-Hans": "缺少稳定轮次标识",
+    "zh-Hant": "缺少穩定輪次標識"
+  },
+  "聊天主机与当前选择不一致，请重新选择正确主机": {
+    "en": "Chat host differs from the selected host",
+    "ja": "チャットのホストと選択したホストが一致しません",
+    "zh-Hans": "聊天主机与当前选择不一致，请重新选择正确主机",
+    "zh-Hant": "聊天主機與當前選擇不一致，請重新選擇正確主機"
+  },
+  "聊天正在等待用户操作": {
+    "en": "Chat is waiting for user action",
+    "ja": "チャットはユーザーの操作を待っています",
+    "zh-Hans": "聊天正在等待用户操作",
+    "zh-Hant": "聊天正在等待用戶操作"
+  },
+  "聊天状态格式不兼容": {
+    "en": "Incompatible chat state format",
+    "ja": "チャット状態の形式に対応していません",
+    "zh-Hans": "聊天状态格式不兼容",
+    "zh-Hant": "聊天狀態格式不兼容"
+  },
+  "聊天目标已暂停、结束或需要用户处理": {
+    "en": "Chat goal is paused, completed, or needs user action",
+    "ja": "目標が一時停止、完了、またはユーザーの操作待ちです",
+    "zh-Hans": "聊天目标已暂停、结束或需要用户处理",
+    "zh-Hant": "聊天目標已暫停、結束或需要用戶處理"
+  },
+  "聊天需要用户处理审批、输入或排队消息": {
+    "en": "Chat needs approval, input, or queued-message handling",
+    "ja": "チャットの承認、入力、または待機メッセージの処理が必要です",
+    "zh-Hans": "聊天需要用户处理审批、输入或排队消息",
+    "zh-Hant": "聊天需要用戶處理審批、輸入或排隊消息"
+  },
+  "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。": {
+    "en": "Automatic switching restarts ChatGPT; it only runs after you enable auto-continue.",
+    "ja": "自動切り替えは ChatGPT を再起動します。自動継続を有効にした場合にのみ実行されます。",
+    "zh-Hans": "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。",
+    "zh-Hant": "自動切換會重新啟動 ChatGPT；只有在你啟用自動續跑後才會執行。"
+  },
   "自动恢复备份并重启 ChatGPT": {
     "en": "Restore the backup and restart ChatGPT automatically",
     "ja": "バックアップを復元し、ChatGPT を自動で再起動します",
@@ -2255,11 +2783,11 @@
     "zh-Hans": "自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。",
     "zh-Hant": "自動續跑會在 App 執行時按間隔檢查；結束 App 後停止。達到閾值會切換帳號並在原 thread 傳送續跑提示詞。"
   },
-  "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。": {
-    "en": "Automatic switching restarts ChatGPT; it only runs after you enable auto-continue.",
-    "ja": "自動切り替えは ChatGPT を再起動します。自動継続を有効にした場合にのみ実行されます。",
-    "zh-Hans": "自动切换会重启 ChatGPT；只有在你启用自动续跑后才会执行。",
-    "zh-Hant": "自動切換會重新啟動 ChatGPT；只有在你啟用自動續跑後才會執行。"
+  "自动续跑检查被阻止": {
+    "en": "Auto-continue check was blocked.",
+    "ja": "自動継続チェックがブロックされました。",
+    "zh-Hans": "自动续跑检查被阻止",
+    "zh-Hant": "自動續跑檢查被封鎖"
   },
   "自动续跑设置已保存": {
     "en": "Auto-continue settings saved.",
@@ -2267,23 +2795,23 @@
     "zh-Hans": "自动续跑设置已保存",
     "zh-Hant": "自動續跑設定已儲存"
   },
-  "自动续跑检查被阻止": {
-    "en": "Auto-continue check was blocked.",
-    "ja": "自動継続チェックがブロックされました。",
-    "zh-Hans": "自动续跑检查被阻止",
-    "zh-Hant": "自動續跑檢查被封鎖"
-  },
-  "已切换到 %@": {
-    "en": "Switched to %@",
-    "ja": "%@ に切り替えました",
-    "zh-Hans": "已切换到 %@",
-    "zh-Hant": "已切換到 %@"
-  },
   "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。": {
     "en": "Custom names are saved in the account store and survive refresh and switching.",
     "ja": "カスタム名はアカウント保管庫に保存され、更新や切り替え後も保持されます。",
     "zh-Hans": "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。",
     "zh-Hant": "自訂名稱會保存在帳號倉庫中，重新整理與切換後仍會保留。"
+  },
+  "被监控轮次已正常结束，不再续跑": {
+    "en": "Monitored turn completed normally; no continuation",
+    "ja": "監視中のターンが正常に完了したため続行しません",
+    "zh-Hans": "被监控轮次已正常结束，不再续跑",
+    "zh-Hant": "被監控輪次已正常結束，不再續跑"
+  },
+  "要求：0 ≤ 停止阈值 < 恢复阈值 ≤ 100": {
+    "en": "Required: 0 ≤ pause threshold < recovery threshold ≤ 100",
+    "ja": "0 ≤ 中断しきい値 < 回復しきい値 ≤ 100 にしてください",
+    "zh-Hans": "要求：0 ≤ 停止阈值 < 恢复阈值 ≤ 100",
+    "zh-Hant": "要求：0 ≤ 停止閾值 < 恢復閾值 ≤ 100"
   },
   "警告": {
     "en": "Warning",
@@ -2327,6 +2855,18 @@
     "zh-Hans": "设置",
     "zh-Hant": "設定"
   },
+  "设置保存失败": {
+    "en": "Could not save settings",
+    "ja": "設定を保存できませんでした",
+    "zh-Hans": "设置保存失败",
+    "zh-Hant": "設定儲存失敗"
+  },
+  "设置格式不正确": {
+    "en": "Invalid settings format",
+    "ja": "設定の形式が正しくありません",
+    "zh-Hans": "设置格式不正确",
+    "zh-Hant": "設置格式不正確"
+  },
   "诊断": {
     "en": "Diagnostics",
     "ja": "診断",
@@ -2338,6 +2878,12 @@
     "ja": "診断に失敗しました",
     "zh-Hans": "诊断失败",
     "zh-Hant": "診斷失敗"
+  },
+  "该聊天已有监控进程；不会重复启动": {
+    "en": "A monitor already owns this chat; no duplicate start",
+    "ja": "このチャットには監視プロセスがあります。重複して開始しません",
+    "zh-Hans": "该聊天已有监控进程；不会重复启动",
+    "zh-Hant": "該聊天已有監控進程；不會重復啓動"
   },
   "该账号尚未纳入账号仓库，切换前请先捕获。": {
     "en": "Capture this account before switching to it.",
@@ -2375,6 +2921,12 @@
     "zh-Hans": "请先在 ChatGPT/Codex 中登录，或添加账号。",
     "zh-Hant": "請先在 ChatGPT/Codex 中登入，或新增帳號。"
   },
+  "请先在 Codex 中打开目标聊天；开始后会检查原轮次、模型、目录和权限。": {
+    "en": "Open the target chat in Codex first. The guard checks its turn, model, directory and permissions.",
+    "ja": "先に Codex で対象チャットを開いてください。元のターン、モデル、ディレクトリ、権限を確認します。",
+    "zh-Hans": "请先在 Codex 中打开目标聊天；开始后会检查原轮次、模型、目录和权限。",
+    "zh-Hant": "請先在 Codex 中開啟目標聊天；開始後會檢查原輪次、模型、目錄和權限。"
+  },
   "请求": {
     "en": "Requests",
     "ja": "リクエスト",
@@ -2386,6 +2938,12 @@
     "ja": "識別しやすいアカウント名を入力してください。",
     "zh-Hans": "请输入一个容易辨认的账号名称。",
     "zh-Hant": "請輸入一個容易辨識的帳號名稱。"
+  },
+  "请选择聊天": {
+    "en": "Select a chat",
+    "ja": "チャットを選択",
+    "zh-Hans": "请选择聊天",
+    "zh-Hant": "請選擇聊天"
   },
   "读取于 %@": {
     "en": "Loaded at %@",
@@ -2489,6 +3047,12 @@
     "zh-Hans": "账号名称已更新",
     "zh-Hant": "帳號名稱已更新"
   },
+  "账号已切换，原聊天未续跑": {
+    "en": "Account switched; original chat not continued",
+    "ja": "アカウントは切り替わりましたが元のチャットは続行していません",
+    "zh-Hans": "账号已切换，原聊天未续跑",
+    "zh-Hant": "帳號已切換，原聊天未續跑"
+  },
   "账号用量已刷新": {
     "en": "Account quota refreshed",
     "ja": "アカウントの利用枠を更新しました",
@@ -2506,6 +3070,12 @@
     "ja": "アカウント認証",
     "zh-Hans": "账号认证",
     "zh-Hant": "帳號認證"
+  },
+  "账号顺序": {
+    "en": "Account order",
+    "ja": "アカウント順",
+    "zh-Hans": "账号顺序",
+    "zh-Hant": "帳號順序"
   },
   "账号：": {
     "en": "Account:",
@@ -2531,6 +3101,18 @@
     "zh-Hans": "跨平台客户端设置会保存在 ~/.codex-relay/portable-ui.json。",
     "zh-Hant": "跨平台用戶端設定會儲存在 ~/.codex-relay/portable-ui.json。"
   },
+  "轮次与运行状态尚未同步，暂不操作": {
+    "en": "Turn and runtime states are not synchronized; no action taken",
+    "ja": "ターンと実行状態が同期していないため操作しません",
+    "zh-Hans": "轮次与运行状态尚未同步，暂不操作",
+    "zh-Hant": "輪次與運行狀態尚未同步，暫不操作"
+  },
+  "轮次由用户或其他来源停止，不会自动重启": {
+    "en": "Turn stopped by the user or another source; no automatic restart",
+    "ja": "ユーザーまたは別の操作で停止したため自動再開しません",
+    "zh-Hans": "轮次由用户或其他来源停止，不会自动重启",
+    "zh-Hant": "輪次由用戶或其他來源停止，不會自動重啓"
+  },
   "输入": {
     "en": "Input",
     "ja": "入力",
@@ -2548,6 +3130,12 @@
     "ja": "出力が空です",
     "zh-Hans": "输出为空",
     "zh-Hant": "輸出為空"
+  },
+  "达到配置的累计续跑次数上限": {
+    "en": "Configured continuation count reached",
+    "ja": "設定された続行回数の上限に達しました",
+    "zh-Hans": "达到配置的累计续跑次数上限",
+    "zh-Hant": "達到配置的累計續跑次數上限"
   },
   "运行中": {
     "en": "Running",
@@ -2609,6 +3197,12 @@
     "zh-Hans": "进程控制 / 确认",
     "zh-Hant": "程序控制 / 確認"
   },
+  "连接暂不可用，等待 Codex 或网络恢复；不会发送消息": {
+    "en": "Connection unavailable; waiting for Codex or network recovery; no message sent",
+    "ja": "接続できません。Codex またはネットワークの回復を待ち、送信しません",
+    "zh-Hans": "连接暂不可用，等待 Codex 或网络恢复；不会发送消息",
+    "zh-Hant": "連接暫不可用，等待 Codex 或網絡恢復；不會發送消息"
+  },
   "退出 Codex Relay": {
     "en": "Quit Codex Relay",
     "ja": "Codex Relay を終了",
@@ -2638,6 +3232,12 @@
     "ja": "元のセッションを選択してください。切り替えると ChatGPT を再起動し、対象アカウントで同じセッションを開きます。",
     "zh-Hans": "选择一条原会话；切换后会重启 ChatGPT，并用目标账号打开同一会话。",
     "zh-Hant": "選擇一個原始工作階段；切換後會重新啟動 ChatGPT，並用目標帳號開啟同一個工作階段。"
+  },
+  "选择原聊天": {
+    "en": "Select original chat",
+    "ja": "元のチャットを選択",
+    "zh-Hans": "选择原聊天",
+    "zh-Hant": "選擇原聊天"
   },
   "选择后会立即应用到主窗口、弹窗、状态颜色和设置页。": {
     "en": "Applies immediately to the main window, sheets, status colors, and settings.",
@@ -2777,6 +3377,12 @@
     "zh-Hans": "重试",
     "zh-Hant": "重試"
   },
+  "阈值和间隔必须是有限数字": {
+    "en": "Thresholds and interval must be finite numbers",
+    "ja": "しきい値と間隔には有限の数値を指定してください",
+    "zh-Hans": "阈值和间隔必须是有限数字",
+    "zh-Hant": "閾值和間隔必須是有限數字"
+  },
   "随 macOS 自动切换": {
     "en": "Follow macOS automatically",
     "ja": "macOS に自動で合わせる",
@@ -2800,6 +3406,18 @@
     "ja": "再サインイン",
     "zh-Hans": "需重登",
     "zh-Hant": "需重新登入"
+  },
+  "非额度错误或未知轮次状态": {
+    "en": "Non-quota failure or unknown turn state",
+    "ja": "利用枠以外のエラー、または不明なターン状態です",
+    "zh-Hans": "非额度错误或未知轮次状态",
+    "zh-Hant": "非額度錯誤或未知輪次狀態"
+  },
+  "预计下一轮": {
+    "en": "Estimated next window",
+    "ja": "次の時間枠の推定",
+    "zh-Hans": "预计下一轮",
+    "zh-Hant": "預計下一輪"
   },
   "预计耗时": {
     "en": "Estimated time",
@@ -2825,6 +3443,18 @@
     "zh-Hans": "额度同步失败：%@",
     "zh-Hant": "額度同步失敗：%@"
   },
+  "额度响应不是可识别的数据": {
+    "en": "Unrecognized quota response",
+    "ja": "利用枠の応答を認識できません",
+    "zh-Hans": "额度响应不是可识别的数据",
+    "zh-Hant": "額度響應不是可識別的數據"
+  },
+  "额度守护": {
+    "en": "Quota guard",
+    "ja": "利用枠ガード",
+    "zh-Hans": "额度守护",
+    "zh-Hant": "額度守護"
+  },
   "额度已耗尽": {
     "en": "Quota exhausted",
     "ja": "利用枠に達しました",
@@ -2842,6 +3472,18 @@
     "ja": "利用枠に達しました",
     "zh-Hans": "额度耗尽",
     "zh-Hant": "額度用盡"
+  },
+  "额度耗尽，等待账户额度恢复": {
+    "en": "Quota exhausted; waiting for recovery",
+    "ja": "利用枠を使い切りました。回復を待ちます",
+    "zh-Hans": "额度耗尽，等待账户额度恢复",
+    "zh-Hant": "額度耗盡，等待賬戶額度恢復"
+  },
+  "额度达到阈值，准备中断当前轮次": {
+    "en": "Quota reached threshold; preparing to interrupt this turn",
+    "ja": "残量がしきい値に達したため現在のターンを中断します",
+    "zh-Hans": "额度达到阈值，准备中断当前轮次",
+    "zh-Hant": "額度達到閾值，準備中斷當前輪次"
   },
   "首缓存": {
     "en": "First cached",

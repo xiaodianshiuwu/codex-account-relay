@@ -169,15 +169,19 @@ def discover_desktop() -> DesktopInfo:
             except (OSError, ValueError):
                 plist = {}
             bundle_id = plist.get("CFBundleIdentifier")
+            if bundle_id != "com.openai.codex":
+                continue
             display = plist.get("CFBundleDisplayName") or plist.get("CFBundleName")
             version = plist.get("CFBundleShortVersionString")
-            embedded = candidate / "Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex"
+            embedded = next((candidate / item for item in (
+                "Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex",
+                "Contents/Resources/codex") if (candidate / item).is_file()), None)
             return DesktopInfo(
                 path=candidate,
                 bundle_id=bundle_id,
                 display_name=display,
                 version=version,
-                embedded_cli=embedded if embedded.exists() else None,
+                embedded_cli=embedded,
             )
         if candidate.exists() and candidate.is_file():
             return DesktopInfo(
@@ -238,6 +242,8 @@ def _role_for_command(command: str) -> str:
     if "/applications/codex.app/contents/macos/codex" in lowered:
         return "desktop-main"
     if "codexcli.app/contents/macos/codex" in lowered or "codex.exe" in lowered or name in ("codex.exe", "codex"):
+        if " app-server daemon" in lowered:
+            return "daemon"
         if " app-server" in lowered:
             return "desktop-app-server" if "codexcli.app" in lowered else "cli-app-server"
         if " exec-server" in lowered:

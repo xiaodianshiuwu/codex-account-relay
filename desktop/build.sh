@@ -2,16 +2,9 @@
 set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-APP="${CODEX_RELAY_GUI_APP:-$HOME/Applications/Codex Relay.app}"
+APP="${CODEX_RELAY_GUI_APP:-}"
 BUILD="$ROOT/build"
 OPEN_AFTER="${CODEX_RELAY_OPEN_AFTER:-0}"
-PYTHON="${CODEX_RELAY_PYTHON:-$(command -v python3 || true)}"
-
-if [ -z "$PYTHON" ] || [ ! -x "$PYTHON" ]; then
-  echo "找不到 Python 3：$PYTHON" >&2
-  exit 1
-fi
-
 echo "==> 构建 Codex Relay GUI"
 cd "$ROOT"
 swift build -c release --product CodexRelay
@@ -27,12 +20,13 @@ chmod 755 "$BUILD/Codex Relay.app/Contents/MacOS/CodexRelay"
 # Ship the automation backend inside the app. A release download must not
 # depend on `codex-relay` already existing in PATH.
 CLI_BIN="${CODEX_RELAY_CLI_BIN:-$ROOT/../dist-cli/codex-relay}"
-if [ -f "$CLI_BIN" ]; then
+if [ -x "$CLI_BIN" ]; then
   cp "$CLI_BIN" "$BUILD/Codex Relay.app/Contents/Resources/codex-relay"
   chmod 755 "$BUILD/Codex Relay.app/Contents/Resources/codex-relay"
   echo "==> 已打包后端: $CLI_BIN"
 else
-  echo "==> 未找到打包后端，本地运行将回退到 PATH 中的 codex-relay" >&2
+  echo "缺少可执行内置后端，请先运行 python tools/build_cli_bundle.py: $CLI_BIN" >&2
+  exit 1
 fi
 
 if [ -f "$ROOT/Assets/AppIcon.icns" ]; then
@@ -45,21 +39,26 @@ if [ -f "$ROOT/../README.md" ]; then
   cp "$ROOT/../README.md" "$BUILD/Codex Relay.app/Contents/Resources/README.md"
 fi
 
-codesign --force --deep --sign - "$BUILD/Codex Relay.app" >/dev/null 2>&1 || true
+cp "$ROOT/../THIRD_PARTY_NOTICES.md" "$BUILD/Codex Relay.app/Contents/Resources/THIRD_PARTY_NOTICES.md"
+cp "$ROOT/../LICENSE" "$BUILD/Codex Relay.app/Contents/Resources/LICENSE"
+cp -R "$ROOT/../licenses" "$BUILD/Codex Relay.app/Contents/Resources/licenses"
+# Strip Finder/resource-fork metadata from the generated bundle before signing.
+xattr -cr "$BUILD/Codex Relay.app"
+codesign --force --deep --sign - "$BUILD/Codex Relay.app"
+codesign --verify --deep --strict "$BUILD/Codex Relay.app"
 
-echo "==> 安装到 $APP"
-# Stop the previous menu-bar-only app or an older GUI build before replacing it.
-osascript -e 'tell application id "io.github.xiaodianshiuwu.codexrelay" to quit' >/dev/null 2>&1 || true
-osascript -e 'tell application id "io.github.xiaodianshiuwu.codexrelay" to quit' >/dev/null 2>&1 || true
-pkill -f "$HOME/Applications/Codex Relay.app/Contents/MacOS/CodexRelay" >/dev/null 2>&1 || true
-sleep 0.5
-mkdir -p "$(dirname "$APP")"
-rm -rf "$APP"
-cp -R "$BUILD/Codex Relay.app" "$APP"
-
-echo "已安装: $APP"
+# Building never kills apps or launches automation. A destination is explicit.
+if [ -n "$APP" ]; then
+  if [ -e "$APP" ]; then
+    echo "目标已存在，请使用新输出路径或手动升级：$APP" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "$APP")"
+  ditto "$BUILD/Codex Relay.app" "$APP"
+else
+  APP="$BUILD/Codex Relay.app"
+fi
+echo "已构建: $APP"
 if [ "$OPEN_AFTER" = "1" ]; then
   open "$APP"
 fi
-echo "启动: open \"$APP\""
-echo "自检: \"$APP/Contents/MacOS/CodexRelay\" --self-test"

@@ -32,19 +32,8 @@ def load_config(path: Optional[Path] = None) -> Dict[str, Any]:
 
 def save_config(data: Dict[str, Any], path: Optional[Path] = None) -> Path:
     target = path or config_path()
-    target.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        os.chmod(target.parent, 0o700)
-    except OSError:
-        pass
-    text = json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    tmp = target.with_name(target.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8")
-    try:
-        os.chmod(tmp, 0o600)
-    except OSError:
-        pass
-    os.replace(tmp, target)
+    from .util import atomic_write_json
+    atomic_write_json(target, data, mode=0o600)
     return target
 
 

@@ -116,14 +116,14 @@ struct DiagnosticsView: View {
                 } else {
                     RelayCard {
                         HStack {
-                            Text("尚未运行诊断")
+                            Text(L10n.text("尚未运行诊断"))
                                 .font(.callout)
                                 .foregroundStyle(RelayTheme.textMuted)
                             Spacer()
                             Button {
                                 Task { await model.refreshDoctor() }
                             } label: {
-                                Label("运行诊断", systemImage: "stethoscope")
+                                Label(L10n.text("运行诊断"), systemImage: "stethoscope")
                             }
                             .buttonStyle(HudButtonStyle(primary: true))
                         }
@@ -183,7 +183,7 @@ struct DiagnosticsView: View {
                 if model.isRefreshingDoctor {
                     ProgressView().controlSize(.small)
                 } else {
-                    Label("刷新", systemImage: "arrow.clockwise")
+                    Label(L10n.text("刷新"), systemImage: "arrow.clockwise")
                 }
             }
             .buttonStyle(HudButtonStyle(primary: false))
@@ -208,11 +208,11 @@ struct DiagnosticsView: View {
                     value: model.status?.daemonRunning == true ? L10n.text("运行中（可能缓存旧账号）") : L10n.text("未运行")
                 )
                 HStack(spacing: 8) {
-                    Button("打开凭据仓库") { model.openStore() }
+                    Button(L10n.text("打开凭据仓库")) { model.openStore() }
                         .buttonStyle(HudButtonStyle(primary: false, compact: true))
-                    Button("打开文档") { model.openDocs() }
+                    Button(L10n.text("打开文档")) { model.openDocs() }
                         .buttonStyle(HudButtonStyle(primary: false, compact: true))
-                    Button("打开最近会话") { model.requestOpenApp() }
+                    Button(L10n.text("打开最近会话")) { model.requestOpenApp() }
                         .buttonStyle(HudButtonStyle(primary: false, compact: true))
                     Spacer()
                 }

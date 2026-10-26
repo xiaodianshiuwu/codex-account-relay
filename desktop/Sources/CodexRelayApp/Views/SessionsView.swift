@@ -74,7 +74,7 @@ struct SessionsView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 3) {
                     HudLabel(text: "03 / 会话档案", color: RelayTheme.accent)
-                    Text("会话")
+                    Text(L10n.text("会话"))
                         .font(.hudDisplay(24))
                         .foregroundStyle(RelayTheme.text)
                     Text(L10n.format("%d 条 · 恢复原会话", model.filteredSessions.count))
@@ -91,7 +91,7 @@ struct SessionsView: View {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(RelayTheme.textMuted)
-                TextField("搜索标题、目录、ID", text: $model.searchText)
+                TextField(L10n.text("搜索标题、目录、ID"), text: $model.searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 11.5))
                 if !model.searchText.isEmpty {
@@ -114,7 +114,7 @@ struct SessionsView: View {
             }
 
             Menu {
-                Button("全部账号") { model.accountFilter = nil }
+                Button(L10n.text("全部账号")) { model.accountFilter = nil }
                 Divider()
                 ForEach(model.accounts) { account in
                     Button {
@@ -304,14 +304,14 @@ private struct SessionDetailView: View {
             if isInspecting {
                 ProgressView().controlSize(.small)
             } else if inspectionError != nil {
-                Text("上次刷新失败")
+                Text(L10n.text("上次刷新失败"))
                     .font(.hudLabel(8))
                     .foregroundStyle(RelayTheme.red)
             }
             Button {
                 Task { await model.inspectSession(session) }
             } label: {
-                Label("重新分析", systemImage: "arrow.clockwise")
+                Label(L10n.text("重新分析"), systemImage: "arrow.clockwise")
             }
             .buttonStyle(HudButtonStyle(primary: false, compact: true))
             .disabled(isInspecting)
@@ -330,10 +330,10 @@ private struct SessionDetailView: View {
                         .foregroundStyle(RelayTheme.accent)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("正在读取缓存与推理数据…")
+                    Text(L10n.text("正在读取缓存与推理数据…"))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(RelayTheme.text)
-                    Text("读取会话记录、加密推理项、压缩检查点和逐轮缓存命中率。")
+                    Text(L10n.text("读取会话记录、加密推理项、压缩检查点和逐轮缓存命中率。"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                 }
@@ -350,15 +350,15 @@ private struct SessionDetailView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(RelayTheme.amberText)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("另一条会话正在分析")
+                    Text(L10n.text("另一条会话正在分析"))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(RelayTheme.text)
-                    Text("当前分析完成后会自动读取这条会话；也可以稍后手动重试。")
+                    Text(L10n.text("当前分析完成后会自动读取这条会话；也可以稍后手动重试。"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                 }
                 Spacer()
-                Button("立即分析") {
+                Button(L10n.text("立即分析")) {
                     Task { await model.inspectSession(session) }
                 }
                 .buttonStyle(HudButtonStyle(primary: false, compact: true))
@@ -373,15 +373,15 @@ private struct SessionDetailView: View {
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(RelayTheme.amberText)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("没有找到可分析的缓存数据")
+                    Text(L10n.text("没有找到可分析的缓存数据"))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(RelayTheme.text)
-                    Text("这条会话可能没有可读取的会话记录，或统计文件已被清理。")
+                    Text(L10n.text("这条会话可能没有可读取的会话记录，或统计文件已被清理。"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                 }
                 Spacer()
-                Button("重新分析") {
+                Button(L10n.text("重新分析")) {
                     Task { await model.inspectSession(session) }
                 }
                 .buttonStyle(HudButtonStyle(primary: false, compact: true))
@@ -396,7 +396,7 @@ private struct SessionDetailView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(RelayTheme.red)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("缓存与推理分析失败")
+                    Text(L10n.text("缓存与推理分析失败"))
                         .font(.callout.weight(.semibold))
                     Text(error.localized(locale: locale))
                         .font(.caption)
@@ -404,7 +404,7 @@ private struct SessionDetailView: View {
                         .lineLimit(3)
                 }
                 Spacer()
-                Button("重试") {
+                Button(L10n.text("重试")) {
                     Task { await model.inspectSession(session) }
                 }
                 .buttonStyle(HudButtonStyle(primary: true, compact: true))
@@ -447,7 +447,7 @@ private struct SessionDetailView: View {
             Button {
                 model.copy(session.id, label: "会话 ID 已复制")
             } label: {
-                Label("复制 ID", systemImage: "doc.on.doc")
+                Label(L10n.text("复制 ID"), systemImage: "doc.on.doc")
             }
             .buttonStyle(HudButtonStyle(primary: false))
         }
@@ -458,7 +458,7 @@ private struct SessionDetailView: View {
             Button {
                 model.openSession(session)
             } label: {
-                Label("仅打开会话", systemImage: "arrow.up.forward.app")
+                Label(L10n.text("仅打开会话"), systemImage: "arrow.up.forward.app")
             }
             .buttonStyle(HudButtonStyle(primary: false))
             .disabled(model.isSwitching || model.isOpeningProcess)
@@ -468,7 +468,7 @@ private struct SessionDetailView: View {
                     Button {
                         model.requestRestart(threadID: session.id)
                     } label: {
-                        Label("重启并打开", systemImage: "arrow.clockwise.circle")
+                        Label(L10n.text("重启并打开"), systemImage: "arrow.clockwise.circle")
                     }
                     .buttonStyle(HudButtonStyle(primary: false))
                     .disabled(model.isSwitching || model.isOpeningProcess)
@@ -621,7 +621,7 @@ private struct SessionDetailView: View {
                     color: RelayTheme.cacheColor(totals.cacheRatio ?? 0)
                 )
                 HStack {
-                    Text("总 Token（输入 + 输出）")
+                    Text(L10n.text("总 Token（输入 + 输出）"))
                         .font(.caption)
                         .foregroundStyle(RelayTheme.textMuted)
                     Spacer()
@@ -636,11 +636,11 @@ private struct SessionDetailView: View {
     private var turnHeader: some View {
         HStack {
             Text("#").frame(width: 28, alignment: .leading)
-            Text("请求").frame(width: 48, alignment: .trailing)
-            Text("首轮输入 Token").frame(width: 100, alignment: .trailing)
-            Text("首轮缓存命中率").frame(width: 88, alignment: .trailing)
-            Text("末轮缓存命中率").frame(width: 88, alignment: .trailing)
-            Text("累计缓存命中率").frame(width: 88, alignment: .trailing)
+            Text(L10n.text("请求")).frame(width: 48, alignment: .trailing)
+            Text(L10n.text("首轮输入 Token")).frame(width: 100, alignment: .trailing)
+            Text(L10n.text("首轮缓存命中率")).frame(width: 88, alignment: .trailing)
+            Text(L10n.text("末轮缓存命中率")).frame(width: 88, alignment: .trailing)
+            Text(L10n.text("累计缓存命中率")).frame(width: 88, alignment: .trailing)
             Spacer()
         }
         .font(.hudLabel(8))

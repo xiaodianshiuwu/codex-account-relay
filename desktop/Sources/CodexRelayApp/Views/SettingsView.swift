@@ -16,7 +16,7 @@ struct SettingsView: View {
                 RelayCard {
                     VStack(alignment: .leading, spacing: 14) {
                         HudLabel(text: "界面语言", color: RelayTheme.accent)
-                        Text("切换后界面会立即更新；语言偏好会在下次启动时保持。")
+                        Text(L10n.text("切换后界面会立即更新；语言偏好会在下次启动时保持。"))
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
@@ -42,7 +42,7 @@ struct SettingsView: View {
                 RelayCard {
                     VStack(alignment: .leading, spacing: 14) {
                         HudLabel(text: "额度显示", color: RelayTheme.accent)
-                        Text("选择所有额度卡和进度条统一使用的显示方式。原始数据始终按「已使用百分比」读取，切换显示不会改变额度含义。")
+                        Text(L10n.text("选择所有额度卡和进度条统一使用的显示方式。原始数据始终按「已使用百分比」读取，切换显示不会改变额度含义。"))
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
@@ -64,7 +64,7 @@ struct SettingsView: View {
                 RelayCard {
                     VStack(alignment: .leading, spacing: 14) {
                         HudLabel(text: "数字格式", color: RelayTheme.accent)
-                        Text("影响 Token、缓存和推理等大数字的显示方式；简写只改变展示，不改变统计数据。")
+                        Text(L10n.text("影响 Token、缓存和推理等大数字的显示方式；简写只改变展示，不改变统计数据。"))
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
@@ -86,7 +86,7 @@ struct SettingsView: View {
                 RelayCard {
                     VStack(alignment: .leading, spacing: 14) {
                         HudLabel(text: "外观主题", color: RelayTheme.accent)
-                        Text("选择后会立即应用到主窗口、弹窗、状态颜色和设置页。")
+                        Text(L10n.text("选择后会立即应用到主窗口、弹窗、状态颜色和设置页。"))
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
@@ -112,23 +112,47 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(RelayTheme.textMuted)
 
-                        Toggle("启用自动续跑", isOn: $preferences.autoContinueEnabled)
+                        if let error = preferences.settingsError {
+                            Text(error).foregroundStyle(RelayTheme.red).textSelection(.enabled)
+                        }
+                        Toggle(L10n.text("允许自动接力重启 ChatGPT"), isOn: $preferences.autoAllowRestart)
+                        Text(L10n.text("不允许重启时，请使用额度守护等待原账号额度恢复。"))
+                            .font(.caption).foregroundStyle(RelayTheme.textMuted)
+                        HStack {
+                            Text(L10n.text("检查间隔（秒）"))
+                            TextField("60", value: $preferences.autoInterval, format: .number)
+                                .frame(width: 100).textFieldStyle(.roundedBorder)
+                            Picker(L10n.text("切换策略"), selection: $preferences.autoStrategy) {
+                                Text(L10n.text("最佳额度")).tag("best")
+                                Text(L10n.text("账号顺序")).tag("next")
+                            }
+                        }
+                        Picker(L10n.text("续跑目标聊天"), selection: $preferences.autoThreadID) {
+                            Text(L10n.text("请选择聊天")).tag("")
+                            if !preferences.autoThreadID.isEmpty && !model.sessions.contains(where: { $0.id == preferences.autoThreadID }) {
+                                Text(preferences.autoThreadID).tag(preferences.autoThreadID)
+                            }
+                            ForEach(model.sessions) { session in
+                                Text(session.title ?? session.id).tag(session.id)
+                            }
+                        }
+                        Toggle(L10n.text("启用自动续跑"), isOn: $preferences.autoContinueEnabled)
                             .toggleStyle(.switch)
                             .onChange(of: preferences.autoContinueEnabled) { _, enabled in
                                 if enabled { Task { await model.checkAutoContinue() } }
                             }
 
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("续跑提示词")
+                            Text(L10n.text("续跑提示词"))
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(RelayTheme.text)
-                            TextField("例如：继续", text: $preferences.autoContinuePrompt)
+                            TextField(L10n.text("例如：继续"), text: $preferences.autoContinuePrompt)
                                 .textFieldStyle(.roundedBorder)
                         }
 
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
-                                Text("剩余额度阈值")
+                                Text(L10n.text("剩余额度阈值"))
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(RelayTheme.text)
                                 Spacer()
@@ -137,7 +161,7 @@ struct SettingsView: View {
                                     .foregroundStyle(RelayTheme.accent)
                             }
                             Slider(value: $preferences.autoRemainingThreshold, in: 0...100, step: 1)
-                            Text("剩余额度低于该百分比时准备切换；0% 表示只在额度耗尽时切换。")
+                            Text(L10n.text("剩余额度低于该百分比时准备切换；0% 表示只在额度耗尽时切换。"))
                                 .font(.caption2)
                                 .foregroundStyle(RelayTheme.textMuted)
                         }
@@ -153,7 +177,7 @@ struct SettingsView: View {
                         HudLabel(text: "数据与同步", color: RelayTheme.accent)
                         HStack {
                             VStack(alignment: .leading, spacing: 3) {
-                                Text("额度同步")
+                                Text(L10n.text("额度同步"))
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundStyle(RelayTheme.text)
                                 Text(syncDescription)
@@ -167,7 +191,7 @@ struct SettingsView: View {
                                 if model.isRefreshingUsage {
                                     ProgressView().controlSize(.small)
                                 } else {
-                                    Label("立即同步", systemImage: "arrow.clockwise")
+                                    Label(L10n.text("立即同步"), systemImage: "arrow.clockwise")
                                 }
                             }
                             .buttonStyle(HudButtonStyle(primary: false))
@@ -175,9 +199,9 @@ struct SettingsView: View {
                         }
                         HudDivider()
                         HStack(spacing: 8) {
-                            Button("打开凭据仓库") { model.openStore() }
+                            Button(L10n.text("打开凭据仓库")) { model.openStore() }
                                 .buttonStyle(HudButtonStyle(primary: false, compact: true))
-                            Button("打开使用文档") { model.openDocs() }
+                            Button(L10n.text("打开使用文档")) { model.openDocs() }
                                 .buttonStyle(HudButtonStyle(primary: false, compact: true))
                             Spacer()
                         }

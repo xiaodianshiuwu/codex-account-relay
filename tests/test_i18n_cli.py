@@ -265,10 +265,15 @@ class CliLocalizationTests(unittest.TestCase):
             return type(value).__name__
 
         structures = {}
-        for language in LANGUAGES:
-            code, out, err = self.run_cli(["--lang", language, "status", "--json"])
-            self.assertEqual(code, 0, err)
-            structures[language] = structure(json.loads(out))
+        # The process table can change between language calls. Isolate the
+        # external source so this checks localization rather than host activity.
+        with patch("codex_relay.cli.codex_env.codex_processes", return_value=[]), patch(
+            "codex_relay.cli.codex_env.app_running", return_value=False
+        ), patch("codex_relay.cli.codex_env.daemon_running", return_value=False):
+            for language in LANGUAGES:
+                code, out, err = self.run_cli(["--lang", language, "status", "--json"])
+                self.assertEqual(code, 0, err)
+                structures[language] = structure(json.loads(out))
         self.assertEqual(len({json.dumps(value, sort_keys=True) for value in structures.values()}), 1)
 
     def test_doctor_json_is_localized_with_stable_ids(self) -> None:
@@ -331,7 +336,10 @@ class TkWidgetTests(unittest.TestCase):
     """Real Tk widget checks; skipped automatically on headless machines."""
 
     def setUp(self) -> None:
-        import tkinter as tk
+        try:
+            import tkinter as tk
+        except ImportError:
+            self.skipTest("Tk runtime is not installed (historical UI)")
 
         self.tk = tk
         try:

@@ -87,7 +87,8 @@ final class AppPreferences: ObservableObject {
         static let autoRemaining = "relay.autoRemaining"
     }
 
-    private let defaults = UserDefaults.standard
+    private let defaults = ProcessInfo.processInfo.environment["CODEX_RELAY_PREFS_SUITE"]
+        .flatMap(UserDefaults.init(suiteName:)) ?? .standard
 
     @Published var quotaDisplayMode: QuotaDisplayMode {
         didSet { defaults.set(quotaDisplayMode.rawValue, forKey: Keys.quotaDisplay) }
@@ -108,21 +109,21 @@ final class AppPreferences: ObservableObject {
         }
     }
 
-    /// These values are mirrored to ~/.codex-relay/auto.json so the CLI
-    /// `codex-relay auto` daemon and the desktop settings use one source of
-    /// truth. They contain no credentials.
-    @Published var autoContinueEnabled: Bool {
-        didSet { defaults.set(autoContinueEnabled, forKey: Keys.autoEnabled); persistAutoSettings() }
-    }
-    @Published var autoContinuePrompt: String {
-        didSet { defaults.set(autoContinuePrompt, forKey: Keys.autoPrompt); persistAutoSettings() }
-    }
-    @Published var autoRemainingThreshold: Double {
-        didSet {
-            let clamped = min(100, max(0, autoRemainingThreshold))
-            if clamped != autoRemainingThreshold { autoRemainingThreshold = clamped; return }
-            defaults.set(autoRemainingThreshold, forKey: Keys.autoRemaining)
-            persistAutoSettings()
+    @Published var settingsError: String?
+    @Published var autoContinueEnabled: Bool { didSet { persist("enabled", autoContinueEnabled) } }
+    @Published var autoContinuePrompt: String { didSet { persist("prompt", autoContinuePrompt) } }
+    @Published var autoRemainingThreshold: Double { didSet { persist("remaining_threshold", autoRemainingThreshold) } }
+    @Published var autoInterval: Double { didSet { persist("interval", autoInterval) } }
+    @Published var autoStrategy: String { didSet { persist("strategy", autoStrategy) } }
+    @Published var autoAllowRestart: Bool { didSet { persist("allow_chatgpt_restart", autoAllowRestart) } }
+    @Published var autoThreadID: String { didSet { persist("thread_id", autoThreadID) } }
+
+    private func persist(_ key: String, _ value: Any) {
+        do {
+            try AutoSettingsStore.update([key: value])
+            settingsError = nil
+        } catch {
+            settingsError = L10n.text("设置保存失败") + ": " + error.localizedDescription
         }
     }
 
@@ -135,17 +136,14 @@ final class AppPreferences: ObservableObject {
         numberFormatMode = NumberFormatMode(rawValue: numberRaw ?? "") ?? .full
         appearance = RelayAppearance(rawValue: appearanceRaw ?? "") ?? .dark
         language = AppLanguage(rawValue: languageRaw ?? "") ?? .systemDefault
-        let auto = AutoSettingsFile.load()
-        if AutoSettingsFile.exists {
-            // auto.json is the shared source of truth with `codex-relay auto`.
-            autoContinueEnabled = auto.enabled
-            autoContinuePrompt = auto.prompt
-            autoRemainingThreshold = auto.remainingThreshold
-        } else {
-            autoContinueEnabled = defaults.object(forKey: Keys.autoEnabled) as? Bool ?? false
-            autoContinuePrompt = L10n.text("继续")
-            autoRemainingThreshold = defaults.object(forKey: Keys.autoRemaining) as? Double ?? 10
-        }
+        let auto = AutoSettingsStore.load()
+        autoContinueEnabled = auto["enabled"] as? Bool ?? false
+        autoContinuePrompt = auto["prompt"] as? String ?? ""
+        autoRemainingThreshold = auto["remaining_threshold"] as? Double ?? 10
+        autoInterval = auto["interval"] as? Double ?? 60
+        autoStrategy = auto["strategy"] as? String ?? "best"
+        autoAllowRestart = auto["allow_chatgpt_restart"] as? Bool ?? false
+        autoThreadID = auto["thread_id"] as? String ?? ""
         L10n.language = language
         AppAppearance.apply(appearance)
     }
@@ -154,55 +152,6 @@ final class AppPreferences: ObservableObject {
         appearance.colorScheme
     }
 
-    private func persistAutoSettings() {
-        guard autoContinuePrompt.count <= 4000 else { return }
-        AutoSettingsFile(
-            enabled: autoContinueEnabled,
-            prompt: autoContinuePrompt,
-            remainingThreshold: autoRemainingThreshold,
-            interval: 60,
-            strategy: "best"
-        ).save()
-    }
-}
-
-private struct AutoSettingsFile: Codable {
-    var enabled: Bool
-    var prompt: String
-    var remainingThreshold: Double
-    var interval: Double
-    var strategy: String
-
-    enum CodingKeys: String, CodingKey {
-        case enabled, prompt, interval, strategy
-        case remainingThreshold = "remaining_threshold"
-    }
-
-    static var exists: Bool {
-        FileManager.default.fileExists(atPath: url.path)
-    }
-
-    static var url: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex-relay", isDirectory: true)
-            .appendingPathComponent("auto.json")
-    }
-
-    static func load() -> AutoSettingsFile {
-        guard let data = try? Data(contentsOf: url),
-              let value = try? JSONDecoder().decode(AutoSettingsFile.self, from: data) else {
-            return AutoSettingsFile(enabled: false, prompt: "", remainingThreshold: 10, interval: 60, strategy: "best")
-        }
-        return value
-    }
-
-    func save() {
-        let directory = Self.url.deletingLastPathComponent()
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        guard let data = try? JSONEncoder().encode(self) else { return }
-        try? data.write(to: Self.url, options: [.atomic])
-        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: Self.url.path)
-    }
 }
 
 enum NumberDisplay {

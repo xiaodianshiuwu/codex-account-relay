@@ -69,14 +69,16 @@ public final class RelayBackend: @unchecked Sendable {
             return line.replacingOccurrences(of: "codex-relay: ", with: "")
         }
         let joined = lines.suffix(5).joined(separator: "\n")
-        return joined.isEmpty ? text.trimmingCharacters(in: .whitespacesAndNewlines) : joined
+        return joined.isEmpty ? "codex-relay failed" : joined
     }
 
     private var cliEnvironment: [String: String] {
         // AppPreferences stores the selected language in UserDefaults; the
         // core reads the same key so CLI diagnostics and human-readable output
         // always follow the app language.
-        if let language = UserDefaults.standard.string(forKey: "relay.language"), !language.isEmpty {
+        let defaults = ProcessInfo.processInfo.environment["CODEX_RELAY_PREFS_SUITE"]
+            .flatMap(UserDefaults.init(suiteName:)) ?? .standard
+        if let language = defaults.string(forKey: "relay.language"), !language.isEmpty {
             return ["CODEX_RELAY_LANG": language]
         }
         return [:]
@@ -130,8 +132,8 @@ public final class RelayBackend: @unchecked Sendable {
         return result.profiles
     }
 
-    public func sessions(limit: Int = 80, search: String? = nil) throws -> [RelaySession] {
-        var args = ["sessions", "--json", "--limit", "\(max(1, min(limit, 300)))"]
+    public func sessions(limit: Int = 0, search: String? = nil) throws -> [RelaySession] {
+        var args = ["sessions", "--json", "--limit", "\(max(0, limit))"]
         if let search, !search.isEmpty {
             args.append("--search")
             args.append(search)
@@ -172,6 +174,7 @@ public final class RelayBackend: @unchecked Sendable {
         alias: String,
         threadID: String,
         allowRestart: Bool,
+        continuationPrompt: String? = nil,
         progress: @escaping (RelayProgressEvent) -> Void
     ) throws -> RelaySwitchResult {
         let binary = try requireBinary()
@@ -185,10 +188,21 @@ public final class RelayBackend: @unchecked Sendable {
         if allowRestart {
             args.append("--allow-chatgpt-restart")
         }
+        var promptFile: URL?
+        if let continuationPrompt {
+            let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".txt")
+            guard FileManager.default.createFile(atPath: file.path, contents: Data(continuationPrompt.utf8), attributes: [.posixPermissions: 0o600]) else {
+                throw RelayBackendError.launchFailed("Cannot prepare continuation prompt")
+            }
+            promptFile = file
+            args += ["--continue-prompt-file", file.path]
+        }
+        defer { if let promptFile { try? FileManager.default.removeItem(at: promptFile) } }
         let output = try ProcessRunner.runStreaming(
             executable: binary,
             arguments: args,
-            timeout: 180,
+            timeout: 0,
+            environment: cliEnvironment,
             onStdoutLine: { _ in },
             onStderrLine: { line in
                 guard let data = line.data(using: .utf8),
@@ -224,7 +238,8 @@ public final class RelayBackend: @unchecked Sendable {
         let output = try ProcessRunner.runStreaming(
             executable: binary,
             arguments: args,
-            timeout: 180,
+            timeout: 0,
+            environment: cliEnvironment,
             onStdoutLine: { _ in },
             onStderrLine: { line in
                 guard let data = line.data(using: .utf8),
@@ -264,6 +279,7 @@ public final class RelayBackend: @unchecked Sendable {
             executable: binary,
             arguments: args,
             timeout: 660,
+            environment: cliEnvironment,
             onStart: { process in
                 self.lock.lock()
                 self.activeAddProcess = process
@@ -314,8 +330,8 @@ public final class RelayBackend: @unchecked Sendable {
         let binary = try requireBinary()
         let output = try ProcessRunner.run(
             executable: binary,
-            arguments: ["auto", "--once", "--allow-chatgpt-restart", "--yes", "--json"],
-            timeout: 360,
+            arguments: ["auto", "--once", "--respect-settings", "--allow-chatgpt-restart", "--yes", "--json"],
+            timeout: 0,
             environment: cliEnvironment
         )
         guard [0, 1, 2, 3].contains(output.exitCode) else {
@@ -323,13 +339,35 @@ public final class RelayBackend: @unchecked Sendable {
             throw RelayBackendError.commandFailed(output.exitCode, cleanCLIError(message))
         }
         guard let data = output.stdout.data(using: .utf8), !data.isEmpty else {
-            throw RelayBackendError.decoding("auto-continue returned no result")
+            throw RelayBackendError.commandFailed(output.exitCode, cleanCLIError(output.stderr))
         }
         do {
             return try decoder().decode(RelayAutoResult.self, from: data)
         } catch {
             throw RelayBackendError.decoding("\(error.localizedDescription)\n\(output.stdout.prefix(1200))")
         }
+    }
+
+    public func guardSnapshot() throws -> GuardSnapshot {
+        let text = try run(["guard", "gui-snapshot"], timeout: 45)
+        return try JSONDecoder().decode(GuardSnapshot.self, from: Data(text.utf8))
+    }
+
+    public func guardAction(_ action: String, threadID: String, hostID: String) throws {
+        guard ["background", "stop"].contains(action), UUID(uuidString: threadID) != nil else {
+            throw RelayBackendError.decoding("Invalid monitor action or thread ID")
+        }
+        _ = try run(["guard", "--host", hostID, action, threadID], timeout: 60)
+    }
+
+    public func saveGuardSettings(_ settings: GuardSettings) throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".json")
+        defer { try? FileManager.default.removeItem(at: url) }
+        guard FileManager.default.createFile(atPath: url.path, contents: try JSONEncoder().encode(settings),
+                                      attributes: [.posixPermissions: 0o600]) else {
+            throw RelayBackendError.launchFailed("Cannot prepare guard settings")
+        }
+        _ = try run(["guard", "settings", "--file", url.path], timeout: 15)
     }
 
     public func openPath(_ path: String) throws {

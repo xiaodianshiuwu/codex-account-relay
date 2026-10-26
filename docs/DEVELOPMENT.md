@@ -1,56 +1,49 @@
-# 开发说明
+# 开发与验证
 
-## 环境
+当前产品定义见 [PRD](PRD.md)。主分支仅发布 macOS 14+ SwiftUI App；历史 Tk/其他平台代码保留。
 
-- macOS 14+、Swift 5.9+（唯一支持的 SwiftUI App）
-- Python 3.9+（内部 CLI 后端与测试）
-- PyInstaller（构建 App 内置后端时需要）
+## 构建
 
-Windows/Linux/Tk 代码仍保留在仓库中，但不是公开支持范围；本文不提供其构建或验收承诺。
+需要 macOS、Swift 6 工具链、Python 3.11（Release 构建）和 PyInstaller。
 
-项目没有运行时第三方 Python 依赖；标准库之外的可选构建依赖见 `THIRD_PARTY_NOTICES.md`。
-
-## 目录
-
-```text
-codex_relay/        Python 核心、CLI、历史 Tk 客户端、本地化
-desktop/            macOS SwiftUI 应用（唯一发布形态）
-portable/           历史 Tk 打包脚本（不发布）
-tools/              构建与 i18n 审计工具
-tests/              Python 单元/集成测试
-docs/               用户与开发者文档
-i18n/               翻译源与审计 allowlist
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install pyinstaller
+.venv/bin/python tools/build_cli_bundle.py
+./desktop/build.sh
 ```
+
+App 输出到 `desktop/build/Codex Relay.app`。缺少可执行内置后端或签名验证失败时构建失败。默认不安装、不关闭已有进程、不自动打开 App。`CODEX_RELAY_GUI_APP` 可指定不存在的新输出路径，`CODEX_RELAY_OPEN_AFTER=1` 才显式打开。
 
 ## 测试
 
 ```sh
 python3 tests/run.py
-swift test --package-path desktop --scratch-path /tmp/codex-relay-swift
+swift test --package-path desktop
 python3 tools/build_strings.py --check
 python3 tools/i18n_audit.py --json
 ```
 
-测试使用隔离的 `CODEX_HOME`/`CODEX_RELAY_HOME`，并强制 `CODEX_RELAY_TEST_MODE=1`；不要用真实账号运行写操作测试。
+Python 总入口隔离 Relay/Codex 数据目录，并设置 `CODEX_RELAY_TEST_MODE=1`。历史 Tk 运行库或显示不可用时跳过对应界面测试。守护测试使用本机假 socket、伪 SSH 帧和确定性状态机，不对业务聊天执行中断。
 
-## 构建
+关键回归覆盖账号并发写入、精确认证身份、备份保留与回滚、未知额度、自动配置迁移、原聊天中断与续跑回执、模型/权限变化、消息去重、本机/SSH 守护及同一打包后端的后台进程启动。
+
+## 离屏界面审查
 
 ```sh
-python3 -m pip install pyinstaller
-python3 tools/build_cli_bundle.py
-cd desktop
-./build.sh
+CODEX_RELAY_HOME=/tmp/relay-preview-data \
+CODEX_RELAY_PREFS_SUITE=io.codexrelay.review \
+"desktop/build/Codex Relay.app/Contents/MacOS/CodexRelay" \
+  --render-review /tmp/relay-preview-images
 ```
 
-发布流程会把 `dist-cli/codex-relay` 复制进 App 的 `Contents/Resources`；本地源码构建没有该文件时回退到 PATH 中的 `codex-relay`。Windows/Linux/Tk 产物不再发布。
+仅使用内置虚构数据，渲染四语言切换确认页及浅深两种守护页，不打开正常应用生命周期、不检查真实账号、不启用监控。预览必须同时指定隔离数据和偏好域。
 
-## 代码约定
+## Release
 
-- 文件路径使用 `pathlib`；不要硬编码开发者主目录。
-- 所有用户可见文案走 `i18n/` 或 `Translator`，新增键必须四语言齐全。
-- 凭据、token、auth 文件和会话内容不得写入日志、测试 fixture 或提交。
-- 进程控制必须保留显式确认和测试模式硬保护。
+版本同步更新 `codex_relay/__init__.py`、`pyproject.toml`、`setup.py`、`desktop/Info.plist` 和 App 的版本回退值。tag 必须与包版本一致。发布 workflow 先验证 Python、Swift、翻译和 tag，再构建 Python 3.11 内置后端、原生 App、校验签名，最终发布且仅发布：
 
-## 贡献
+- `CodexRelay-<tag>-macOS-SwiftUI.zip`
+- `SHA256SUMS.txt`
 
-提交前运行完整测试和 `git diff --check`，不要提交 `.env`、`auth.json`、数据库、日志、截图或构建产物。见 `CONTRIBUTING.md`。
+下载最终 GitHub 资产后重新校验 SHA-256、后端版本、App 自检和守护入口；源码测试不能代替最终资产检查。不要将真实账号数据、监控状态、聊天记录或截图提交 Git。

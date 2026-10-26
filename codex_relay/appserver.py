@@ -273,9 +273,8 @@ def parse_usage_response(account_result: Any, limits_result: Any) -> Dict[str, A
     by_id = _as_dict(
         limits_result.get("rateLimitsByLimitId") or limits_result.get("rate_limits_by_limit_id")
     )
-    if not rate_limits and by_id:
-        # Prefer the codex bucket when present.
-        rate_limits = _as_dict(by_id.get("codex")) or _as_dict(next(iter(by_id.values()), None))
+    if by_id:
+        rate_limits = _as_dict(by_id.get("codex"))
     plan = (
         rate_limits.get("planType")
         or rate_limits.get("plan_type")

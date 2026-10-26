@@ -43,13 +43,13 @@ struct ContentView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 statusIndicator
                 Menu {
-                    Picker("外观", selection: $preferences.appearance) {
+                    Picker(L10n.text("外观"), selection: $preferences.appearance) {
                         ForEach(RelayAppearance.allCases) { option in
                             Label(L10n.text(option.title), systemImage: option.icon).tag(option)
                         }
                     }
                 } label: {
-                    Label("外观", systemImage: preferences.appearance.icon)
+                    Label(L10n.text("外观"), systemImage: preferences.appearance.icon)
                 }
                 .help("切换暗色终端 / 亮色档案")
                 if model.isOpeningProcess {
@@ -68,13 +68,13 @@ struct ContentView: View {
                 Button {
                     Task { await model.refreshAll() }
                 } label: {
-                    Label("刷新", systemImage: "arrow.clockwise")
+                    Label(L10n.text("刷新"), systemImage: "arrow.clockwise")
                 }
                 .help("刷新账号与会话")
                 Button {
                     model.beginAddAccount()
                 } label: {
-                    Label("添加账号", systemImage: "person.badge.plus")
+                    Label(L10n.text("添加账号"), systemImage: "person.badge.plus")
                 }
                 .help("添加另一个 ChatGPT 账号")
             }
@@ -83,20 +83,23 @@ struct ContentView: View {
             AddAccountSheet()
                 .environmentObject(model)
                 .environmentObject(preferences)
+                .environment(\.locale, preferences.language.locale)
         }
         .sheet(isPresented: $model.isSwitching) {
             SwitchProgressSheet()
                 .environmentObject(model)
                 .environmentObject(preferences)
+                .environment(\.locale, preferences.language.locale)
                 .interactiveDismissDisabled()
         }
         .sheet(item: $model.pendingProcessAction) { action in
             ProcessConfirmationSheet(action: action)
                 .environmentObject(model)
                 .environmentObject(preferences)
+                .environment(\.locale, preferences.language.locale)
         }
         .alert(model.errorTitle, isPresented: $model.showingError) {
-            Button("好", role: .cancel) {}
+            Button(L10n.text("好"), role: .cancel) {}
         } message: {
             Text(L10n.localized(model.errorMessage, language: preferences.language))
         }
@@ -119,6 +122,8 @@ struct ContentView: View {
             AccountsView()
         case .sessions:
             SessionsView()
+        case .guardMonitor:
+            GuardView()
         case .diagnostics:
             DiagnosticsView()
         case .settings:
