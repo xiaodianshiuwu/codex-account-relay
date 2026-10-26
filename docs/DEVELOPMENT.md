@@ -41,7 +41,7 @@ CODEX_RELAY_PREFS_SUITE=io.codexrelay.review \
 
 ## Release
 
-版本同步更新 `codex_relay/__init__.py`、`pyproject.toml`、`setup.py`、`desktop/Info.plist` 和 App 的版本回退值。tag 必须与包版本一致。发布 workflow 先验证 Python、Swift、翻译和 tag，再构建 Python 3.11 内置后端、原生 App、校验签名，最终发布且仅发布：
+版本同步更新 `codex_relay/__init__.py`、`pyproject.toml`、`setup.py`、`desktop/Info.plist` 和 App 的版本回退值。tag 必须与包版本一致。发布 workflow 先验证 Python、Swift、翻译和 tag，在同一 macOS 作业构建 Python 3.11 内置后端及原生 App、对组装后的 App 再跑冻结后台夹具、校验签名，最终发布且仅发布：
 
 - `CodexRelay-<tag>-macOS-SwiftUI.zip`
 - `SHA256SUMS.txt`
@@ -49,3 +49,5 @@ CODEX_RELAY_PREFS_SUITE=io.codexrelay.review \
 下载最终 GitHub 资产后重新校验 SHA-256、后端版本、App 自检和守护入口；源码测试不能代替最终资产检查。不要将真实账号数据、监控状态、聊天记录或截图提交 Git。
 
 若源码位于 iCloud/File Provider 同步目录，系统可能自动给 App 添加 Finder 元数据，导致严格签名校验失败。可用 `CODEX_RELAY_BUILD_DIR=/tmp/codex-relay-build ./desktop/build.sh` 将组装与签名放在同步目录之外；不要跳过签名校验。
+
+内置后端使用 onedir，输出 `dist-cli/codex-relay/codex-relay` 与同级 `relay-runtime/`；两者必须一起进入 App Resources。不要单独复制可执行文件或恢复 onefile。冻结集成检查：`python tools/smoke_bundle.py dist-cli/codex-relay/codex-relay`。

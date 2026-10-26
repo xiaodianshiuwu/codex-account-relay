@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  validate:
+  build-and-publish:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,71 +22,42 @@ jobs:
           CODEX_RELAY_TEST_MODE: "1"
         run: |
           [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" == v* ]]
+          test "$(uname -m)" = arm64
           python -c 'import os; from codex_relay import __version__; assert os.environ["GITHUB_REF_NAME"] == "v" + __version__'
           python tests/run.py
           python tools/build_strings.py --check
           python tools/i18n_audit.py --json
           swift test --package-path desktop
-
-  build-backend:
-    needs: validate
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: python -m pip install --upgrade pip pyinstaller
-      - run: test "$(uname -m)" = arm64
-      - run: python tools/build_cli_bundle.py
-      - run: python tools/smoke_bundle.py dist-cli/codex-relay
-      - name: Verify bundled backend
-        run: ./dist-cli/codex-relay --version
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-backend
-          path: dist-cli/codex-relay
-
-  build-macos-app:
-    needs: build-backend
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: macos-backend
-          path: dist-cli
-      - name: Build SwiftUI app with embedded backend
+      - name: Build persistent embedded runtime
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          python tools/build_cli_bundle.py
+          python tools/smoke_bundle.py dist-cli/codex-relay/codex-relay
+      - name: Build and verify packaged app
         env:
-          CODEX_RELAY_GUI_APP: ${{ runner.temp }}/Codex Relay.app
+          CODEX_RELAY_BUILD_DIR: ${{ runner.temp }}/relay-build
           CODEX_RELAY_OPEN_AFTER: "0"
+          CODEX_RELAY_HOME: ${{ runner.temp }}/relay-smoke
+          CODEX_HOME: ${{ runner.temp }}/codex-smoke
+          CODEX_RELAY_PREFS_SUITE: io.codexrelay.ci
+          CODEX_RELAY_TEST_MODE: "1"
         run: |
-          chmod +x dist-cli/codex-relay
-          cd desktop
-          ./build.sh
-          test -x "$RUNNER_TEMP/Codex Relay.app/Contents/Resources/codex-relay"
-          "$RUNNER_TEMP/Codex Relay.app/Contents/Resources/codex-relay" --version
-          CODEX_RELAY_HOME="$RUNNER_TEMP/relay-smoke" "$RUNNER_TEMP/Codex Relay.app/Contents/Resources/codex-relay" guard settings
-          codesign --verify --deep --strict "$RUNNER_TEMP/Codex Relay.app"
-          ditto -c -k --sequesterRsrc --keepParent "$RUNNER_TEMP/Codex Relay.app" "$RUNNER_TEMP/CodexRelay-${GITHUB_REF_NAME}-macOS-SwiftUI.zip"
+          ./desktop/build.sh
+          APP="$CODEX_RELAY_BUILD_DIR/Codex Relay.app"
+          "$APP/Contents/Resources/codex-relay" --version
+          "$APP/Contents/MacOS/CodexRelay" --self-test
+          "$APP/Contents/MacOS/CodexRelay" --i18n-self-test
+          python tools/smoke_bundle.py "$APP/Contents/Resources/codex-relay"
+          codesign --verify --deep --strict "$APP"
+          mkdir -p "$RUNNER_TEMP/release-assets"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$RUNNER_TEMP/release-assets/CodexRelay-${GITHUB_REF_NAME}-macOS-SwiftUI.zip"
+          cd "$RUNNER_TEMP/release-assets"
+          shasum -a 256 CodexRelay-*.zip > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: ${{ runner.temp }}/CodexRelay-*-macOS-SwiftUI.zip
-
-  publish:
-    needs: [build-macos-app]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: macos-app
-          path: release-assets
-      - name: Generate checksums
-        run: |
-          cd release-assets
-          find . -maxdepth 1 -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS.txt
+          path: ${{ runner.temp }}/release-assets/*
       - uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/*
+          files: ${{ runner.temp }}/release-assets/*
           generate_release_notes: true

@@ -20,13 +20,15 @@ chmod 755 "$BUILD/Codex Relay.app/Contents/MacOS/CodexRelay"
 
 # Ship the automation backend inside the app. A release download must not
 # depend on `codex-relay` already existing in PATH.
-CLI_BIN="${CODEX_RELAY_CLI_BIN:-$ROOT/../dist-cli/codex-relay}"
-if [ -x "$CLI_BIN" ]; then
+CLI_BIN="${CODEX_RELAY_CLI_BIN:-$ROOT/../dist-cli/codex-relay/codex-relay}"
+CLI_RUNTIME="$(dirname "$CLI_BIN")/relay-runtime"
+if [ -x "$CLI_BIN" ] && [ -d "$CLI_RUNTIME" ]; then
   cp "$CLI_BIN" "$BUILD/Codex Relay.app/Contents/Resources/codex-relay"
   chmod 755 "$BUILD/Codex Relay.app/Contents/Resources/codex-relay"
+  ditto "$CLI_RUNTIME" "$BUILD/Codex Relay.app/Contents/Resources/relay-runtime"
   echo "==> 已打包后端: $CLI_BIN"
 else
-  echo "缺少可执行内置后端，请先运行 python tools/build_cli_bundle.py: $CLI_BIN" >&2
+  echo "缺少可执行内置后端或 relay-runtime，请先运行 python tools/build_cli_bundle.py: $CLI_BIN" >&2
   exit 1
 fi
 

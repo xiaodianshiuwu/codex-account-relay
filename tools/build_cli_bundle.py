@@ -1,8 +1,9 @@
 """Build the self-contained Codex Relay CLI used inside the macOS SwiftUI app.
 
 The packaged app must not depend on a separately installed Python package or
-`codex-relay` executable. This one-file binary is copied into
-`Codex Relay.app/Contents/Resources/codex-relay` by desktop/build.sh.
+`codex-relay` executable. A one-folder runtime keeps native libraries at
+stable paths instead of extracting and validating them for every invocation.
+`desktop/build.sh` embeds both the executable and relay-runtime in the app.
 """
 
 from __future__ import annotations
@@ -19,10 +20,16 @@ except ImportError:
     raise SystemExit(1)
 
 resources = ROOT / "codex_relay" / "resources"
+# Migrate only the generated legacy one-file output, never a source directory.
+legacy = ROOT / "dist-cli" / "codex-relay"
+if legacy.is_file():
+    legacy.unlink()
 args = [
     "--noconfirm",
     "--clean",
-    "--onefile",
+    "--onedir",
+    "--contents-directory",
+    "relay-runtime",
     "--console",
     "--name",
     "codex-relay",
