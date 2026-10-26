@@ -72,7 +72,7 @@ RELAY="/Applications/Codex Relay.app/Contents/Resources/codex-relay"
 
 自动接力回执位于 `~/.codex-relay/continuations/<thread-id>.json`。`interrupt-intent` 或 `resume-intent` 说明操作是否被接收尚未确认；不要删除记录后盲目重试，先检查原聊天。守护记录中的 `uncertain` 同理。
 
-切号失败会报告原始失败及回滚结果，备份保留供恢复。若新应用无法退出，不会在它仍写入认证的同时偷偷覆盖旧认证。账号写入操作串行，缓存列表读取不等待网络刷新。
+切号失败会报告原始失败及回滚结果，备份保留供恢复。退出 ChatGPT 后会等待 LaunchServices 释放旧注册；启动桌面 App 遇到 `-600`（procNotFound）会短暂重试，仍失败才回滚。回滚会先停止可能已用目标凭据启动的实例；若无法退出，则中止恢复并保留备份，不会在 App 仍写入认证时覆盖旧认证。账号写入操作串行，缓存列表读取不等待网络刷新。
 
 当前账号有运行中的 Codex 时只通过用量 HTTP 读取额度，即使传入强制刷新也不会在另一个 app-server 中抢用旋转 refresh token。不要把 HTTP 临时错误当作需要重新登录；界面会保留错误原因。
 

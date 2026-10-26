@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from .util import RelayError, run_capture, sqlite_uri, version_of, which_codex
 
@@ -423,13 +423,34 @@ def desktop_bundle_processes() -> List[ProcessInfo]:
 def app_running() -> bool:
     if desktop_main_processes():
         return True
-    if IS_MACOS:
-        try:
-            result = run_capture(["lsappinfo", "find", "bundleid=com.openai.codex"], timeout=5)
-            return result.returncode == 0 and bool(result.stdout.strip())
-        except RelayError:
-            return False
-    return False
+    return _launch_services_registered()
+
+
+def _launch_services_registered() -> bool:
+    if not IS_MACOS:
+        return False
+    try:
+        result = run_capture(["lsappinfo", "find", "bundleid=com.openai.codex"], timeout=5)
+    except RelayError:
+        return False
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
+def wait_for_launch_services_release(timeout: float = 2.0) -> bool:
+    """Wait briefly for LaunchServices to forget the desktop app.
+
+    `ps` can lose the last app process before LaunchServices finishes tearing
+    down its registration. Starting a new instance in that window can fail
+    with procNotFound (-600). This wait is best effort: a timeout must never
+    turn a successful quit into a failure.
+    """
+    if not IS_MACOS:
+        return True
+    return wait_until(
+        lambda: not _launch_services_registered(),
+        timeout=timeout,
+        interval=0.1,
+    )
 
 
 def wait_until(predicate, timeout: float, interval: Optional[float] = None) -> bool:
@@ -459,7 +480,13 @@ def quit_desktop(timeout: float = 20.0, force: bool = False) -> List[str]:
     _refuse_in_test_mode("quit")
     _require_process_control("quit")
     notes: List[str] = []
-    if not desktop_bundle_processes() and not app_running():
+    if not desktop_bundle_processes():
+        if not app_running():
+            return notes
+        # Only a LaunchServices registration remains: nothing is left to
+        # quit, and sending AppleScript at this point could turn a stale
+        # registration into a new instance. Wait briefly for it to clear.
+        wait_for_launch_services_release()
         return notes
     if IS_MACOS:
         try:
@@ -477,6 +504,7 @@ def quit_desktop(timeout: float = 20.0, force: bool = False) -> List[str]:
         return not desktop_bundle_processes()
 
     if wait_until(gone, timeout=timeout):
+        wait_for_launch_services_release()
         return notes
 
     for proc in desktop_bundle_processes():
@@ -486,6 +514,7 @@ def quit_desktop(timeout: float = 20.0, force: bool = False) -> List[str]:
         except (ProcessLookupError, OSError, RelayError):
             pass
     if wait_until(gone, timeout=10):
+        wait_for_launch_services_release()
         return notes
 
     if not force:
@@ -499,7 +528,44 @@ def quit_desktop(timeout: float = 20.0, force: bool = False) -> List[str]:
             pass
     if not wait_until(gone, timeout=5):
         raise RelayError("强制结束后仍有 Codex 进程运行")
+    wait_for_launch_services_release()
     return notes
+
+
+# LaunchServices reports procNotFound (-600) when an `open` request races with
+# the previous app instance tearing down or a new instance still initializing.
+# The launch often succeeds anyway, so retry briefly before failing a switch.
+_MACOS_LAUNCH_RETRY_DELAYS = (0.3, 0.8, 1.5)
+
+
+def _launch_error_text(result: subprocess.CompletedProcess) -> str:
+    return (result.stderr.strip() or result.stdout.strip()) or f"open exit code {result.returncode}"
+
+
+def _is_transient_launch_error(message: str) -> bool:
+    return "procNotFound" in message or bool(
+        re.search(r"(?<![\dA-Za-z])-600(?!\d)", message)
+    )
+
+
+def _open_desktop_app(desktop: DesktopInfo) -> List[subprocess.CompletedProcess]:
+    results: List[subprocess.CompletedProcess] = []
+    if desktop.bundle_id:
+        results.append(run_capture(["open", "-b", desktop.bundle_id], timeout=10, env=_child_process_env()))
+        if results[-1].returncode == 0:
+            return results
+    results.append(run_capture(["open", str(desktop.path)], timeout=10, env=_child_process_env()))
+    return results
+
+
+def _desktop_launch_started(previous_pids: Set[int]) -> bool:
+    """Return True only for a new desktop main process.
+
+    A LaunchServices registration alone can outlive the process and is the
+    very stale state that produces procNotFound, so it is not proof of a
+    successful launch.
+    """
+    return bool({proc.pid for proc in desktop_main_processes()} - previous_pids)
 
 
 def launch_desktop(desktop: Optional[DesktopInfo] = None) -> None:
@@ -509,14 +575,35 @@ def launch_desktop(desktop: Optional[DesktopInfo] = None) -> None:
     if not desktop.installed:
         raise RelayError("未找到 ChatGPT/Codex 桌面 App")
     if IS_MACOS:
-        if desktop.bundle_id:
-            result = run_capture(["open", "-b", desktop.bundle_id], timeout=10, env=_child_process_env())
-            if result.returncode == 0:
+        previous_pids = {proc.pid for proc in desktop_main_processes()}
+        last_error = ""
+        for attempt in range(len(_MACOS_LAUNCH_RETRY_DELAYS) + 1):
+            try:
+                results = _open_desktop_app(desktop)
+            except RelayError as exc:
+                raise RelayError(f"启动桌面 App 失败：{exc}") from exc
+            if any(result.returncode == 0 for result in results):
                 return
-        result = run_capture(["open", str(desktop.path)], timeout=10, env=_child_process_env())
-        if result.returncode != 0:
-            raise RelayError(f"启动桌面 App 失败：{result.stderr.strip() or result.stdout.strip()}")
-        return
+            messages = [_launch_error_text(result) for result in results]
+            last_error = "；".join(messages)
+            if not any(_is_transient_launch_error(message) for message in messages):
+                raise RelayError(f"启动桌面 App 失败：{last_error}")
+            if _desktop_launch_started(previous_pids):
+                return
+            if attempt == len(_MACOS_LAUNCH_RETRY_DELAYS):
+                break
+            time.sleep(_MACOS_LAUNCH_RETRY_DELAYS[attempt])
+            if _desktop_launch_started(previous_pids):
+                return
+        # A failed `open` may have started the app; give the process a final
+        # moment to appear before reporting failure and rolling back auth.
+        if wait_until(
+            lambda: _desktop_launch_started(previous_pids),
+            timeout=1.0,
+            interval=0.1,
+        ):
+            return
+        raise RelayError(f"启动桌面 App 失败：{last_error}")
     if desktop.path is None:
         raise RelayError("未找到可启动的桌面 App")
     try:

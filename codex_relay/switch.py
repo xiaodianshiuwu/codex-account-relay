@@ -107,7 +107,12 @@ def _snapshot_and_write(store: Store, target_profile: Dict[str, Any]) -> Dict[st
     }
 
 
-def _rollback(store: Store, backup: Optional[Path], restarted: bool) -> List[str]:
+def _rollback(
+    store: Store,
+    backup: Optional[Path],
+    restarted: bool,
+    launch_attempted: bool = False,
+) -> List[str]:
     notes: List[str] = []
     if backup is None:
         if restarted:
@@ -119,7 +124,11 @@ def _rollback(store: Store, backup: Optional[Path], restarted: bool) -> List[str
         else:
             notes.append("尚未替换 auth.json，无需回滚")
         return notes
-    if restarted and codex_env.app_running():
+    # `open` can report an error after the app has already started. Stop any
+    # such instance before restoring credentials: if it cannot be stopped,
+    # abort the rollback rather than overwrite auth.json while the app is
+    # still able to write the target account's refreshed tokens.
+    if (restarted or launch_attempted) and codex_env.desktop_bundle_processes():
         codex_env.quit_desktop(timeout=20.0, force=False)
     backup_auth = backup / "auth.json"
     if backup_auth.exists():
@@ -137,7 +146,7 @@ def _rollback(store: Store, backup: Optional[Path], restarted: bool) -> List[str
         atomic_write_bytes(store.paths.state_path, backup_state.read_bytes(), mode=0o600)
         store.reload()
         notes.append("已恢复切换前的 state.json")
-    if restarted:
+    if restarted and not codex_env.desktop_bundle_processes():
         try:
             codex_env.launch_desktop()
             notes.append("已重新启动 ChatGPT App")
@@ -276,6 +285,7 @@ def switch(
     store.backup("pre-switch")
     backup: Optional[Path] = None
     restarted = False
+    launch_attempted = False
     previous_control = os.environ.get("CODEX_RELAY_ALLOW_PROCESS_CONTROL")
     if options.allow_chatgpt_restart:
         os.environ["CODEX_RELAY_ALLOW_PROCESS_CONTROL"] = "1"
@@ -303,6 +313,7 @@ def switch(
         written = _snapshot_and_write(store, target)
         if options.mode == "desktop" and options.restart:
             _progress(progress, "launch", "正在启动 ChatGPT App")
+            launch_attempted = True
             codex_env.launch_desktop()
             restarted = True
             app_server = codex_env.wait_for_desktop_app_server(
@@ -367,9 +378,17 @@ def switch(
         # Only relaunch if this transaction actually stopped/started the app.
         # In cli/none mode with --force, a running app must be left alone.
         try:
-            rollback_notes = _rollback(store, backup, restarted=restarted)
+            rollback_notes = _rollback(
+                store,
+                backup,
+                restarted=restarted,
+                launch_attempted=launch_attempted,
+            )
         except Exception as rollback_error:
-            rollback_notes = [f"自动回滚未完成：{rollback_error}；备份保留于 {backup}"]
+            rollback_notes = [
+                f"自动回滚未完成：{rollback_error}；"
+                f"auth.json 可能仍为目标账号，请先退出 ChatGPT 再重试；备份保留于 {backup}"
+            ]
         store.journal(
             {
                 "event": "switch",
