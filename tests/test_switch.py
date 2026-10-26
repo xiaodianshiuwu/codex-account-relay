@@ -211,7 +211,8 @@ class SwitchTests(unittest.TestCase):
                         self.store,
                         SwitchOptions(target="b", mode="desktop", thread="none", verify=False, allow_chatgpt_restart=True),
                     )
-        self.assertIn("运行状态尚未核实", str(ctx.exception))
+        self.assertIn("active-thread", str(ctx.exception))
+        self.assertIn("active-turn", str(ctx.exception))
         self.assertEqual(read_auth(self.store.paths.auth_path)["tokens"]["refresh_token"], "refresh-a")
 
 
