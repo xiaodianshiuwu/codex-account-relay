@@ -19,12 +19,12 @@ macOS 上的 Codex 多账号管理与原聊天额度守护工具。原生 SwiftU
 支持 **macOS 14+ SwiftUI App**。Apple Silicon 是本次验证平台；其他架构没有实机验收。
 
 1. 安装并登录 [Codex CLI](https://github.com/openai/codex)，并安装 Codex 桌面应用。
-2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.4-macOS-SwiftUI.zip`。
+2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.5-macOS-SwiftUI.zip`。
 3. 解压，将 `Codex Relay.app` 拖到应用程序目录后打开。Release 的 `SHA256SUMS.txt` 可用于核对下载内容。
 
 App 内的 Relay 后端和 Python 运行时一起签名，使用固定路径运行，避免每次调用临时解包。App 已包含所需运行时，无需另外安装 Python 或 Relay CLI。当前使用 ad-hoc 签名，尚无 Apple Developer ID 签名及公证。
 
-**0.5.0–0.5.2 用户：** 请升级至 0.5.4；旧单文件后端在本机最终下载验收中发现冷启动过慢，影响后台守护启动确认。0.5.2 把运行时固定在 App 内。
+**0.5.0–0.5.2 用户：** 请升级至 0.5.5；旧单文件后端在本机最终下载验收中发现冷启动过慢，影响后台守护启动确认。0.5.2 把运行时固定在 App 内。
 
 **从 0.4.x 升级：** 账号及自动配置保留。旧配置中的 `enabled=true` 不再自动取得重启许可；请检查设置页的独立重启开关，并明确选择续跑聊天。
 
@@ -102,13 +102,13 @@ CLI 是 App 的内部后端，不单独发布。Windows、Linux 和 Tk 源码作
 
 ## 验证边界
 
-v0.5.4 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
+v0.5.5 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
 
-按用户要求，本次没有重启 ChatGPT，没有在真实账号间切换，也没有向业务聊天发送续跑文字。因此，**隔离测试通过不等于真实切号续跑已验收**。桌面 IPC 不是稳定公共 API；升级后按实际协议响应检查，不使用精确版本白名单，也不保证未来版本自动兼容。详情见[审查报告](docs/AUDIT-2026-10-26.md)。
+本次发布验证没有在真实账号间切换、重启 ChatGPT 或向业务聊天发送续跑文字；v0.5.5 修复所依据的现场日志来自用户在此前版本上的实际切换。因此，**隔离测试通过不等于真实切号续跑已验收**。桌面 IPC 不是稳定公共 API；升级后按实际协议响应检查，不使用精确版本白名单，也不保证未来版本自动兼容。详情见[审查报告](docs/AUDIT-2026-10-26.md)。
 
 保留原聊天可以继续使用其持久历史；不承诺冻结服务端推理或保证缓存命中。
 
-本次运行检测与强制切换修复详见 [v0.5.4 修复记录](docs/FIX-0.5.4.md)。
+本次切换启动瞬态失败修复详见 [v0.5.5 修复记录](docs/FIX-0.5.5.md)；上一版运行检测与强制切换见 [v0.5.4 修复记录](docs/FIX-0.5.4.md)。
 
 ## English
 
@@ -143,4 +143,4 @@ macOS 14+ 原生帳號管理與原聊天額度守護工具。自動切換帳號�
 若源码位于 iCloud/File Provider 同步目录，系统可能自动给 App 添加 Finder 元数据，导致严格签名校验失败。可用 `CODEX_RELAY_BUILD_DIR=/tmp/codex-relay-build ./desktop/build.sh` 将组装与签名放在同步目录之外；不要跳过签名校验。
 
 
-In v0.5.4, the switch confirmation shows live or unconfirmed chats and excluded abandoned history. “I confirm no chats are running; force switch” skips only this manual runtime check. It does not enable forced termination and is never applied to automatic handoff. `activity --json` provides the underlying read-only diagnosis.
+In v0.5.5, the switch confirmation still shows live or unconfirmed chats and excluded abandoned history; transient LaunchServices launch failures are now retried before credentials are rolled back. “I confirm no chats are running; force switch” skips only this manual runtime check. It does not enable forced termination and is never applied to automatic handoff. `activity --json` provides the underlying read-only diagnosis.

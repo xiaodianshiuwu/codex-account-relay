@@ -8,7 +8,7 @@ from unittest.mock import patch
 from codex_relay.authfile import read_auth, write_auth
 from codex_relay.codex_env import ProcessInfo, _child_process_env
 from codex_relay.store import Store
-from codex_relay.switch import SwitchOptions, switch
+from codex_relay.switch import SwitchOptions, _rollback, switch
 from codex_relay.util import RelayError
 
 from tests.helpers import (
@@ -112,6 +112,139 @@ class SwitchTests(unittest.TestCase):
         self.assertEqual(self.store.state["active_profile_id"], self.profile_a["id"])
         last = self.store.journal_tail(1)[0]
         self.assertFalse(last["ok"])
+
+    def test_rollback_without_backup_restarts_if_app_was_stopped(self) -> None:
+        with patch("codex_relay.switch.codex_env.launch_desktop") as launch:
+            notes = _rollback(self.store, None, restarted=True)
+        launch.assert_called_once()
+        self.assertIn("尚未替换 auth.json；已重新启动 ChatGPT App", notes)
+
+    def test_rollback_stops_app_started_by_failed_launch(self) -> None:
+        patches = self._common_patches()
+        for item in patches:
+            item.start()
+        try:
+            # The app was not running before the switch, but a failed `open`
+            # still managed to start it with the target auth.json.
+            with patch(
+                "codex_relay.switch.idle_check",
+                return_value={"idle": True, "active": []},
+            ), patch(
+                "codex_relay.switch.codex_env.desktop_bundle_processes",
+                side_effect=[[], [object()]],
+            ), patch(
+                "codex_relay.switch.codex_env.launch_desktop",
+                side_effect=RelayError("launch failed"),
+            ) as launch, patch(
+                "codex_relay.switch.codex_env.quit_desktop"
+            ) as quit_app:
+                with self.assertRaises(RelayError):
+                    switch(
+                        self.store,
+                        SwitchOptions(target="b", mode="desktop", thread="none", verify=False, allow_chatgpt_restart=True),
+                    )
+        finally:
+            for item in patches:
+                item.stop()
+        quit_app.assert_called_once()
+        # The app was not running before the switch, so it must stay closed.
+        self.assertEqual(launch.call_count, 1)
+        self.assertEqual(read_auth(self.store.paths.auth_path)["tokens"]["refresh_token"], "refresh-a")
+
+    def test_rollback_aborts_restore_when_failed_launch_instance_cannot_quit(self) -> None:
+        patches = self._common_patches()
+        for item in patches:
+            item.start()
+        try:
+            with patch(
+                "codex_relay.switch.idle_check",
+                return_value={"idle": True, "active": []},
+            ), patch(
+                "codex_relay.switch.codex_env.app_running",
+                return_value=False,
+            ), patch(
+                "codex_relay.switch.codex_env.desktop_bundle_processes",
+                side_effect=[[], [object()]],
+            ), patch(
+                "codex_relay.switch.codex_env.quit_desktop",
+                side_effect=RelayError("app is busy"),
+            ), patch(
+                "codex_relay.switch.codex_env.launch_desktop",
+                side_effect=RelayError("launch failed"),
+            ):
+                with self.assertRaises(RelayError) as ctx:
+                    switch(
+                        self.store,
+                        SwitchOptions(target="b", mode="desktop", thread="none", verify=False, allow_chatgpt_restart=True),
+                    )
+        finally:
+            for item in patches:
+                item.stop()
+        self.assertIn("自动回滚未完成", str(ctx.exception))
+        self.assertIn("auth.json 可能仍为目标账号", str(ctx.exception))
+        self.assertEqual(read_auth(self.store.paths.auth_path)["tokens"]["refresh_token"], "refresh-b")
+
+    def test_rollback_aborts_restore_when_quitting_app_fails(self) -> None:
+        patches = self._common_patches()
+        for item in patches:
+            item.start()
+        try:
+            with patch(
+                "codex_relay.switch.idle_check",
+                return_value={"idle": True, "active": []},
+            ), patch(
+                "codex_relay.switch.codex_env.app_running",
+                return_value=True,
+            ), patch(
+                "codex_relay.switch.codex_env.quit_desktop",
+                side_effect=[[], RelayError("app is busy")],
+            ), patch(
+                "codex_relay.switch.codex_env.desktop_bundle_processes",
+                return_value=[object()],
+            ), patch(
+                "codex_relay.switch.codex_env.launch_desktop",
+                side_effect=RelayError("launch failed"),
+            ) as launch:
+                with self.assertRaises(RelayError) as ctx:
+                    switch(
+                        self.store,
+                        SwitchOptions(target="b", mode="desktop", thread="none", verify=False, allow_chatgpt_restart=True),
+                    )
+        finally:
+            for item in patches:
+                item.stop()
+        # Restoring auth.json while the app still runs with the target account
+        # could let the app overwrite it again. Abort and keep the backup.
+        self.assertIn("自动回滚未完成", str(ctx.exception))
+        self.assertEqual(read_auth(self.store.paths.auth_path)["tokens"]["refresh_token"], "refresh-b")
+        self.assertEqual(self.store.state["active_profile_id"], self.profile_b["id"])
+        self.assertEqual(launch.call_count, 1)
+
+    def test_rollback_relaunches_app_after_successful_quit(self) -> None:
+        patches = self._common_patches()
+        for item in patches:
+            item.start()
+        try:
+            with patch(
+                "codex_relay.switch.idle_check",
+                return_value={"idle": True, "active": []},
+            ), patch(
+                "codex_relay.switch.codex_env.app_running",
+                return_value=True,
+            ), patch(
+                "codex_relay.switch.codex_env.launch_desktop",
+                side_effect=[RelayError("launch failed"), None],
+            ) as launch:
+                with self.assertRaises(RelayError):
+                    switch(
+                        self.store,
+                        SwitchOptions(target="b", mode="desktop", thread="none", verify=False, allow_chatgpt_restart=True),
+                    )
+        finally:
+            for item in patches:
+                item.stop()
+        self.assertEqual(launch.call_count, 2)
+        self.assertEqual(read_auth(self.store.paths.auth_path)["tokens"]["refresh_token"], "refresh-a")
 
     def test_already_active_does_not_rewrite_or_restart(self) -> None:
         with patch("codex_relay.switch.preflight_processes", return_value=[]):
