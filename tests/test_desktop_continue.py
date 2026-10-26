@@ -69,6 +69,12 @@ class DesktopContinuationTests(unittest.TestCase):
         self.app.state=state('interrupted')
         with self.assertRaises(RelayError):prepare_handoff(self.store,THREAD,execute=True)
         self.assertEqual(self.app.calls,[])
+    def test_explicit_manual_continuation_can_resume_a_user_interrupted_chat(self):
+        self.app.state=state('interrupted')
+        context=prepare_handoff(self.store,THREAD,execute=True,allow_interrupted=True)
+        self.assertEqual(continue_desktop_thread(self.store,context,'explicit manual instruction'),'confirmed-new-turn')
+        self.assertEqual(self.app.calls,[('resume',THREAD,'explicit manual instruction')])
+
     def test_certain_not_sent_result_does_not_record_false_success(self):
         context=prepare_handoff(self.store,THREAD,execute=True)
         self.app.failure=NotDispatched('changed before send')

@@ -357,7 +357,7 @@ public final class RelayBackend: @unchecked Sendable {
         guard ["background", "stop"].contains(action), UUID(uuidString: threadID) != nil else {
             throw RelayBackendError.decoding("Invalid monitor action or thread ID")
         }
-        _ = try run(["guard", "--host", hostID, action, threadID], timeout: 60)
+        _ = try run(["guard", "--host", hostID, action, threadID], timeout: action == "background" ? 0 : 15)
     }
 
     public func saveGuardSettings(_ settings: GuardSettings) throws {

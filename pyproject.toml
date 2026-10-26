@@ -1,6 +1,6 @@
 [project]
 name = "codex-relay"
-version = "0.5.0"
+version = "0.5.1"
 description = "Codex multi-account handoff with session continuity, reasoning replay and cache diagnostics"
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -47,3 +47,5 @@ CODEX_RELAY_PREFS_SUITE=io.codexrelay.review \
 - `SHA256SUMS.txt`
 
 下载最终 GitHub 资产后重新校验 SHA-256、后端版本、App 自检和守护入口；源码测试不能代替最终资产检查。不要将真实账号数据、监控状态、聊天记录或截图提交 Git。
+
+若源码位于 iCloud/File Provider 同步目录，系统可能自动给 App 添加 Finder 元数据，导致严格签名校验失败。可用 `CODEX_RELAY_BUILD_DIR=/tmp/codex-relay-build ./desktop/build.sh` 将组装与签名放在同步目录之外；不要跳过签名校验。

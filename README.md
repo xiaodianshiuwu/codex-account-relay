@@ -19,7 +19,7 @@ macOS 上的 Codex 多账号管理与原聊天额度守护工具。原生 SwiftU
 支持 **macOS 14+ SwiftUI App**。Apple Silicon 是本次验证平台；其他架构没有实机验收。
 
 1. 安装并登录 [Codex CLI](https://github.com/openai/codex)，并安装 Codex 桌面应用。
-2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.0-macOS-SwiftUI.zip`。
+2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.1-macOS-SwiftUI.zip`。
 3. 解压，将 `Codex Relay.app` 拖到应用程序目录后打开。Release 的 `SHA256SUMS.txt` 可用于核对下载内容。
 
 App 已包含 Relay 后端和 Python 运行时，无需另外安装 Python 或 Relay CLI。当前使用 ad-hoc 签名，尚无 Apple Developer ID 签名及公证。
@@ -42,7 +42,7 @@ App 已包含 Relay 后端和 Python 运行时，无需另外安装 Python 或 R
 
 执行时重新读取账号额度；缺失、非有限或过期的数据不当作可用额度。原聊天运行中时，先取得指定轮次的中断确认；其他活动聊天会阻止切号。切号后等待原聊天加载，核验原轮次、模型、目录及权限，通过桌面端原聊天接口发送提示词。收到新轮次 ID 后才显示续跑成功。
 
-结果不确定时保留操作记录且不自动重发。已完成、由用户停止、等待审批或输入的聊天不会自动重新开始。没有可用候选或无法确认原聊天时显示原因。自动接力只在 Relay 运行期间执行，退出后停止；尚未开始的检查会尊重最新的关闭设置。
+结果不确定时保留操作记录且不自动重发。已完成、由用户停止、等待审批或输入的聊天不会由自动接力重新开始。手动确认页明确选择续跑时，可继续用户已中断的聊天。没有可用候选或无法确认原聊天时显示原因。自动接力只在 Relay 运行期间执行，退出后停止；尚未开始的检查会尊重最新的关闭设置。
 
 ## 原聊天额度守护
 
@@ -96,7 +96,7 @@ CLI 是 App 的内部后端，不单独发布。Windows、Linux 和 Tk 源码作
 
 ## 验证边界
 
-v0.5.0 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
+v0.5.1 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
 
 按用户要求，本次没有重启 ChatGPT，没有在真实账号间切换，也没有向业务聊天发送续跑文字。因此，**隔离测试通过不等于真实切号续跑已验收**。桌面 IPC 不是稳定公共 API；升级后按实际协议响应检查，不使用精确版本白名单，也不保证未来版本自动兼容。详情见[审查报告](docs/AUDIT-2026-10-26.md)。
 
@@ -131,3 +131,5 @@ macOS 14+ 原生帳號管理與原聊天額度守護工具。自動切換帳號�
 ## License
 
 [MIT](LICENSE) · [第三方声明](THIRD_PARTY_NOTICES.md)。Codex、ChatGPT 和 OpenAI 商标属于其各自权利人；本项目不是 OpenAI 官方产品。
+
+若源码位于 iCloud/File Provider 同步目录，系统可能自动给 App 添加 Finder 元数据，导致严格签名校验失败。可用 `CODEX_RELAY_BUILD_DIR=/tmp/codex-relay-build ./desktop/build.sh` 将组装与签名放在同步目录之外；不要跳过签名校验。

@@ -326,14 +326,12 @@ final class AppModel: ObservableObject {
     // MARK: - Account avatars
 
     private var avatarDirectory: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex-relay", isDirectory: true)
+        AutoSettingsStore.url.deletingLastPathComponent()
             .appendingPathComponent("avatars", isDirectory: true)
     }
 
     private var avatarIndexURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".codex-relay", isDirectory: true)
+        AutoSettingsStore.url.deletingLastPathComponent()
             .appendingPathComponent("avatars.json")
     }
 
@@ -897,7 +895,7 @@ final class AppModel: ObservableObject {
     }
 
     func openStore() {
-        let path = NSString(string: "~/.codex-relay").expandingTildeInPath
+        let path = AutoSettingsStore.url.deletingLastPathComponent().path
         let backend = self.backend
         Task {
             do {

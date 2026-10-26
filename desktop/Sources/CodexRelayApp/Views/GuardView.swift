@@ -98,7 +98,11 @@ struct GuardView: View {
                                 .font(.caption).foregroundStyle(RelayTheme.textMuted)
                             ForEach(host.windows, id: \.name) { window in
                                 HStack {
-                                    Text(window.name == "primary" ? L10n.text("5 小时额度") : L10n.text("每周额度"))
+                                    Text(window.windowDurationMins >= 1440
+                                         ? L10n.format("%d 天", Int(window.windowDurationMins / 1440))
+                                         : window.windowDurationMins >= 60
+                                            ? L10n.format("%d 小时", Int(window.windowDurationMins / 60))
+                                            : L10n.format("%d 分钟", Int(window.windowDurationMins)))
                                     ProgressView(value: window.remaining, total: 100).frame(maxWidth: 240)
                                     Text(window.remaining.formatted(.number.precision(.fractionLength(1))) + "%")
                                     Text(Date(timeIntervalSince1970: window.resetsAt), style: .relative)

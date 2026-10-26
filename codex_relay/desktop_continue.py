@@ -30,11 +30,11 @@ def runtime_task(store, thread_id):
         return task(state), state
 
 
-def prepare_handoff(store, thread_id, execute=False, dispatch_guard=None):
+def prepare_handoff(store, thread_id, execute=False, dispatch_guard=None, allow_interrupted=False):
     with controller(store) as app:
         state = app.snapshot(thread_id)
         current = task(state)
-        if current.kind not in ('running', 'quota_error'):
+        if current.kind not in ('running', 'quota_error') and not (allow_interrupted and current.kind == 'interrupted'):
             raise RelayError('Original chat is not resumable: ' + current.reason)
         context = {'thread_id': thread_id, 'turn_id': current.turn_id,
                    'identity': identity(state), 'interrupted': False}
@@ -122,7 +122,7 @@ def switch_and_continue(store, options, prompt, progress=None):
         usage = refresh_usage(store, target)
         if not usage_known(usage) or max_used_percent(usage) >= 100:
             raise RelayError('Target account quota is unavailable; original chat unchanged')
-    context = prepare_handoff(store, options.thread)
+    context = prepare_handoff(store, options.thread, allow_interrupted=True)
     if not idle_check(store, ignore_thread_id=options.thread)['idle']:
         raise RelayError('Another chat is still running; original chat unchanged')
     preflight_processes('desktop', options.force)
@@ -131,7 +131,7 @@ def switch_and_continue(store, options, prompt, progress=None):
                 'thread_id':options.thread, 'to':{'alias':target['alias']}, 'continued':False}
     if not options.allow_chatgpt_restart:
         raise RelayError('ChatGPT restart permission is required; original chat unchanged')
-    context = prepare_handoff(store, options.thread, execute=True)
+    context = prepare_handoff(store, options.thread, execute=True, allow_interrupted=True)
     result = switch(store, replace(options, verify=False), progress=progress)
     try:
         result['continued_turn_id'] = continue_desktop_thread(store, context, prompt)

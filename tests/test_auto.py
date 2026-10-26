@@ -125,7 +125,7 @@ class AutoSettingsTests(unittest.TestCase):
             "codex_relay.cli.idle_check", return_value={"idle": True, "active": [], "app_running": False}
         ), patch("codex_relay.cli.switch", return_value={"thread_id": "thread-1"}), patch(
             "codex_relay.cli.continue_desktop_thread", return_value="new-turn"
-        ) as cont, patch("codex_relay.cli.prepare_handoff", return_value={"thread_id":"thread-1"}) as prepare, __import__("contextlib").redirect_stdout(output):
+        ) as cont, patch("codex_relay.cli.prepare_handoff", return_value={"thread_id":"thread-1"}) as prepare, patch("codex_relay.switch.preflight_processes", return_value=[]), __import__("contextlib").redirect_stdout(output):
             result = _auto_once(Store(), args)
         self.assertEqual(result, 0)
         cont.assert_called_once_with(__import__("unittest.mock").mock.ANY, {"thread_id":"thread-1"}, "继续处理")

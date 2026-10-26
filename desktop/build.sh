@@ -3,14 +3,15 @@ set -eu
 
 ROOT="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 APP="${CODEX_RELAY_GUI_APP:-}"
-BUILD="$ROOT/build"
+BUILD="${CODEX_RELAY_BUILD_DIR:-$ROOT/build}"
 OPEN_AFTER="${CODEX_RELAY_OPEN_AFTER:-0}"
 echo "==> 构建 Codex Relay GUI"
 cd "$ROOT"
 swift build -c release --product CodexRelay
 
 echo "==> 准备 App bundle"
-rm -rf "$BUILD"
+mkdir -p "$BUILD"
+rm -rf "$BUILD/Codex Relay.app"
 mkdir -p "$BUILD/Codex Relay.app/Contents/MacOS"
 mkdir -p "$BUILD/Codex Relay.app/Contents/Resources"
 cp "$ROOT/Info.plist" "$BUILD/Codex Relay.app/Contents/Info.plist"
