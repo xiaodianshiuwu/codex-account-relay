@@ -13,7 +13,7 @@ from .appserver import verify_profile
 from .authfile import auth_summary, read_auth, validate_auth, write_auth
 from .store import Store
 from .threads import get_thread, most_recent_thread
-from .usage import idle_check, max_used_percent
+from .usage import idle_check, idle_blocked_message, max_used_percent
 from .util import RelayError, now_iso, safe_unlink
 
 
@@ -28,6 +28,7 @@ class SwitchOptions:
     # Explicit, per-invocation consent for quitting/launching ChatGPT.
     allow_chatgpt_restart: bool = False
     dry_run: bool = False
+    confirmed_idle: bool = False
     operation_guard: Optional[Callable[[], bool]] = None
 
 
@@ -232,7 +233,7 @@ def switch(
         }
 
     idle_info: Optional[Dict[str, Any]] = None
-    if options.mode == "desktop" and not options.force:
+    if options.mode == "desktop" and not options.force and not options.confirmed_idle:
         _progress(progress, "idle", "正在确认没有执行中的轮次")
         idle_info = idle_check(store, window_seconds=45.0)
         if not idle_info["idle"]:
@@ -245,11 +246,7 @@ def switch(
             if options.dry_run:
                 notes.append(f"当前有活动轮次，实际执行会被阻止：{detail}")
             else:
-                raise RelayError(
-                    "检测到 Codex 正在执行一轮任务，拒绝在工具调用中途重启 App。"
-                    f"（{detail}）\n请等待该轮结束，或确认可中断后使用 --force；"
-                    "已完成的工具结果和 rollout 仍会持久化，之后可恢复同一会话。"
-                )
+                raise RelayError(idle_blocked_message(idle_info))
 
     if options.dry_run:
         _progress(progress, "done", "演练完成，未改动任何凭据或进程")

@@ -68,7 +68,7 @@ public final class RelayBackend: @unchecked Sendable {
             }
             return line.replacingOccurrences(of: "codex-relay: ", with: "")
         }
-        let joined = lines.suffix(5).joined(separator: "\n")
+        let joined = lines.joined(separator: "\n")
         return joined.isEmpty ? "codex-relay failed" : joined
     }
 
@@ -116,6 +116,10 @@ public final class RelayBackend: @unchecked Sendable {
         if refresh { args.append("--refresh") }
         let result = try runJSON(RelayAccountList.self, args, timeout: refresh ? 300 : 30)
         return result.profiles
+    }
+
+    public func activity() throws -> RelayActivity {
+        try runJSON(RelayActivity.self, ["activity", "--json"], timeout: 120)
     }
 
     public func status() throws -> RelayStatus {
@@ -175,6 +179,7 @@ public final class RelayBackend: @unchecked Sendable {
         threadID: String,
         allowRestart: Bool,
         continuationPrompt: String? = nil,
+        confirmedIdle: Bool = false,
         progress: @escaping (RelayProgressEvent) -> Void
     ) throws -> RelaySwitchResult {
         let binary = try requireBinary()
@@ -188,6 +193,7 @@ public final class RelayBackend: @unchecked Sendable {
         if allowRestart {
             args.append("--allow-chatgpt-restart")
         }
+        if confirmedIdle { args.append("--confirm-idle") }
         var promptFile: URL?
         if let continuationPrompt {
             let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".txt")

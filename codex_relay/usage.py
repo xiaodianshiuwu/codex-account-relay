@@ -7,6 +7,8 @@ import urllib.error
 import urllib.request
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+from desktop_guard.desktop import ThreadUnavailable
+from desktop_guard.upstream_policy import latest_turn
 
 from . import codex_env
 from .appserver import verify_profile
@@ -298,19 +300,41 @@ def usage_dict(profile: Dict[str, Any]) -> Dict[str, Any]:
 def idle_check(store: Store, window_seconds: float = 180.0, ignore_thread_id: Optional[str] = None) -> Dict[str, Any]:
     """Return whether a Codex turn appears to be actively running.
 
-    `thread_turns.status` can be left at `inProgress` after a crash or a UI
-    restart, so it is combined with rollout mtime and the turn start time.
+    History is not a live execution registry. Prefer the desktop owner, and
+    recognize abandoned rows only with evidence across a desktop restart.
+    Age alone must never turn a quiet, long-running task into an idle one.
     """
     now = time.time()
     active = []
+    ignored = []
+    desktop_starts = None
+    seen_threads = set()
     for turn in active_turn_status(store.paths):
-        if turn.get('thread_id') == ignore_thread_id: continue
+        thread_id = turn.get('thread_id')
+        if thread_id == ignore_thread_id or thread_id in seen_threads:
+            continue
+        seen_threads.add(thread_id)
+        no_owner = False
+        evidence = 'history-unconfirmed'
         try:
             from .desktop_continue import runtime_task
-            runtime, _ = runtime_task(store, str(turn.get('thread_id')))
-            if runtime.kind in ('finished', 'interrupted', 'quota_error', 'goal_wait'):
+            _, state = runtime_task(store, str(turn.get('thread_id')))
+            status = state.get('threadRuntimeStatus')
+            live = status.get('type') if isinstance(status, dict) else None
+            # Restart eligibility is independent of guard eligibility (e.g.
+            # failed turns or paused goals are not executing tool calls).
+            latest = latest_turn(state)
+            if live in ('idle', 'systemError') and latest.get('status') in ('completed', 'interrupted', 'failed'):
+                ignored.append(dict(turn, reason='desktop-terminal'))
                 continue
-        except (RuntimeError, OSError, TimeoutError, ValueError):
+            if live == 'active':
+                evidence = 'desktop-runtime'
+                turn = dict(turn, turn_id=latest.get('turnId') or turn.get('turn_id'))
+        except ThreadUnavailable:
+            # A successful discovery with no owner is distinct from a broken
+            # socket, timeout, protocol failure or an app still loading.
+            no_owner = True
+        except (RuntimeError, OSError, TimeoutError, ValueError, TypeError, AttributeError):
             pass
         started = turn.get("started_at")
         age = now - started if isinstance(started, (int, float)) else None
@@ -324,9 +348,24 @@ def idle_check(store: Store, window_seconds: float = 180.0, ignore_thread_id: Op
             path = rollout_path_for(store.paths, thread)
             try:
                 mtime = path.stat().st_mtime
-            except OSError:
+            except FileNotFoundError:
                 mtime = None
-            activity = rollout_activity(path)
+            except OSError:
+                # Permission/I/O errors are uncertainty, not a missing file.
+                mtime = now
+            try:
+                activity = rollout_activity(path)
+            except OSError:
+                mtime = now
+        if no_owner and isinstance(started, (int, float)):
+            if desktop_starts is None:
+                desktop_starts = [p.started.timestamp() if isinstance(p.started, datetime) else None
+                                  for p in codex_env.desktop_main_processes()]
+            if desktop_starts and all(isinstance(value, (int, float)) for value in desktop_starts):
+                generation = min(desktop_starts)
+                if started < generation and (mtime is None or mtime < generation):
+                    ignored.append(dict(turn, reason='unowned-before-desktop-start'))
+                    continue
         recent_mtime = bool(mtime and now - mtime < window_seconds)
         recent_start = bool(age is not None and age < window_seconds)
         pending_tools = int(activity.get("pending_tool_calls") or 0)
@@ -343,12 +382,28 @@ def idle_check(store: Store, window_seconds: float = 180.0, ignore_thread_id: Op
                     "pending_tool_calls": pending_tools,
                     "pending_types": activity.get("pending_types") or [],
                     "last_rollout_type": activity.get("last_type"),
+                    "evidence": evidence,
                 }
             )
     return {
         "idle": not active,
         "window_seconds": window_seconds,
         "active": active,
+        "ignored_history": ignored,
         "app_running": codex_env.app_running(),
         "desktop_app_server": [p.pid for p in codex_env.desktop_app_server_processes()],
     }
+
+
+def idle_blocked_message(info: Dict[str, Any]) -> str:
+    """Shared, localized, actionable detail for switch and continuation errors."""
+    tr = Translator()
+    details = '\n'.join(
+        tr.t("聊天 {thread_id} · 轮次 {turn_id} · {evidence}",
+             thread_id=item.get('thread_id'), turn_id=item.get('turn_id'),
+             evidence=tr.t("桌面端确认运行中" if item.get('evidence') == 'desktop-runtime' else "运行状态尚未核实"))
+        for item in info.get('active') or []
+    )
+    return tr.t("""暂时无法切换账号，以下聊天仍在运行或状态尚未确认：
+{detail}
+请等待这些聊天结束；需要续跑时，在切换确认页选择原聊天并勾选续跑。账号尚未更改。""", detail=details)

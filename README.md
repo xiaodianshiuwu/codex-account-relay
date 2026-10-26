@@ -19,18 +19,22 @@ macOS 上的 Codex 多账号管理与原聊天额度守护工具。原生 SwiftU
 支持 **macOS 14+ SwiftUI App**。Apple Silicon 是本次验证平台；其他架构没有实机验收。
 
 1. 安装并登录 [Codex CLI](https://github.com/openai/codex)，并安装 Codex 桌面应用。
-2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.2-macOS-SwiftUI.zip`。
+2. 从 [Releases](https://github.com/xiaodianshiuwu/codex-account-relay/releases/latest) 下载 `CodexRelay-v0.5.3-macOS-SwiftUI.zip`。
 3. 解压，将 `Codex Relay.app` 拖到应用程序目录后打开。Release 的 `SHA256SUMS.txt` 可用于核对下载内容。
 
 App 内的 Relay 后端和 Python 运行时一起签名，使用固定路径运行，避免每次调用临时解包。App 已包含所需运行时，无需另外安装 Python 或 Relay CLI。当前使用 ad-hoc 签名，尚无 Apple Developer ID 签名及公证。
 
-**0.5.0 / 0.5.1 用户：** 请升级至 0.5.2；旧单文件后端在本机最终下载验收中发现冷启动过慢，影响后台守护启动确认。0.5.2 把运行时固定在 App 内。
+**0.5.0–0.5.2 用户：** 请升级至 0.5.3；旧单文件后端在本机最终下载验收中发现冷启动过慢，影响后台守护启动确认。0.5.2 把运行时固定在 App 内。
 
 **从 0.4.x 升级：** 账号及自动配置保留。旧配置中的 `enabled=true` 不再自动取得重启许可；请检查设置页的独立重启开关，并明确选择续跑聊天。
 
 ## 添加账号与手动切换
 
 在“账号”中捕获当前登录账号，或添加其他账号完成隔离登录。切号确认页列出目标账号、额度和恢复聊天，可选择“仅切换账号”。聊天不按创建账号过滤，不再只显示前 12 条，也不会隐式猜测最近聊天。
+
+切换确认页会实时检查聊天状态，区分桌面端确认执行、状态待核实和历史残留，支持“重新检测”。已无桌面所有者、早于当前 App 启动且之后没有 rollout 更新的历史 `inProgress` 记录不会再永久阻止切换；单纯运行时间长不会被当作结束。
+
+若已亲自确认没有正在进行的聊天，可勾选 **“我确认没有正在进行的聊天，强制切换”**。只对本次操作跳过运行状态拦截，仍正常退出 App、校验账号、检查其他写入进程并备份；不启用强制杀进程。自动接力不会使用此选项。CLI 对应 `switch <alias> --desktop --confirm-idle --allow-chatgpt-restart`；可用 `activity --json` 只读查看判定依据。
 
 手动切换会备份 `auth.json` 和 Relay 状态，退出桌面应用后写入目标凭据，再启动并打开选定聊天。失败时尝试恢复备份。**打开聊天与发送续跑文字是两个不同结果**；确认页可勾选“切号后继续原聊天”并填写提示词；不勾选时只恢复聊天，勾选时与自动接力共用桌面原聊天续跑链路。
 
@@ -98,11 +102,13 @@ CLI 是 App 的内部后端，不单独发布。Windows、Linux 和 Tk 源码作
 
 ## 验证边界
 
-v0.5.2 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
+v0.5.3 对账号写入/回滚、并发写入、原聊天中断与续跑回执、本机/SSH 状态机、设置和原生桥接执行了隔离测试。当前桌面版本 `26.1021.31345` 的本机/SSH 聊天定位与额度读取已做真实只读验证。
 
 按用户要求，本次没有重启 ChatGPT，没有在真实账号间切换，也没有向业务聊天发送续跑文字。因此，**隔离测试通过不等于真实切号续跑已验收**。桌面 IPC 不是稳定公共 API；升级后按实际协议响应检查，不使用精确版本白名单，也不保证未来版本自动兼容。详情见[审查报告](docs/AUDIT-2026-10-26.md)。
 
 保留原聊天可以继续使用其持久历史；不承诺冻结服务端推理或保证缓存命中。
+
+本次运行检测与强制切换修复详见 [v0.5.3 修复记录](docs/FIX-0.5.3.md)。
 
 ## English
 
@@ -135,3 +141,6 @@ macOS 14+ 原生帳號管理與原聊天額度守護工具。自動切換帳號�
 [MIT](LICENSE) · [第三方声明](THIRD_PARTY_NOTICES.md)。Codex、ChatGPT 和 OpenAI 商标属于其各自权利人；本项目不是 OpenAI 官方产品。
 
 若源码位于 iCloud/File Provider 同步目录，系统可能自动给 App 添加 Finder 元数据，导致严格签名校验失败。可用 `CODEX_RELAY_BUILD_DIR=/tmp/codex-relay-build ./desktop/build.sh` 将组装与签名放在同步目录之外；不要跳过签名校验。
+
+
+In v0.5.3, the switch confirmation shows live or unconfirmed chats and excluded abandoned history. “I confirm no chats are running; force switch” skips only this manual runtime check. It does not enable forced termination and is never applied to automatic handoff. `activity --json` provides the underlying read-only diagnosis.

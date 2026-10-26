@@ -1559,12 +1559,6 @@
     "zh-Hans": "检测到 Codex 正在执行一轮任务，拒绝在工具调用中途重启 App。（{detail}）\n请等待该轮结束，或确认可中断后使用 --force；已完成的工具结果和 rollout 仍会持久化，之后可恢复同一会话。",
     "zh-Hant": "偵測到 Codex 正在執行一輪工作，拒絕在工具呼叫中途重新啟動 App。（{detail}）\n請等待該輪結束，或確認可中斷後使用 --force；已完成的工具結果和 rollout 仍會持久化，之後可還原同一工作階段。"
   },
-  "检测到 Codex 正在执行一轮任务，拒绝重启。等待完成或使用 --force。": {
-    "en": "Codex appears to be running a turn; restart refused. Wait for it to finish or use --force.",
-    "ja": "Codex がターンを実行中のため再起動を拒否しました。完了を待つか --force を使用してください。",
-    "zh-Hans": "检测到 Codex 正在执行一轮任务，拒绝重启。等待完成或使用 --force。",
-    "zh-Hant": "偵測到 Codex 正在執行一輪工作，拒絕重新啟動。等待完成或使用 --force。"
-  },
   "检测到其他 Codex 进程仍在使用同一 CODEX_HOME：{listing}。请先结束这些会话，或使用 --force 承担 refresh token 互覆盖风险。": {
     "en": "Other Codex processes still use the same CODEX_HOME: {listing}. End those sessions first, or use --force and accept the refresh-token overwrite risk.",
     "ja": "他の Codex プロセスが同じ CODEX_HOME を使用しています：{listing}。先にそれらのセッションを終了するか、--force で refresh token の上書きリスクを承知してください。",
@@ -2182,5 +2176,95 @@
     "ja": "、{time} にリセット",
     "zh-Hans": "，{time} 重置",
     "zh-Hant": "，{time} 重置"
+  },
+  "聊天 {thread_id} · 轮次 {turn_id} · {evidence}": {
+    "zh-Hans": "聊天 {thread_id} · 轮次 {turn_id} · {evidence}",
+    "zh-Hant": "聊天 {thread_id} · 輪次 {turn_id} · {evidence}",
+    "en": "Chat {thread_id} · turn {turn_id} · {evidence}",
+    "ja": "チャット {thread_id} · ターン {turn_id} · {evidence}"
+  },
+  "桌面端确认运行中": {
+    "zh-Hans": "桌面端确认运行中",
+    "zh-Hant": "桌面端確認執行中",
+    "en": "Confirmed running by desktop",
+    "ja": "デスクトップで実行中を確認"
+  },
+  "运行状态尚未核实": {
+    "zh-Hans": "运行状态尚未核实",
+    "zh-Hant": "執行狀態尚未核實",
+    "en": "Runtime status unconfirmed",
+    "ja": "実行状態は未確認"
+  },
+  "暂时无法切换账号，以下聊天仍在运行或状态尚未确认：\n{detail}\n请等待这些聊天结束；需要续跑时，在切换确认页选择原聊天并勾选续跑。账号尚未更改。": {
+    "zh-Hans": "暂时无法切换账号，以下聊天仍在运行或状态尚未确认：\n{detail}\n请等待这些聊天结束；需要续跑时，在切换确认页选择原聊天并勾选续跑。账号尚未更改。",
+    "zh-Hant": "暫時無法切換帳號，以下聊天仍在執行或狀態尚未確認：\n{detail}\n請等待這些聊天結束；需要繼續時，在切換確認頁選擇原聊天並勾選續跑。帳號尚未更改。",
+    "en": "Cannot switch accounts yet. These chats are running or their status is unconfirmed:\n{detail}\nWait for them to finish. To continue a chat, select it and enable continuation in the switch confirmation. The account has not changed.",
+    "ja": "次のチャットは実行中、または状態が未確認のため、まだアカウントを切り替えられません：\n{detail}\n終了を待ってください。続行する場合は切り替え確認画面で元のチャットを選び、続行を有効にしてください。アカウントは変更されていません。"
+  },
+  "我确认没有正在进行的聊天，仅跳过活动轮次检测": {
+    "zh-Hans": "我确认没有正在进行的聊天，仅跳过活动轮次检测",
+    "zh-Hant": "我確認沒有正在執行的聊天，僅略過活動輪次偵測",
+    "en": "I confirm no chats are running; skip only the active-turn check",
+    "ja": "実行中のチャットがないことを確認し、実行状態の確認のみスキップ"
+  },
+  "我确认没有正在进行的聊天，强制切换": {
+    "zh-Hans": "我确认没有正在进行的聊天，强制切换",
+    "zh-Hant": "我確認沒有正在執行的聊天，強制切換",
+    "en": "I confirm no chats are running; force switch",
+    "ja": "実行中のチャットがないことを確認し、強制的に切り替える"
+  },
+  "仅本次跳过运行状态拦截；仍正常退出 App、校验账号并备份。自动接力不会使用此选项。": {
+    "zh-Hans": "仅本次跳过运行状态拦截；仍正常退出 App、校验账号并备份。自动接力不会使用此选项。",
+    "zh-Hant": "僅本次略過執行狀態攔截；仍正常結束 App、驗證帳號並備份。自動接力不會使用此選項。",
+    "en": "Skip the runtime check for this switch only. The app still quits normally, validates the account and creates a backup. Automatic handoff never uses this option.",
+    "ja": "今回のみ実行状態による停止をスキップします。App の通常終了、アカウント検証、バックアップは行います。自動切り替えでは使用しません。"
+  },
+  "运行状态检测": {
+    "zh-Hans": "运行状态检测",
+    "zh-Hant": "執行狀態偵測",
+    "en": "Runtime check",
+    "ja": "実行状態の確認"
+  },
+  "重新检测": {
+    "zh-Hans": "重新检测",
+    "zh-Hant": "重新偵測",
+    "en": "Check again",
+    "ja": "再確認"
+  },
+  "未检测到执行中的聊天": {
+    "zh-Hans": "未检测到执行中的聊天",
+    "zh-Hant": "未偵測到執行中的聊天",
+    "en": "No running chats detected",
+    "ja": "実行中のチャットは検出されませんでした"
+  },
+  "仍有运行中或待核实的聊天": {
+    "zh-Hans": "仍有运行中或待核实的聊天",
+    "zh-Hant": "仍有執行中或待核實的聊天",
+    "en": "Some chats are running or unconfirmed",
+    "ja": "実行中または未確認のチャットがあります"
+  },
+  "已排除 %d 条历史残留记录": {
+    "zh-Hans": "已排除 %d 条历史残留记录",
+    "zh-Hant": "已排除 %d 筆歷史殘留記錄",
+    "en": "Excluded %d abandoned history records",
+    "ja": "過去の残留レコードを %d 件除外しました"
+  },
+  "执行前会再次检测；检测结果只代表当前时刻。": {
+    "zh-Hans": "执行前会再次检测；检测结果只代表当前时刻。",
+    "zh-Hant": "執行前會再次偵測；結果只代表目前時刻。",
+    "en": "Checked again before execution; results describe this moment only.",
+    "ja": "実行前に再確認します。結果は現在の状態のみを示します。"
+  },
+  "检查实时任务与历史残留": {
+    "zh-Hans": "检查实时任务与历史残留",
+    "zh-Hant": "檢查即時任務與歷史殘留",
+    "en": "Check live tasks and abandoned history",
+    "ja": "実行中のタスクと過去の残留記録を確認"
+  },
+  "其他聊天仍在运行或状态待核实，请查看检测详情。": {
+    "zh-Hans": "其他聊天仍在运行或状态待核实，请查看检测详情。",
+    "zh-Hant": "其他聊天仍在執行或狀態待核實，請查看偵測詳情。",
+    "en": "Other chats are running or unconfirmed. Review the runtime check.",
+    "ja": "他のチャットは実行中または未確認です。確認結果をご覧ください。"
   }
 }

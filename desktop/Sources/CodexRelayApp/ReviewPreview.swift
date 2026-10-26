@@ -35,11 +35,16 @@ func renderReview(to directory: URL) throws {
         try png.write(to: directory.appendingPathComponent(name + ".png"))
         window.orderOut(nil)
     }
+    let activityDecoder = JSONDecoder()
+    activityDecoder.keyDecodingStrategy = .convertFromSnakeCase
+    let activity = try activityDecoder.decode(RelayActivity.self, from: Data("""
+    {"idle":false,"active":[{"thread_id":"11111111-1111-4111-8111-111111111111","turn_id":"fixture-turn","evidence":"desktop-runtime"}],"ignored_history":[{"thread_id":"22222222-2222-4222-8222-222222222222","reason":"unowned-before-desktop-start"}]}
+    """.utf8))
     for language in AppLanguage.allCases {
         preferences.language = language
         preferences.appearance = .dark
-        try render(ProcessConfirmationSheet(action: PendingProcessAction(account: account, threadID: thread, kind: .switchAccount)),
-                   name: "confirmation-" + language.rawValue, size: NSSize(width: 650, height: 640))
+        try render(ProcessConfirmationSheet(action: PendingProcessAction(account: account, threadID: thread, kind: .switchAccount), previewActivity: activity, previewConfirmedIdle: true),
+                   name: "confirmation-" + language.rawValue, size: NSSize(width: 650, height: 720))
     }
     preferences.language = .en
     for appearance in [RelayAppearance.light, .dark] {

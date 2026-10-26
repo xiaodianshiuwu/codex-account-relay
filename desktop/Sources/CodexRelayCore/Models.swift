@@ -391,3 +391,16 @@ public struct RelayVersionInfo {
     public let codex: String
     public let desktop: String
 }
+
+public struct RelayActivity: Decodable, Sendable {
+    public let idle: Bool
+    public let active: [RelayActiveTurn]
+    public let ignoredHistory: [RelayActiveTurn]
+}
+
+public struct RelayActiveTurn: Decodable, Sendable {
+    public let threadId: String
+    public let turnId: String?
+    public let evidence: String?
+    public let reason: String?
+}

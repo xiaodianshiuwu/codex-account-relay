@@ -55,6 +55,7 @@ struct PendingProcessAction: Identifiable {
     let threadID: String
     let kind: PendingProcessActionKind
     var continuationPrompt: String? = nil
+    var confirmedIdle = false
 
     func title(locale: Locale) -> String {
         switch kind {
@@ -298,7 +299,7 @@ final class AppModel: ObservableObject {
                 // the user informed without interrupting their work.
                 switch result.reason {
                 case "active-turn":
-                    toast = L10n.text("检测到 Codex 正在执行一轮任务，拒绝重启。等待完成或使用 --force。")
+                    toast = result.continueError ?? L10n.text("其他聊天仍在运行或状态待核实，请查看检测详情。")
                 case "no-usable-candidate":
                     toast = L10n.text("没有仍有额度的其他账号")
                 case "no-candidate":
@@ -646,9 +647,9 @@ final class AppModel: ObservableObject {
         )
     }
 
-    func confirmPendingProcessAction(threadID: String? = nil, continuationPrompt: String? = nil) {
+    func confirmPendingProcessAction(threadID: String? = nil, continuationPrompt: String? = nil, confirmedIdle: Bool = false) {
         guard let pending = pendingProcessAction else { return }
-        let action = PendingProcessAction(account: pending.account, threadID: threadID ?? pending.threadID, kind: pending.kind, continuationPrompt: continuationPrompt)
+        let action = PendingProcessAction(account: pending.account, threadID: threadID ?? pending.threadID, kind: pending.kind, continuationPrompt: continuationPrompt, confirmedIdle: confirmedIdle)
         pendingProcessAction = nil
         // Let the confirmation sheet dismiss before presenting the next step.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
@@ -657,7 +658,7 @@ final class AppModel: ObservableObject {
                 self.performRestart(threadID: action.threadID)
             case .switchAccount:
                 if let account = action.account {
-                    self.performSwitch(account, threadID: action.threadID, continuationPrompt: action.continuationPrompt)
+                    self.performSwitch(account, threadID: action.threadID, continuationPrompt: action.continuationPrompt, confirmedIdle: action.confirmedIdle)
                 }
             case .openThread, .openApp:
                 self.performOpen(action)
@@ -669,7 +670,7 @@ final class AppModel: ObservableObject {
         pendingProcessAction = nil
     }
 
-    private func performSwitch(_ account: RelayAccount, threadID: String, continuationPrompt: String? = nil) {
+    private func performSwitch(_ account: RelayAccount, threadID: String, continuationPrompt: String? = nil, confirmedIdle: Bool = false) {
         guard !isSwitching, !autoCheckRunning else { return }
         isSwitching = true
         switchStage = "准备切换…"
@@ -686,7 +687,8 @@ final class AppModel: ObservableObject {
                         alias: alias,
                         threadID: threadID,
                         allowRestart: true,
-                        continuationPrompt: continuationPrompt
+                        continuationPrompt: continuationPrompt,
+                        confirmedIdle: confirmedIdle
                     ) { event in
                         Task { @MainActor in
                             self.applyProgress(event)

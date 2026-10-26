@@ -155,6 +155,34 @@ final class ModelTests: XCTestCase {
         XCTAssertEqual(report.checks.first?.level, "pass")
     }
 
+    func testManualIdleOverrideIsExplicitAndDoesNotEnableBroadForce() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let script = dir.appendingPathComponent("codex-relay")
+        let body = """
+        #!/bin/sh
+        case "$*" in *--force*) echo 'broad force must not be passed' >&2; exit 7 ;; esac
+        if [ "$1" = activity ]; then
+          echo '{"idle":false,"active":[{"thread_id":"live","turn_id":"t","evidence":"desktop-runtime"}],"ignored_history":[{"thread_id":"old","reason":"unowned-before-desktop-start"}]}'
+        else
+          case "$*" in
+            *--confirm-idle*) echo '{"ok":true,"changed":true}' ;;
+            *) echo 'missing explicit idle confirmation' >&2; exit 3 ;;
+          esac
+        fi
+        """
+        try body.write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        let backend = RelayBackend(binaryPath: script.path)
+        XCTAssertThrowsError(try backend.switchAccount(alias: "b", threadID: "none", allowRestart: true) { _ in })
+        let result = try backend.switchAccount(alias: "b", threadID: "none", allowRestart: true, confirmedIdle: true) { _ in }
+        XCTAssertTrue(result.changed == true)
+        let activity = try backend.activity()
+        XCTAssertEqual(activity.active.first?.threadId, "live")
+        XCTAssertEqual(activity.ignoredHistory.first?.reason, "unowned-before-desktop-start")
+    }
+
     func testSwitchErrorStripsProgressJSON() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

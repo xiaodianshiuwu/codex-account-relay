@@ -75,3 +75,12 @@ RELAY="/Applications/Codex Relay.app/Contents/Resources/codex-relay"
 切号失败会报告原始失败及回滚结果，备份保留供恢复。若新应用无法退出，不会在它仍写入认证的同时偷偷覆盖旧认证。账号写入操作串行，缓存列表读取不等待网络刷新。
 
 当前账号有运行中的 Codex 时只通过用量 HTTP 读取额度，即使传入强制刷新也不会在另一个 app-server 中抢用旋转 refresh token。不要把 HTTP 临时错误当作需要重新登录；界面会保留错误原因。
+
+
+## 运行状态误报与本次强制切换
+
+v0.5.3 起，切换确认页区分实时执行、待核实和已排除的历史残留。点击“重新检测”可更新；普通切换执行前会再次检查。无需删除旧聊天或修改 Codex 的 SQLite 数据库。
+
+已亲自确认所有聊天均无正在执行的任务时，可勾选“我确认没有正在进行的聊天，强制切换”。该确认不保存到自动配置，只作用于当前手动切换；仍会正常退出并重启桌面 App。自动接力不会使用此选项。
+
+命令行诊断：`codex-relay activity --json`。手动覆盖活动检测：`codex-relay switch <alias> --desktop --confirm-idle --allow-chatgpt-restart`。`--confirm-idle` 与更广的历史 `--force` 含义不同，不会强制杀进程或绕过额度/写入进程校验。

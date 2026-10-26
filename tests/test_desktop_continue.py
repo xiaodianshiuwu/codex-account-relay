@@ -92,6 +92,21 @@ class ManualRelayTests(unittest.TestCase):
             result=switch_and_continue(store,SwitchOptions(target='target',thread=THREAD,verify=False,dry_run=True),'continue')
             self.assertEqual(result['reason'],'dry-run')
             self.assertEqual(prepare.call_count,1);switch.assert_not_called();send.assert_not_called()
+    def test_manual_idle_confirmation_reaches_continuation_without_enabling_broad_force(self):
+        from codex_relay.desktop_continue import switch_and_continue
+        from codex_relay.switch import SwitchOptions
+        from tests.helpers import new_store, make_auth
+        store=new_store();store.add_profile('target',make_auth('acct-target'))
+        with patch('codex_relay.desktop_continue.prepare_handoff',return_value={'thread_id':THREAD}), patch('codex_relay.switch.preflight_processes',return_value=[]), patch('codex_relay.usage.idle_check',return_value={'idle':False,'active':[]}), patch('codex_relay.switch.switch',return_value={'changed':True,'ok':True}) as change, patch('codex_relay.desktop_continue.continue_desktop_thread',return_value='new-turn'):
+            options=SwitchOptions(target='target',thread=THREAD,verify=False,allow_chatgpt_restart=True)
+            with self.assertRaises(RelayError):switch_and_continue(store,options,'continue')
+            change.assert_not_called()
+            options.confirmed_idle=True
+            result=switch_and_continue(store,options,'continue')
+            self.assertTrue(result['continued'])
+            self.assertTrue(change.call_args.args[1].confirmed_idle)
+            self.assertFalse(change.call_args.args[1].force)
+
     def test_manual_switch_reports_partial_success_when_continuation_fails(self):
         from codex_relay.desktop_continue import switch_and_continue
         from codex_relay.switch import SwitchOptions

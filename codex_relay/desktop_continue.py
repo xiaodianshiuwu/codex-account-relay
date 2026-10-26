@@ -114,7 +114,7 @@ def continue_desktop_thread(store, context, prompt):
 def switch_and_continue(store, options, prompt, progress=None):
     from dataclasses import replace
     from .switch import switch, preflight_processes
-    from .usage import refresh_usage, idle_check, usage_known, max_used_percent
+    from .usage import refresh_usage, idle_check, idle_blocked_message, usage_known, max_used_percent
     if options.mode != 'desktop' or options.thread in (None, 'none', 'last') or not prompt.strip():
         raise RelayError('Continuation requires an exact local chat and a nonempty prompt')
     target = store.resolve(options.target)
@@ -123,8 +123,9 @@ def switch_and_continue(store, options, prompt, progress=None):
         if not usage_known(usage) or max_used_percent(usage) >= 100:
             raise RelayError('Target account quota is unavailable; original chat unchanged')
     context = prepare_handoff(store, options.thread, allow_interrupted=True)
-    if not idle_check(store, ignore_thread_id=options.thread)['idle']:
-        raise RelayError('Another chat is still running; original chat unchanged')
+    idle = idle_check(store, ignore_thread_id=options.thread)
+    if not idle['idle'] and not options.confirmed_idle:
+        raise RelayError(idle_blocked_message(idle))
     preflight_processes('desktop', options.force)
     if options.dry_run:
         return {'ok':True, 'changed':False, 'reason':'dry-run', 'mode':'desktop',

@@ -152,9 +152,11 @@
 "仅切换账号" = "Switch account only";
 "仅打开会话" = "Open session only";
 "仅文件" = "File only";
+"仅本次跳过运行状态拦截；仍正常退出 App、校验账号并备份。自动接力不会使用此选项。" = "Skip the runtime check for this switch only. The app still quits normally, validates the account and creates a backup. Automatic handoff never uses this option.";
 "仅重启 ChatGPT" = "Restart ChatGPT only";
 "仅重启 ChatGPT 并恢复最近会话，不切换账号？" = "Restart ChatGPT and resume the most recent session without switching accounts?";
 "仅重启 ChatGPT，不切换账号" = "Restart ChatGPT without switching accounts";
+"仍有运行中或待核实的聊天" = "Some chats are running or unconfirmed";
 "从 auth.json 文件导入账号" = "Import an account from an auth.json file";
 "仓库" = "Stored";
 "会备份 auth.json 和 state，再写入目标凭据。" = "auth.json and state are backed up before writing the target credentials.";
@@ -201,6 +203,7 @@
 "关于" = "About";
 "关闭" = "Close";
 "其他 Codex 进程仍在运行：{listing}（--force）" = "Other Codex processes are still running: {listing} (--force)";
+"其他聊天仍在运行或状态待核实，请查看检测详情。" = "Other chats are running or unconfirmed. Review the runtime check.";
 "其他进程" = "Other process";
 "内置 CLI" = "Bundled CLI";
 "内置 CLI: {version}" = "Embedded CLI: {version}";
@@ -397,6 +400,7 @@
 "已打开会话 {thread_id}" = "Opened session {thread_id}";
 "已找到 Codex CLI：{path}" = "Found Codex CLI: {path}";
 "已找到账号 {alias}" = "Found account {alias}";
+"已排除 %d 条历史残留记录" = "Excluded %d abandoned history records";
 "已清理残留临时目录" = "Cleaned up leftover temp directories";
 "已清除手动 Codex 配置，将重新使用自动发现。" = "Manual Codex settings cleared; automatic discovery will be used again.";
 "已用" = "used";
@@ -452,6 +456,8 @@
 "恢复默认头像" = "Reset avatar";
 "成功" = "Success";
 "我确认切换账号" = "I confirm the account switch";
+"我确认没有正在进行的聊天，仅跳过活动轮次检测" = "I confirm no chats are running; skip only the active-turn check";
+"我确认没有正在进行的聊天，强制切换" = "I confirm no chats are running; force switch";
 "我确认现在打开 ChatGPT" = "I confirm that I want to open ChatGPT now";
 "我确认现在退出并重启 ChatGPT" = "I confirm that I want to quit and restart ChatGPT now";
 "或使用 `codex-relay add <别名>` 登录另一个账号。" = "or use `codex-relay add <alias>` to sign in to another account.";
@@ -476,6 +482,7 @@
 "打开最近会话" = "Open the most recent session";
 "打开目录失败" = "Failed to open directory";
 "打开账号管理" = "Open account management";
+"执行前会再次检测；检测结果只代表当前时刻。" = "Checked again before execution; results describe this moment only.";
 "找不到 codex CLI" = "Codex CLI not found";
 "找不到 codex CLI，请先安装 Codex" = "Codex CLI not found; install Codex first";
 "找不到 codex CLI，请先安装 Codex 或设置 CODEX_RELAY_CODEX" = "Codex CLI was not found. Install Codex or set CODEX_RELAY_CODEX.";
@@ -537,6 +544,7 @@
 "暂无切换记录" = "No switch history yet";
 "暂无可显示的聊天" = "No chats to display";
 "暂无数据" = "No data";
+"暂时无法切换账号，以下聊天仍在运行或状态尚未确认：\n{detail}\n请等待这些聊天结束；需要续跑时，在切换确认页选择原聊天并勾选续跑。账号尚未更改。" = "Cannot switch accounts yet. These chats are running or their status is unconfirmed:\n{detail}\nWait for them to finish. To continue a chat, select it and enable continuation in the switch confirmation. The account has not changed.";
 "暂未核验聊天持久性，请在 Codex 中打开原聊天后刷新" = "Persistence not verified; open the original chat in Codex and refresh";
 "暗色" = "Dark";
 "暗色终端" = "Dark theme";
@@ -571,6 +579,7 @@
 "未找到桌面内置 codex CLI" = "No embedded Codex CLI found in the desktop app";
 "未指定" = "Not specified";
 "未检测到 renderer RPC 就绪信号，仍尝试打开深链接" = "No renderer RPC ready signal was detected; still trying the deep link";
+"未检测到执行中的聊天" = "No running chats detected";
 "未检测到桌面 App；请使用 CLI 或切换账号。" = "Desktop app not detected; use the CLI or switch accounts.";
 "未检测到活动账号" = "No active account detected";
 "未登录 Codex" = "Not signed in to Codex";
@@ -616,14 +625,15 @@
 "桌面版 %@" = "Desktop %@";
 "桌面状态正在变化，中断请求未发送，稍后重新检查" = "Desktop state changed; interrupt not sent; checking again later";
 "桌面端已确认续跑，继续监控原聊天" = "Continuation confirmed; monitoring the original chat";
+"桌面端确认运行中" = "Confirmed running by desktop";
 "桌面进程" = "Desktop processes";
 "检查失败: {error}" = "Check failed: {error}";
+"检查实时任务与历史残留" = "Check live tasks and abandoned history";
 "检查详情" = "Check details";
 "检查间隔必须为有限正数" = "Check interval must be a finite positive number";
 "检查间隔（秒）" = "Check interval (seconds)";
 "检查项" = "Checks";
 "检测到 Codex 正在执行一轮任务，拒绝在工具调用中途重启 App。（{detail}）\n请等待该轮结束，或确认可中断后使用 --force；已完成的工具结果和 rollout 仍会持久化，之后可恢复同一会话。" = "Codex appears to be running a turn, so restarting the app mid-tool-call was refused. ({detail})\nWait for the turn to finish, or confirm it can be interrupted and use --force; completed tool results and the rollout are persisted, and the same session can be restored later.";
-"检测到 Codex 正在执行一轮任务，拒绝重启。等待完成或使用 --force。" = "Codex appears to be running a turn; restart refused. Wait for it to finish or use --force.";
 "检测到其他 Codex 进程仍在使用同一 CODEX_HOME：{listing}。请先结束这些会话，或使用 --force 承担 refresh token 互覆盖风险。" = "Other Codex processes still use the same CODEX_HOME: {listing}. End those sessions first, or use --force and accept the refresh-token overwrite risk.";
 "检测到可能正在执行的轮次，未切换：" = "A turn may be running; not switching:";
 "检测并保存 Codex CLI/数据目录" = "Detect and save the Codex CLI/data directory";
@@ -770,6 +780,7 @@
 "缺少执行中的等待条件状态" = "Active wait-condition state is missing";
 "缺少桌面端实时运行状态" = "Live desktop runtime state is missing";
 "缺少稳定轮次标识" = "Stable turn identifier is missing";
+"聊天 {thread_id} · 轮次 {turn_id} · {evidence}" = "Chat {thread_id} · turn {turn_id} · {evidence}";
 "聊天主机与当前选择不一致，请重新选择正确主机" = "Chat host differs from the selected host";
 "聊天正在等待用户操作" = "Chat is waiting for user action";
 "聊天状态格式不兼容" = "Incompatible chat state format";
@@ -877,6 +888,8 @@
 "运行中（可能缓存旧账号）" = "Running (may be caching an old account)";
 "运行信息" = "Runtime";
 "运行平台" = "Platform";
+"运行状态尚未核实" = "Runtime status unconfirmed";
+"运行状态检测" = "Runtime check";
 "运行诊断" = "Run diagnostics";
 "运行诊断…" = "Run diagnostics…";
 "还没有保存任何账号" = "No accounts have been saved yet";
@@ -919,6 +932,7 @@
 "重命名账号别名" = "Rename an account alias";
 "重新分析" = "Analyze again";
 "重新启动 App 失败：{error}" = "Failed to restart the app: {error}";
+"重新检测" = "Check again";
 "重置" = "Reset";
 "重置 // %@" = "Reset time // %@";
 "重试" = "Retry";

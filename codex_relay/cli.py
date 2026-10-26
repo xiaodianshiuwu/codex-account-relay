@@ -28,7 +28,7 @@ from .reporting import inspect_thread, report_handoff
 from .store import Store, default_paths
 from .switch import SwitchOptions, switch
 from .threads import get_thread, list_threads, most_recent_thread
-from .usage import usage_known, idle_check, max_used_percent, refresh_usage, usage_line, usage_text
+from .usage import usage_known, idle_check, idle_blocked_message, max_used_percent, refresh_usage, usage_line, usage_text
 from .util import RelayError, ensure_tls_certificates, executable_command, human_bytes, now_iso, parse_iso
 
 
@@ -473,6 +473,7 @@ def _do_switch(
     json_output: bool,
     allow_chatgpt_restart: bool = False,
     dry_run: bool = False,
+    confirmed_idle: bool = False,
     progress=None,
 ) -> int:
     result = switch(
@@ -486,6 +487,7 @@ def _do_switch(
             restart=True,
             allow_chatgpt_restart=allow_chatgpt_restart,
             dry_run=dry_run,
+            confirmed_idle=confirmed_idle,
         ),
         progress=progress,
     )
@@ -518,6 +520,17 @@ def _do_switch(
     return EXIT_OK
 
 
+def cmd_activity(args: argparse.Namespace, store: Store) -> int:
+    info = idle_check(store)
+    if args.json:
+        _print_json(info)
+    elif not info['idle']:
+        print(idle_blocked_message(info))
+    else:
+        print(t("未检测到执行中的聊天"))
+    return EXIT_OK
+
+
 def cmd_switch(args: argparse.Namespace, store: Store) -> int:
     mode = _mode_from_args(args)
     if mode == "desktop" and not args.dry_run:
@@ -528,6 +541,7 @@ def cmd_switch(args: argparse.Namespace, store: Store) -> int:
         try:
             result = switch_and_continue(store, SwitchOptions(target=args.alias, mode=mode, thread=args.thread,
                 force=args.force, verify=not args.no_verify, dry_run=args.dry_run,
+                confirmed_idle=args.confirm_idle,
                 allow_chatgpt_restart=args.allow_chatgpt_restart), prompt,
                 progress=_progress_emitter() if args.progress else None)
         except (RuntimeError, OSError, ValueError) as exc:
@@ -545,6 +559,7 @@ def cmd_switch(args: argparse.Namespace, store: Store) -> int:
         json_output=args.json,
         allow_chatgpt_restart=args.allow_chatgpt_restart,
         dry_run=args.dry_run,
+        confirmed_idle=args.confirm_idle,
         progress=_progress_emitter() if args.progress else None,
     )
 
@@ -593,7 +608,7 @@ def cmd_restart(args: argparse.Namespace, store: Store) -> int:
         progress("idle", t("正在确认没有执行中的轮次"))
         idle = idle_check(store, window_seconds=45.0)
         if not idle["idle"]:
-            raise RelayError(t("检测到 Codex 正在执行一轮任务，拒绝重启。等待完成或使用 --force。"))
+            raise RelayError(idle_blocked_message(idle))
     progress("quit", t("正在安全退出 ChatGPT App"))
     with codex_env.process_control_allowed(True):
         notes = codex_env.quit_desktop(timeout=20.0, force=args.force)
@@ -1116,6 +1131,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
     if not idle["idle"] and not args.force:
         plan["action"] = "blocked"
         plan["reason"] = "active-turn"
+        plan["continue_error"] = idle_blocked_message(idle)
         if args.json:
             _print_json(plan)
         else:
@@ -1507,6 +1523,12 @@ def build_parser(translator_: Optional[Translator] = None) -> argparse.ArgumentP
     status.add_argument("--json", action="store_true")
     status.set_defaults(func=cmd_status)
 
+    activity = sub.add_parser("activity", help=tr.t("检查实时任务与历史残留"), add_help=False)
+    _add_help(activity, tr)
+    _add_lang(activity, tr, suppress=True)
+    activity.add_argument("--json", action="store_true")
+    activity.set_defaults(func=cmd_activity)
+
     listing = sub.add_parser("list", help=tr.t("列出已保存账号"), add_help=False, description=tr.t("列出已保存账号"))
     _add_help(listing, tr)
     _add_lang(listing, tr, suppress=True)
@@ -1589,6 +1611,7 @@ def build_parser(translator_: Optional[Translator] = None) -> argparse.ArgumentP
         action="store_true",
         help=tr.t("允许中断活动轮次、存在其他 Codex 进程，或目标账号额度已耗尽时继续"),
     )
+    switch_parser.add_argument("--confirm-idle", action="store_true", help=tr.t("我确认没有正在进行的聊天，仅跳过活动轮次检测"))
     switch_parser.add_argument("--no-verify", action="store_true", help=tr.t("跳过切换前的官方额度校验"))
     switch_parser.add_argument(
         "--allow-chatgpt-restart",
