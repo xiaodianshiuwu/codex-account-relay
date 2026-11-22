@@ -1,4 +1,5 @@
 import XCTest
+import Darwin
 @testable import CodexRelayCore
 
 final class ReviewTests: XCTestCase {
@@ -68,5 +69,101 @@ final class ReviewTests: XCTestCase {
         try backend.saveGuardSettings(snapshot.settings)
         try backend.guardAction("stop",threadID:"11111111-1111-4111-8111-111111111111",hostID:"remote-ssh-test")
         XCTAssertThrowsError(try backend.guardAction("stop",threadID:"last",hostID:"local"))
+    }
+
+    func testAutoSettingsStoreRetriesFlockContentionAndThrowsWhenHeldTooLong() throws {
+        let dir = try temporaryDirectory()
+        let file = dir.appendingPathComponent("auto.json")
+        let lockPath = dir.appendingPathComponent("auto.lock").path
+        try AutoSettingsStore.update(["enabled": true, "allow_chatgpt_restart": true], at: file)
+
+        // Hold LOCK_EX for ~100ms while update() retries (20 * 25ms = 500ms budget) -> must succeed.
+        let fd1 = Darwin.open(lockPath, O_CREAT | O_RDWR, 0o600)
+        XCTAssertGreaterThanOrEqual(fd1, 0)
+        XCTAssertEqual(flock(fd1, LOCK_EX), 0)
+        let releaser = DispatchQueue(label: "test.lock.release")
+        releaser.asyncAfter(deadline: .now() + 0.1) {
+            flock(fd1, LOCK_UN)
+            Darwin.close(fd1)
+        }
+        try AutoSettingsStore.update(["allow_chatgpt_restart": false], at: file)
+        XCTAssertEqual(AutoSettingsStore.load(at: file)["allow_chatgpt_restart"] as? Bool, false)
+
+        // Hold LOCK_EX past bounded retries -> must throw EBUSY and leave disk unchanged.
+        let fd2 = Darwin.open(lockPath, O_CREAT | O_RDWR, 0o600)
+        XCTAssertGreaterThanOrEqual(fd2, 0)
+        XCTAssertEqual(flock(fd2, LOCK_EX), 0)
+        defer {
+            flock(fd2, LOCK_UN)
+            Darwin.close(fd2)
+        }
+        XCTAssertThrowsError(
+            try AutoSettingsStore.update(["enabled": false], at: file, maxLockRetries: 2, retryDelayMicros: 10_000)
+        ) { error in
+            XCTAssertEqual((error as? POSIXError)?.code, .EBUSY)
+        }
+        XCTAssertEqual(AutoSettingsStore.load(at: file)["enabled"] as? Bool, true)
+    }
+
+    func testAutoSettingsStoreValidatesFieldsNormalizesUUIDAndWrites0600() throws {
+        let dir = try temporaryDirectory()
+        let file = dir.appendingPathComponent("auto.json")
+        let upperUUID = "11111111-1111-4111-8111-111111111111".uppercased()
+        try AutoSettingsStore.update([
+            "enabled": true,
+            "allow_chatgpt_restart": false,
+            "interval": 30.0,
+            "remaining_threshold": 15.0,
+            "strategy": "best",
+            "prompt": "continue",
+            "thread_id": upperUUID,
+        ], at: file)
+        let loaded = AutoSettingsStore.load(at: file)
+        XCTAssertEqual(loaded["thread_id"] as? String, upperUUID.lowercased())
+
+        let attrs = try FileManager.default.attributesOfItem(atPath: file.path)
+        let perms = (attrs[.posixPermissions] as? NSNumber)?.intValue
+        XCTAssertEqual(perms, 0o600)
+
+        let entries = try FileManager.default.contentsOfDirectory(atPath: dir.path)
+        XCTAssertFalse(entries.contains(where: { $0.hasSuffix(".tmp") }))
+
+        // Invalid values rejected
+        XCTAssertThrowsError(try AutoSettingsStore.update(["enabled": "true"], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["allow_chatgpt_restart": 1], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["interval": true], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["interval": Double.nan], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["remaining_threshold": 101.0], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["strategy": "random"], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["prompt": "bad\0text"], at: file))
+        XCTAssertThrowsError(try AutoSettingsStore.update(["thread_id": "not-a-uuid"], at: file))
+    }
+
+    func testBackendHandlesLeadingDashSearchAndDisplayName() throws {
+        let script = try temporaryDirectory().appendingPathComponent("backend")
+        let source = """
+        #!/bin/sh
+        if [ "$1" = sessions ]; then
+          case "$*" in
+            *"--search=-urgent"*) echo '{"threads":[{"id":"t-dash","title":"-urgent"}]}' ;;
+            *) echo "bad sessions args: $*" >&2; exit 2 ;;
+          esac
+        elif [ "$1" = label ]; then
+          if [ "$2" = "--json" ] && [ "$3" = "--" ] && [ "$4" = "main" ] && [ "$5" = "-work" ]; then
+            echo '{"ok":true,"profile":{"id":"acct-1","alias":"main","display_name":"-work"}}'
+          else
+            echo "bad label args: $*" >&2; exit 3
+          fi
+        else
+          echo "unexpected: $*" >&2; exit 4
+        fi
+        """
+        try source.write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        let backend = RelayBackend(binaryPath: script.path)
+        let sessions = try backend.sessions(limit: 10, search: "-urgent")
+        XCTAssertEqual(sessions.first?.id, "t-dash")
+        let labeled = try backend.setDisplayName(alias: "main", displayName: "-work")
+        XCTAssertEqual(labeled.displayName, "-work")
     }
 }

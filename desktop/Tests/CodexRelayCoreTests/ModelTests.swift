@@ -64,6 +64,49 @@ final class ModelTests: XCTestCase {
         XCTAssertEqual(account.maxUsedPercent, 100)
     }
 
+    func testOrdinaryUsageAllowedFalseMarksExhausted() throws {
+        let json = """
+        {
+          "id": "acct-ord", "alias": "ord", "active": false, "status": "ok",
+          "usage": {
+            "primary": {"used_percent": 15, "window_minutes": 300, "resets_at": 9999999999},
+            "ordinary_usage_allowed": false
+          }
+        }
+        """
+        let account = try decoder().decode(RelayAccount.self, from: Data(json.utf8))
+        XCTAssertEqual(account.usage?.ordinaryUsageAllowed, false)
+        XCTAssertEqual(account.maxUsedPercent, 100)
+        XCTAssertTrue(account.isExhausted)
+    }
+
+    func testStatusErrorDistinctFromNeedsRelogin() throws {
+        let errJson = """
+        {
+          "id": "acct-err", "alias": "neterr", "status": "error",
+          "last_error": "connection timed out"
+        }
+        """
+        let errAccount = try decoder().decode(RelayAccount.self, from: Data(errJson.utf8))
+        XCTAssertTrue(errAccount.hasSyncError)
+        XCTAssertFalse(errAccount.needsRelogin)
+        XCTAssertFalse(errAccount.isHealthy)
+        XCTAssertEqual(errAccount.statusLabel, "同步失败")
+        XCTAssertEqual(errAccount.lastError, "connection timed out")
+
+        let reloginJson = """
+        {
+          "id": "acct-relogin", "alias": "revoked", "status": "needs_relogin",
+          "last_error": "invalid_grant"
+        }
+        """
+        let reloginAccount = try decoder().decode(RelayAccount.self, from: Data(reloginJson.utf8))
+        XCTAssertTrue(reloginAccount.needsRelogin)
+        XCTAssertFalse(reloginAccount.hasSyncError)
+        XCTAssertFalse(reloginAccount.isHealthy)
+        XCTAssertEqual(reloginAccount.statusLabel, "需要重新登录")
+    }
+
     func testAccountDisplayNamePreference() throws {
         let json = """
         {"id":"acct-a","alias":"main","display_name":"工作账号","name":"服务端名称","account_id":"acct-a"}
