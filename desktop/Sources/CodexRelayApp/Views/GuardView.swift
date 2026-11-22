@@ -142,8 +142,11 @@ struct GuardView: View {
                                 Spacer()
                                 Button(L10n.text("开始守护")) {
                                     Task { await guardModel.action("background", threadID: thread.id, hostID: thread.hostId) }
-                                }.disabled(guardModel.busy || appModel.isSwitching || preferences.autoContinueEnabled && preferences.autoAllowRestart ||
-                                    guardModel.snapshot?.monitors.contains(where: { $0.threadId == thread.id && $0.hostId == thread.hostId && $0.monitoring }) == true)
+                                }.disabled(
+                                    guardModel.busy
+                                        || (thread.hostId == "local" && (appModel.isSwitching || (preferences.autoContinueEnabled && preferences.autoAllowRestart)))
+                                        || guardModel.snapshot?.monitors.contains(where: { $0.threadId == thread.id && $0.hostId == thread.hostId && $0.monitoring }) == true
+                                )
                             }.padding(.vertical, 4)
                         }
                         if guardModel.threads.isEmpty { Text(L10n.text("暂无可显示的聊天")).foregroundStyle(RelayTheme.textMuted) }

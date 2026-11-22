@@ -122,6 +122,7 @@ struct SettingsView: View {
                             Text(L10n.text("检查间隔（秒）"))
                             TextField("60", value: $preferences.autoInterval, format: .number)
                                 .frame(width: 100).textFieldStyle(.roundedBorder)
+                                .onSubmit { preferences.flushDebouncedAutoSettings() }
                             Picker(L10n.text("切换策略"), selection: $preferences.autoStrategy) {
                                 Text(L10n.text("最佳额度")).tag("best")
                                 Text(L10n.text("账号顺序")).tag("next")
@@ -139,7 +140,12 @@ struct SettingsView: View {
                         Toggle(L10n.text("启用自动续跑"), isOn: $preferences.autoContinueEnabled)
                             .toggleStyle(.switch)
                             .onChange(of: preferences.autoContinueEnabled) { _, enabled in
-                                if enabled { Task { await model.checkAutoContinue() } }
+                                if enabled {
+                                    Task {
+                                        await preferences.waitForPendingAutoSettings()
+                                        await model.checkAutoContinue()
+                                    }
+                                }
                             }
 
                         VStack(alignment: .leading, spacing: 6) {
@@ -148,6 +154,7 @@ struct SettingsView: View {
                                 .foregroundStyle(RelayTheme.text)
                             TextField(L10n.text("例如：继续"), text: $preferences.autoContinuePrompt)
                                 .textFieldStyle(.roundedBorder)
+                                .onSubmit { preferences.flushDebouncedAutoSettings() }
                         }
 
                         VStack(alignment: .leading, spacing: 6) {
@@ -160,7 +167,9 @@ struct SettingsView: View {
                                     .font(.system(size: 12, design: .monospaced))
                                     .foregroundStyle(RelayTheme.accent)
                             }
-                            Slider(value: $preferences.autoRemainingThreshold, in: 0...100, step: 1)
+                            Slider(value: $preferences.autoRemainingThreshold, in: 0...100, step: 1) { editing in
+                                if !editing { preferences.flushDebouncedAutoSettings() }
+                            }
                             Text(L10n.text("剩余额度低于该百分比时准备切换；0% 表示只在额度耗尽时切换。"))
                                 .font(.caption2)
                                 .foregroundStyle(RelayTheme.textMuted)
@@ -214,6 +223,9 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(Color.clear)
+        .onDisappear {
+            preferences.flushDebouncedAutoSettings()
+        }
     }
 
     private func languageDescription(_ language: AppLanguage) -> String {
@@ -229,7 +241,7 @@ struct SettingsView: View {
         if let last = model.lastUsageSync {
             return L10n.format("活动账号每 10 秒同步；上次同步 %@。", last.localizedString(locale: preferences.language.locale))
         }
-        return L10n.text("活动账号每 10 秒同步；启动时及每 30 秒全量刷新。")
+        return L10n.text("活动账号每 10 秒同步；启动时及每 5 分钟全量刷新。")
     }
 
     private func appearanceDescription(_ appearance: RelayAppearance) -> String {

@@ -22,9 +22,9 @@ struct AccountsView: View {
             Task { await model.refreshSelectedUsageIfNeeded() }
         }
         .onAppear {
-            // Refresh every profile, not only the selected row; the list is
-            // shared by the whole page and an inactive account may have reset.
-            Task { await model.refreshUsage(silent: true) }
+            // Refresh every profile when stale, without hammering inactive
+            // accounts on every tab click.
+            Task { await model.refreshUsageIfStale() }
         }
     }
 
@@ -119,8 +119,12 @@ private struct AccountRow: View {
                         if account.isActive {
                             StatusBadge(text: "当前", color: RelayTheme.green)
                         }
-                        if !account.isHealthy {
+                        if account.needsRelogin {
                             StatusBadge(text: "需重登", color: RelayTheme.red)
+                        } else if account.hasSyncError {
+                            StatusBadge(text: "同步失败", color: RelayTheme.amber)
+                        } else if !account.isHealthy {
+                            StatusBadge(text: account.statusLabel, color: RelayTheme.red)
                         } else if account.isExhausted {
                             StatusBadge(text: "额度耗尽", color: RelayTheme.red)
                         }
@@ -197,7 +201,7 @@ private struct AccountDetailView: View {
             VStack(alignment: .leading, spacing: 18) {
                 header
 
-                if !account.isHealthy {
+                if account.needsRelogin {
                     HudNotice(color: RelayTheme.red) {
                         HStack(spacing: 10) {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -207,6 +211,27 @@ private struct AccountDetailView: View {
                                 Text(L10n.text("refresh token 已失效或被撤销。请重新添加/登录后再切换。"))
                                     .font(.caption)
                                     .foregroundStyle(RelayTheme.textMuted)
+                                if let detail = account.lastError, !detail.isEmpty {
+                                    Text(detail)
+                                        .font(.caption2)
+                                        .foregroundStyle(RelayTheme.textMuted)
+                                        .textSelection(.enabled)
+                                }
+                            }
+                            Spacer()
+                        }
+                    }
+                } else if account.hasSyncError || !account.isHealthy {
+                    HudNotice(color: RelayTheme.amber) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(RelayTheme.amber)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L10n.text("同步失败")).font(.callout.weight(.semibold))
+                                Text(account.lastError ?? L10n.text("请检查网络后重试，切换时会自动重新校验。"))
+                                    .font(.caption)
+                                    .foregroundStyle(RelayTheme.textMuted)
+                                    .textSelection(.enabled)
                             }
                             Spacer()
                         }
@@ -220,7 +245,7 @@ private struct AccountDetailView: View {
                                 .foregroundStyle(RelayTheme.red)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(L10n.text("当前额度已耗尽")).font(.callout.weight(.semibold))
-                                Text(L10n.text("CLI 默认会拒绝切换到该账号；等待重置或使用 --force。"))
+                                Text(L10n.text("请等待额度重置后再切换，或先选择其他有额度的账号。"))
                                     .font(.caption)
                                     .foregroundStyle(RelayTheme.textMuted)
                             }
@@ -333,7 +358,7 @@ private struct AccountDetailView: View {
                                     Label(L10n.text("切换到此账号并恢复"), systemImage: "arrow.triangle.2.circlepath")
                                 }
                                 .buttonStyle(HudButtonStyle(primary: true))
-                                .disabled(!account.isHealthy || account.isExhausted || model.isSwitching || model.isOpeningProcess)
+                                .disabled(account.needsRelogin || account.isExhausted || model.isSwitching || model.isOpeningProcess)
                             }
                             Button {
                                 model.requestOpenApp()
@@ -363,6 +388,7 @@ private struct AccountDetailView: View {
             RenameAccountSheet(account: account)
                 .environmentObject(model)
                 .environmentObject(preferences)
+                .environment(\.locale, preferences.language.locale)
         }
         .onAppear {
             guard !initialized else { return }
@@ -416,7 +442,9 @@ private struct AccountDetailView: View {
                     }
                     StatusBadge(
                         text: account.statusLabel,
-                        color: account.isHealthy && !account.isExhausted ? RelayTheme.accent : RelayTheme.red,
+                        color: account.needsRelogin || account.isExhausted
+                            ? RelayTheme.red
+                            : (account.hasSyncError || !account.isHealthy ? RelayTheme.amber : RelayTheme.accent),
                         icon: account.isHealthy && !account.isExhausted ? "checkmark.shield" : "exclamationmark.triangle"
                     )
                 }

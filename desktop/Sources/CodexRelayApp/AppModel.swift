@@ -95,12 +95,13 @@ final class AppModel: ObservableObject {
     @Published var accountFilter: String?
     @Published var isRefreshing = false
     @Published var isRefreshingUsage = false
-    private var pendingFullUsageRefresh = false
     @Published var isRefreshingDoctor = false
     @Published var usageSyncError: String?
     @Published var lastUsageSync: Date?
     @Published var isSwitching = false
     @Published var isOpeningProcess = false
+    private var isLaunchingProcessAction = false
+    private var lastFullUsageSync: Date?
     @Published var switchStage = "准备中…"
     @Published var switchLog: [String] = []
     @Published var isAdding = false
@@ -229,7 +230,7 @@ final class AppModel: ObservableObject {
                 await self?.refreshActiveUsage(auto: true)
             }
         }
-        fullUsageTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+        fullUsageTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 await self?.refreshUsage(silent: true)
             }
@@ -263,11 +264,13 @@ final class AppModel: ObservableObject {
         guard let preferences = autoPreferences,
               preferences.autoContinueEnabled,
               preferences.autoAllowRestart,
+              !preferences.hasPendingAutoSettingsSave,
               preferences.autoInterval.isFinite, preferences.autoInterval > 0,
               Date().timeIntervalSince(lastAutoCheck) >= preferences.autoInterval,
               !autoCheckRunning,
               !isSwitching,
               !isOpeningProcess,
+              !isLaunchingProcessAction,
               !isAdding,
               !isRefreshing,
               !isRefreshingUsage,
@@ -433,7 +436,7 @@ final class AppModel: ObservableObject {
     }
 
     func refreshAll(silent: Bool = false) async {
-        guard !isRefreshing, !isRefreshingUsage, !isSwitching, !isAdding else { return }
+        guard !isRefreshing, !isRefreshingUsage, !isSwitching, !isOpeningProcess, !isLaunchingProcessAction, !isAdding, !autoCheckRunning else { return }
         isRefreshing = true
         defer { isRefreshing = false }
         let backend = self.backend
@@ -464,29 +467,26 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func refreshUsage(silent: Bool = false) async {
-        guard !isSwitching, !isAdding, !isOpeningProcess else { return }
-        if isRefreshingUsage {
-            // Active-account polling can overlap the 30s full pass. Queue one
-            // retry instead of dropping the pass and leaving other rows stale.
-            pendingFullUsageRefresh = true
+    func refreshUsageIfStale(maxAge: TimeInterval = 60) async {
+        if let last = lastFullUsageSync, Date().timeIntervalSince(last) < maxAge {
             return
         }
+        await refreshUsage(silent: true)
+    }
+
+    func refreshUsage(silent: Bool = false) async {
+        guard !isRefreshingUsage, !isSwitching, !isAdding, !isOpeningProcess, !isLaunchingProcessAction, !autoCheckRunning else { return }
         isRefreshingUsage = true
-        defer {
-            isRefreshingUsage = false
-            if pendingFullUsageRefresh {
-                pendingFullUsageRefresh = false
-                Task { @MainActor in await self.refreshUsage(silent: true) }
-            }
-        }
+        defer { isRefreshingUsage = false }
         let backend = self.backend
         do {
             let refreshed = try await detached { try backend.listAccounts(refresh: true) }
             accounts = refreshed
             dataGeneration += 1
-            lastUsageSync = Date()
-            let failed = refreshed.filter { $0.status != "ok" }
+            let now = Date()
+            lastUsageSync = now
+            lastFullUsageSync = now
+            let failed = refreshed.filter { !$0.isHealthy }
             usageSyncError = failed.isEmpty
                 ? nil
                 : L10n.format("%d 个账号同步失败：%@", failed.count, failed.map(\.alias).joined(separator: ", "))
@@ -506,7 +506,7 @@ final class AppModel: ObservableObject {
     /// non-active accounts use the isolated app-server path. Callers pass
     /// `auto: true` for timers and `auto: false` for explicit user actions.
     func refreshUsageForAccount(_ account: RelayAccount, auto: Bool = true) async {
-        guard !isRefreshingUsage, !isSwitching, !isAdding, !isOpeningProcess else { return }
+        guard !isRefreshingUsage, !isSwitching, !isAdding, !isOpeningProcess, !isLaunchingProcessAction, !autoCheckRunning else { return }
         isRefreshingUsage = true
         defer { isRefreshingUsage = false }
         let backend = self.backend
@@ -622,8 +622,13 @@ final class AppModel: ObservableObject {
     }
 
     func requestSwitch(_ account: RelayAccount, threadID: String? = nil) {
-        guard !isSwitching, !isOpeningProcess else { return }
-        guard account.isHealthy else {
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
+        guard !isSwitching, !isOpeningProcess, !isLaunchingProcessAction else { return }
+        guard !account.needsRelogin else {
             presentError(L10n.text("账号不可用"), L10n.format("%@ 需要重新登录，暂时不能切换。", account.preferredName))
             return
         }
@@ -639,7 +644,12 @@ final class AppModel: ObservableObject {
     }
 
     func requestRestart(threadID: String? = nil) {
-        guard !isSwitching, !isOpeningProcess else { return }
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
+        guard !isSwitching, !isOpeningProcess, !isLaunchingProcessAction else { return }
         pendingProcessAction = PendingProcessAction(
             account: nil,
             threadID: threadID ?? bestThreadID,
@@ -649,10 +659,21 @@ final class AppModel: ObservableObject {
 
     func confirmPendingProcessAction(threadID: String? = nil, continuationPrompt: String? = nil, confirmedIdle: Bool = false) {
         guard let pending = pendingProcessAction else { return }
+        if autoCheckRunning {
+            pendingProcessAction = nil
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
+        guard !isSwitching, !isOpeningProcess, !isLaunchingProcessAction else { return }
         let action = PendingProcessAction(account: pending.account, threadID: threadID ?? pending.threadID, kind: pending.kind, continuationPrompt: continuationPrompt, confirmedIdle: confirmedIdle)
+        // Set the launch guard BEFORE clearing pendingProcessAction so the 1s
+        // auto timer or another click cannot slip in during sheet dismissal.
+        isLaunchingProcessAction = true
         pendingProcessAction = nil
         // Let the confirmation sheet dismiss before presenting the next step.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            defer { self.isLaunchingProcessAction = false }
             switch action.kind {
             case .restart:
                 self.performRestart(threadID: action.threadID)
@@ -671,7 +692,12 @@ final class AppModel: ObservableObject {
     }
 
     private func performSwitch(_ account: RelayAccount, threadID: String, continuationPrompt: String? = nil, confirmedIdle: Bool = false) {
-        guard !isSwitching, !autoCheckRunning else { return }
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
+        guard !isSwitching else { return }
         isSwitching = true
         switchStage = "准备切换…"
         switchLog = [
@@ -699,8 +725,12 @@ final class AppModel: ObservableObject {
                 if let error = result.continueError {
                     presentError(L10n.text("账号已切换，原聊天未续跑"), error)
                 }
-                let mode = result.mode ?? "desktop"
-                toast = L10n.format("已切换到 %@（%@，%d ms）", result.to?.alias ?? alias, mode, result.durationMs ?? 0)
+                if result.changed == false {
+                    toast = L10n.text("目标账号已经是当前账号")
+                } else {
+                    let mode = result.mode ?? "desktop"
+                    toast = L10n.format("已切换到 %@（%@，%d ms）", result.to?.alias ?? alias, mode, result.durationMs ?? 0)
+                }
                 clearToastLater()
                 await refreshAll()
                 await refreshActiveUsage(auto: true)
@@ -713,6 +743,11 @@ final class AppModel: ObservableObject {
     }
 
     private func performRestart(threadID: String) {
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
         guard !isSwitching else { return }
         isSwitching = true
         switchStage = "准备重启…"
@@ -743,6 +778,11 @@ final class AppModel: ObservableObject {
     }
 
     private func performOpen(_ action: PendingProcessAction) {
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
         guard !isOpeningProcess, !isSwitching else { return }
         isOpeningProcess = true
         let backend = self.backend
@@ -773,8 +813,29 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func nextUniqueAlias(base: String) -> String {
+        let existing = Set(accounts.map { $0.alias.lowercased() })
+        if !existing.contains(base.lowercased()) {
+            return base
+        }
+        var index = 2
+        while existing.contains("\(base)\(index)".lowercased()) {
+            index += 1
+        }
+        return "\(base)\(index)"
+    }
+
+    func nextNumberedAlias(prefix: String = "account") -> String {
+        let existing = Set(accounts.map { $0.alias.lowercased() })
+        var index = max(1, accounts.count + 1)
+        while existing.contains("\(prefix)\(index)".lowercased()) {
+            index += 1
+        }
+        return "\(prefix)\(index)"
+    }
+
     func beginAddAccount() {
-        guard !isSwitching, pendingProcessAction == nil else { return }
+        guard !isSwitching, !isLaunchingProcessAction, !autoCheckRunning, pendingProcessAction == nil else { return }
         addLog = []
         showingAddSheet = true
     }
@@ -819,8 +880,8 @@ final class AppModel: ObservableObject {
     }
 
     func captureCurrentAccount() {
-        guard !isSwitching else { return }
-        let alias = "captured"
+        guard !isSwitching, !isOpeningProcess, !isLaunchingProcessAction, !autoCheckRunning else { return }
+        let alias = nextUniqueAlias(base: "captured")
         let backend = self.backend
         Task {
             do {
@@ -835,7 +896,12 @@ final class AppModel: ObservableObject {
     }
 
     func requestOpenThread(_ threadID: String) {
-        guard !isSwitching, !isOpeningProcess else { return }
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
+        guard !isSwitching, !isOpeningProcess, !isLaunchingProcessAction else { return }
         pendingProcessAction = PendingProcessAction(
             account: nil,
             threadID: threadID,
@@ -888,7 +954,12 @@ final class AppModel: ObservableObject {
     }
 
     func requestOpenApp() {
-        guard !isSwitching, !isOpeningProcess else { return }
+        if autoCheckRunning {
+            toast = L10n.text("自动续跑检查正在进行，请稍后再试")
+            clearToastLater()
+            return
+        }
+        guard !isSwitching, !isOpeningProcess, !isLaunchingProcessAction else { return }
         pendingProcessAction = PendingProcessAction(
             account: nil,
             threadID: bestThreadID,

@@ -60,7 +60,6 @@
 "CLI 进程" = "CLI processes";
 "CLI 进程: {items}" = "CLI processes: {items}";
 "CLI 退出码 %d" = "CLI exit code %d";
-"CLI 默认会拒绝切换到该账号；等待重置或使用 --force。" = "The CLI will refuse to switch to this account; wait for reset or use --force.";
 "CODEX_HOME: {path}" = "CODEX_HOME: {path}";
 "ChatGPT App 已启动，但 Codex app-server 未在 45 秒内就绪" = "The ChatGPT app started, but its Codex app-server was not ready within 45 seconds";
 "ChatGPT App 已退出" = "ChatGPT app quit";
@@ -292,6 +291,7 @@
 "参数 {argument}：无效数值 “{value}”" = "Argument {argument}: invalid number “{value}”";
 "参数 {argument}：无效选项 “{value}”（可选值：{choices}）" = "Argument {argument}: invalid choice “{value}” (choose from {choices})";
 "参数 {argument}：需要一个值" = "Argument {argument}: expected one value";
+"发送续跑提示词需要指定 --thread <会话 UUID>" = "Sending a continuation prompt requires specifying --thread <session UUID>.";
 "取消" = "Cancel";
 "取消登录" = "Cancel sign-in";
 "另一个 codex-relay 操作正在进行（锁文件：{path}）。稍后重试。" = "Another codex-relay operation is in progress (lock file: {path}). Try again later.";
@@ -443,6 +443,7 @@
 "当前账号已捕获为 %@" = "Active account captured as %@";
 "当前账号是 {current}，与目标账号 {target} 不同；去掉 --no-switch 以执行切换。" = "The active account is {current}, which differs from the target account {target}; remove --no-switch to perform the switch.";
 "当前账号未纳入账号仓库；请先 add --capture" = "The active account is not in the account store; run add --capture first";
+"当前账号额度不可用，未执行切换" = "Active account quota is unavailable; no switch was performed.";
 "当前额度已耗尽" = "Current quota is exhausted";
 "当前：%@ · %@" = "Current: %@ · %@";
 "影响 Token、缓存和推理等大数字的显示方式；简写只改变展示，不改变统计数据。" = "Controls how large Token, cache, and reasoning numbers are shown. Compact mode only changes display, not statistics.";
@@ -670,7 +671,7 @@
 "活动账号" = "Active account";
 "活动账号每 10 秒同步；上次同步" = "Active account syncs every 10 seconds; last sync";
 "活动账号每 10 秒同步；上次同步 %@。" = "Active account syncs every 10 seconds; last sync %@.";
-"活动账号每 10 秒同步；启动时及每 30 秒全量刷新。" = "The active account syncs every 10 seconds; a full refresh runs at startup and every 30 seconds.";
+"活动账号每 10 秒同步；启动时及每 5 分钟全量刷新。" = "Active account syncs every 10 seconds; full refresh runs on launch and every 5 minutes.";
 "浅色" = "Light";
 "浅色档案界面" = "Light theme interface";
 "浏览器中请选择要添加的那个账号。" = "In the browser, choose the account you want to add.";
@@ -724,6 +725,7 @@
 "目标文件已存在；使用 --yes 覆盖" = "The target file already exists; use --yes to overwrite";
 "目标账号" = "Target account";
 "目标账号凭据与账号元数据不一致，拒绝切换" = "The target account credentials do not match its metadata; switch refused";
+"目标账号已经是当前账号" = "The target account is already active.";
 "目标账号需要重新登录" = "Target account needs to sign in again";
 "目标账号额度已耗尽" = "Target account quota exhausted";
 "目标账号：%@" = "Target account: %@";
@@ -792,11 +794,14 @@
 "自动接力会重启 ChatGPT，已默认禁用。" = "Auto handoff restarts ChatGPT and is disabled by default.";
 "自动接力守护会重启 ChatGPT，已默认禁用。请先使用 `auto --once --dry-run` 查看建议；确认要长期自动重启再加 --allow-chatgpt-restart --yes。" = "The auto-handoff daemon restarts ChatGPT and is disabled by default. Run `auto --once --dry-run` to see suggestions; add --allow-chatgpt-restart --yes only if you want long-running automatic restarts.";
 "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。" = "Auto-handoff daemon started (threshold {threshold}%, interval {interval}s). Press Ctrl-C to exit.";
+"自动接力已启用：剩余额度低于 %d%% 时将自动切换账号并重启 ChatGPT。可在设置页随时关闭。" = "Auto-relay is enabled: when remaining quota falls below %d%%, Codex Relay will automatically switch accounts and restart ChatGPT. You can disable this anytime in Settings.";
 "自动续跑" = "Auto-continue";
 "自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。" = "Auto-continue checks on an interval while the app is running and stops when the app quits. At the threshold it switches accounts and sends the continuation prompt to the original thread.";
 "自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true" = "Auto-continue is not enabled. Enable it in Settings or set enabled to true in auto.json.";
+"自动续跑检查正在进行，请稍后再试" = "An auto-continue check is in progress. Please try again in a moment.";
 "自动续跑检查被阻止" = "Auto-continue check was blocked.";
 "自动续跑设置已保存" = "Auto-continue settings saved.";
+"自动续跑设置已变更，取消本次切换" = "Auto-continue settings changed; cancelling this switch.";
 "自定义名称会保存在账号仓库中，刷新和切换后仍会保留。" = "Custom names are saved in the account store and survive refresh and switching.";
 "被监控轮次已正常结束，不再续跑" = "Monitored turn completed normally; no continuation";
 "要恢复的会话 ID，或 last/none" = "Session ID to restore, or last/none";
@@ -837,7 +842,9 @@
 "请先在 ChatGPT/Codex 中登录，或添加账号。" = "Sign in to ChatGPT/Codex first, or add an account.";
 "请先在 Codex 中打开目标聊天；开始后会检查原轮次、模型、目录和权限。" = "Open the target chat in Codex first. The guard checks its turn, model, directory and permissions.";
 "请提供账号别名" = "Please provide an account alias";
+"请检查网络后重试，切换时会自动重新校验。" = "Check your network and retry; switching will re-verify the account automatically.";
 "请求" = "Requests";
+"请等待额度重置后再切换，或先选择其他有额度的账号。" = "Wait for the quota to reset before switching, or choose another account with remaining quota.";
 "请输入一个容易辨认的账号名称。" = "Enter a name that is easy to recognize.";
 "请选择聊天" = "Select a chat";
 "读取于 %@" = "Loaded at %@";

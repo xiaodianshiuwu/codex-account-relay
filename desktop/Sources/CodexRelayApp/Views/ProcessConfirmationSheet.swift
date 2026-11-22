@@ -59,7 +59,7 @@ struct ProcessConfirmationSheet: View {
                     HazardStripe(color: RelayTheme.amber, height: 2)
                         .opacity(0.7)
 
-                    if !action.kind.isOpen, let account = action.account, account.isExhausted || !account.isHealthy {
+                    if !action.kind.isOpen, let account = action.account, account.isExhausted || account.needsRelogin {
                         HudNotice(color: RelayTheme.red) {
                             HStack(alignment: .top, spacing: 9) {
                                 Image(systemName: "exclamationmark.triangle.fill")
@@ -70,6 +70,21 @@ struct ProcessConfirmationSheet: View {
                                     Text((account.isExhausted
                                          ? "CLI 会拒绝切换（除非使用 --force）；建议先换一个有额度的账号。"
                                          : "refresh token 已失效，切换会失败；请先重新登录。").localized(locale: locale))
+                                        .font(.caption)
+                                        .foregroundStyle(RelayTheme.textMuted)
+                                }
+                                Spacer()
+                            }
+                        }
+                    } else if !action.kind.isOpen, let account = action.account, account.hasSyncError {
+                        HudNotice(color: RelayTheme.amber) {
+                            HStack(alignment: .top, spacing: 9) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(RelayTheme.amber)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(L10n.text("同步失败"))
+                                        .font(.callout.weight(.semibold))
+                                    Text(account.lastError ?? L10n.text("请检查网络后重试，切换时会自动重新校验。"))
                                         .font(.caption)
                                         .foregroundStyle(RelayTheme.textMuted)
                                 }
@@ -170,7 +185,7 @@ struct ProcessConfirmationSheet: View {
                 }
                 .buttonStyle(HudButtonStyle(primary: true))
                 .keyboardShortcut(.defaultAction)
-                .disabled(!confirmed || (continueAfterSwitch && (selectedThreadID == "none" || continuationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)) || (!action.kind.isOpen && (action.account?.isHealthy == false || action.account?.isExhausted == true)))
+                .disabled(!confirmed || (continueAfterSwitch && (selectedThreadID == "none" || continuationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)) || (!action.kind.isOpen && (action.account?.needsRelogin == true || action.account?.isExhausted == true)))
             }
         }
         .padding(22)

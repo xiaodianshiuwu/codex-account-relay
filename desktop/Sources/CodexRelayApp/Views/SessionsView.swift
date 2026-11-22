@@ -479,7 +479,7 @@ private struct SessionDetailView: View {
                         Label(L10n.format("切换到 %@ 并打开", creator.preferredName), systemImage: "arrow.triangle.2.circlepath")
                     }
                     .buttonStyle(HudButtonStyle(primary: true))
-                    .disabled(!creator.isHealthy || creator.isExhausted || model.isSwitching || model.isOpeningProcess)
+                    .disabled(creator.needsRelogin || creator.isExhausted || model.isSwitching || model.isOpeningProcess)
                 }
             }
             Spacer()
@@ -633,14 +633,21 @@ private struct SessionDetailView: View {
         }
     }
 
+    private enum TurnColumnWidth {
+        static let index: CGFloat = 28
+        static let requests: CGFloat = 48
+        static let firstInput: CGFloat = 100
+        static let cacheRatio: CGFloat = 88
+    }
+
     private var turnHeader: some View {
-        HStack {
-            Text("#").frame(width: 28, alignment: .leading)
-            Text(L10n.text("请求")).frame(width: 48, alignment: .trailing)
-            Text(L10n.text("首轮输入 Token")).frame(width: 100, alignment: .trailing)
-            Text(L10n.text("首轮缓存命中率")).frame(width: 88, alignment: .trailing)
-            Text(L10n.text("末轮缓存命中率")).frame(width: 88, alignment: .trailing)
-            Text(L10n.text("累计缓存命中率")).frame(width: 88, alignment: .trailing)
+        HStack(spacing: 8) {
+            Text("#").frame(width: TurnColumnWidth.index, alignment: .leading)
+            Text(L10n.text("请求")).frame(width: TurnColumnWidth.requests, alignment: .trailing)
+            Text(L10n.text("首轮输入 Token")).frame(width: TurnColumnWidth.firstInput, alignment: .trailing)
+            Text(L10n.text("首轮缓存命中率")).frame(width: TurnColumnWidth.cacheRatio, alignment: .trailing)
+            Text(L10n.text("末轮缓存命中率")).frame(width: TurnColumnWidth.cacheRatio, alignment: .trailing)
+            Text(L10n.text("累计缓存命中率")).frame(width: TurnColumnWidth.cacheRatio, alignment: .trailing)
             Spacer()
         }
         .font(.hudLabel(8))
@@ -648,15 +655,15 @@ private struct SessionDetailView: View {
     }
 
     private func turnRow(index: Int, turn: RelayTurnUsage) -> some View {
-        HStack {
-            Text("\(index)").frame(width: 28, alignment: .leading)
-            Text("\(turn.requests ?? 0)").frame(width: 48, alignment: .trailing)
-            Text(tokens(turn.firstInputTokens)).frame(width: 78, alignment: .trailing)
-            Text(percent(turn.firstCacheRatio)).frame(width: 68, alignment: .trailing)
+        HStack(spacing: 8) {
+            Text("\(index)").frame(width: TurnColumnWidth.index, alignment: .leading)
+            Text("\(turn.requests ?? 0)").frame(width: TurnColumnWidth.requests, alignment: .trailing)
+            Text(tokens(turn.firstInputTokens)).frame(width: TurnColumnWidth.firstInput, alignment: .trailing)
+            Text(percent(turn.firstCacheRatio)).frame(width: TurnColumnWidth.cacheRatio, alignment: .trailing)
                 .foregroundStyle(RelayTheme.cacheColor(turn.firstCacheRatio ?? 0))
-            Text(percent(turn.lastCacheRatio)).frame(width: 68, alignment: .trailing)
+            Text(percent(turn.lastCacheRatio)).frame(width: TurnColumnWidth.cacheRatio, alignment: .trailing)
                 .foregroundStyle(RelayTheme.cacheColor(turn.lastCacheRatio ?? 0))
-            Text(percent(turn.totalCacheRatio)).frame(width: 68, alignment: .trailing)
+            Text(percent(turn.totalCacheRatio)).frame(width: TurnColumnWidth.cacheRatio, alignment: .trailing)
                 .foregroundStyle(RelayTheme.cacheColor(turn.totalCacheRatio ?? 0))
             Spacer()
         }

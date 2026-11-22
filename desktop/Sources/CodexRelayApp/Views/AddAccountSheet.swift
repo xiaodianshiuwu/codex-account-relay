@@ -9,7 +9,7 @@ struct AddAccountSheet: View {
 
     private var effectiveAlias: String {
         let trimmed = alias.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "account\(model.accounts.count + 1)" : trimmed
+        return trimmed.isEmpty ? model.nextNumberedAlias(prefix: "account") : trimmed
     }
 
     private var aliasValid: Bool {

@@ -30,8 +30,19 @@ struct OverviewView: View {
                 if let auth = model.unmanagedAuth {
                     unmanagedBanner(auth)
                 }
-                if let account = model.currentAccount, account.status == "needs_relogin" {
+                if let account = model.currentAccount, account.needsRelogin {
                     reloginBanner(account)
+                } else if let account = model.currentAccount, account.hasSyncError, model.usageSyncError == nil {
+                    HudNotice(color: RelayTheme.amber) {
+                        HStack(spacing: 9) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(RelayTheme.amber)
+                            Text(L10n.format("额度同步失败：%@", account.lastError ?? L10n.text("请检查网络后重试，切换时会自动重新校验。")))
+                                .font(.caption)
+                                .foregroundStyle(RelayTheme.textMuted)
+                            Spacer()
+                        }
+                    }
                 }
 
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
@@ -57,15 +68,26 @@ struct OverviewView: View {
         .background(Color.clear)
     }
 
+    private var isAutoRestartActive: Bool {
+        preferences.autoContinueEnabled && preferences.autoAllowRestart
+    }
+
     private var safetyBanner: some View {
-        HudNotice(color: RelayTheme.accent) {
+        HudNotice(color: isAutoRestartActive ? RelayTheme.amber : RelayTheme.accent) {
             HStack(spacing: 10) {
-                Image(systemName: "hand.raised.fill")
+                Image(systemName: isAutoRestartActive ? "bolt.badge.automatic.fill" : "hand.raised.fill")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(RelayTheme.accent)
-                Text(L10n.text("安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。"))
-                    .font(.caption)
-                    .foregroundStyle(RelayTheme.textMuted)
+                    .foregroundStyle(isAutoRestartActive ? RelayTheme.amber : RelayTheme.accent)
+                Text(
+                    isAutoRestartActive
+                        ? L10n.format(
+                            "自动接力已启用：剩余额度低于 %d%% 时将自动切换账号并重启 ChatGPT。可在设置页随时关闭。",
+                            Int(preferences.autoRemainingThreshold)
+                        )
+                        : L10n.text("安全模式：工具不会在后台自动启停 ChatGPT。每次切换/重启/打开会话都必须先确认，CLI 需显式 --allow-chatgpt-restart。")
+                )
+                .font(.caption)
+                .foregroundStyle(RelayTheme.textMuted)
                 Spacer()
             }
         }
@@ -121,7 +143,10 @@ struct OverviewView: View {
                     }
                     HudDivider()
                     KVRow(key: "账号 ID", value: account.accountId ?? "-", monospaced: true)
-                    KVRow(key: "refresh token", value: account.status == "ok" ? L10n.text("有效/可续期") : (account.status ?? "-"))
+                    KVRow(
+                        key: "refresh token",
+                        value: account.isHealthy ? L10n.text("有效/可续期") : account.statusLabel.localized(locale: locale)
+                    )
                     KVRow(key: "最近校验", value: RelayFormat.localTimestamp(account.lastVerifiedAt ?? account.usage?.checkedAt, locale: locale))
                 } else if let auth = model.status?.auth {
                     Text(auth.email ?? "-").font(.hudDisplay(19))

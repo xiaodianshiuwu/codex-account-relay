@@ -38,7 +38,7 @@ struct MenuBarView: View {
                         } ?? L10n.text("未刷新"))
                     }
                 }
-                .disabled(account.isActive || !account.isHealthy || account.isExhausted || model.isOpeningProcess)
+                .disabled(account.isActive || account.needsRelogin || account.isExhausted || model.isOpeningProcess)
             }
         }
 
@@ -51,7 +51,7 @@ struct MenuBarView: View {
             Task { await model.refreshUsage() }
         }
         .disabled(model.isRefreshingUsage || model.isSwitching)
-        Menu("外观") {
+        Menu(L10n.text("外观")) {
             Picker(L10n.text("外观"), selection: $preferences.appearance) {
                 ForEach(RelayAppearance.allCases) { appearance in
                     Label(L10n.text(appearance.title), systemImage: appearance.icon).tag(appearance)

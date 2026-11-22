@@ -233,12 +233,6 @@
     "zh-Hans": "CLI 退出码 %d",
     "zh-Hant": "CLI 退出碼 %d"
   },
-  "CLI 默认会拒绝切换到该账号；等待重置或使用 --force。": {
-    "en": "The CLI will refuse to switch to this account; wait for reset or use --force.",
-    "ja": "CLI はこのアカウントへの切り替えを拒否します。リセットを待つか --force を使用してください。",
-    "zh-Hans": "CLI 默认会拒绝切换到该账号；等待重置或使用 --force。",
-    "zh-Hant": "CLI 預設會拒絕切換到該帳號；請等待重設或使用 --force。"
-  },
   "ChatGPT App 已退出": {
     "en": "ChatGPT app quit",
     "ja": "ChatGPT App を終了しました",
@@ -2297,11 +2291,11 @@
     "zh-Hans": "活动账号每 10 秒同步；上次同步 %@。",
     "zh-Hant": "使用中帳號每 10 秒同步；上次同步 %@。"
   },
-  "活动账号每 10 秒同步；启动时及每 30 秒全量刷新。": {
-    "en": "The active account syncs every 10 seconds; a full refresh runs at startup and every 30 seconds.",
-    "ja": "アクティブなアカウントは 10 秒ごとに同期し、起動時と 30 秒ごとに全体を更新します。",
-    "zh-Hans": "活动账号每 10 秒同步；启动时及每 30 秒全量刷新。",
-    "zh-Hant": "活動帳號每 10 秒同步；啟動時及每 30 秒全量更新。"
+  "活动账号每 10 秒同步；启动时及每 5 分钟全量刷新。": {
+    "en": "Active account syncs every 10 seconds; full refresh runs on launch and every 5 minutes.",
+    "ja": "アクティブアカウントは10秒ごとに同期し、起動時と5分ごとに全アカウントを更新します。",
+    "zh-Hans": "活动账号每 10 秒同步；启动时及每 5 分钟全量刷新。",
+    "zh-Hant": "使用中帳號每 10 秒同步；啟動時及每 5 分鐘全量重新整理。"
   },
   "浅色档案界面": {
     "en": "Light theme interface",
@@ -2452,6 +2446,12 @@
     "ja": "対象アカウント",
     "zh-Hans": "目标账号",
     "zh-Hant": "目標帳號"
+  },
+  "目标账号已经是当前账号": {
+    "en": "The target account is already active.",
+    "ja": "対象アカウントはすでにアクティブです。",
+    "zh-Hans": "目标账号已经是当前账号",
+    "zh-Hant": "目標帳號已經是目前帳號"
   },
   "目标账号需要重新登录": {
     "en": "Target account needs to sign in again",
@@ -2771,6 +2771,12 @@
     "zh-Hans": "自动恢复备份并重启 ChatGPT",
     "zh-Hant": "自動恢復備份並重新啟動 ChatGPT"
   },
+  "自动接力已启用：剩余额度低于 %d%% 时将自动切换账号并重启 ChatGPT。可在设置页随时关闭。": {
+    "en": "Auto-relay is enabled: when remaining quota falls below %d%%, Codex Relay will automatically switch accounts and restart ChatGPT. You can disable this anytime in Settings.",
+    "ja": "自動リレー有効：残りの利用枠が %d%% を下回ると、自動でアカウントを切り替えて ChatGPT を再起動します。設定からいつでもオフにできます。",
+    "zh-Hans": "自动接力已启用：剩余额度低于 %d%% 时将自动切换账号并重启 ChatGPT。可在设置页随时关闭。",
+    "zh-Hant": "自動接力已啟用：剩餘額度低於 %d%% 時將自動切換帳號並重啟 ChatGPT。可在設定頁隨時關閉。"
+  },
   "自动续跑": {
     "en": "Auto-continue",
     "ja": "自動継続",
@@ -2782,6 +2788,12 @@
     "ja": "自動継続は App の実行中に一定間隔で確認し、App を終了すると停止します。しきい値に達するとアカウントを切り替え、元の thread に継続プロンプトを送ります。",
     "zh-Hans": "自动续跑会在 App 运行时按间隔检查；退出 App 后停止。达到阈值会切换账号并在原 thread 发送续跑提示词。",
     "zh-Hant": "自動續跑會在 App 執行時按間隔檢查；結束 App 後停止。達到閾值會切換帳號並在原 thread 傳送續跑提示詞。"
+  },
+  "自动续跑检查正在进行，请稍后再试": {
+    "en": "An auto-continue check is in progress. Please try again in a moment.",
+    "ja": "自動再開チェックを実行中です。しばらくしてからもう一度お試しください。",
+    "zh-Hans": "自动续跑检查正在进行，请稍后再试",
+    "zh-Hant": "自動續跑檢查正在進行，請稍後再試"
   },
   "自动续跑检查被阻止": {
     "en": "Auto-continue check was blocked.",
@@ -2927,11 +2939,23 @@
     "zh-Hans": "请先在 Codex 中打开目标聊天；开始后会检查原轮次、模型、目录和权限。",
     "zh-Hant": "請先在 Codex 中開啟目標聊天；開始後會檢查原輪次、模型、目錄和權限。"
   },
+  "请检查网络后重试，切换时会自动重新校验。": {
+    "en": "Check your network and retry; switching will re-verify the account automatically.",
+    "ja": "ネットワークを確認して再試行してください。切り替え時に自動で再検証されます。",
+    "zh-Hans": "请检查网络后重试，切换时会自动重新校验。",
+    "zh-Hant": "請檢查網路後重試，切換時會自動重新校驗。"
+  },
   "请求": {
     "en": "Requests",
     "ja": "リクエスト",
     "zh-Hans": "请求",
     "zh-Hant": "請求"
+  },
+  "请等待额度重置后再切换，或先选择其他有额度的账号。": {
+    "en": "Wait for the quota to reset before switching, or choose another account with remaining quota.",
+    "ja": "利用枠のリセットを待ってから切り替えるか、残量のある別のアカウントを選択してください。",
+    "zh-Hans": "请等待额度重置后再切换，或先选择其他有额度的账号。",
+    "zh-Hant": "請等待額度重設後再切換，或先選擇其他有額度的帳號。"
   },
   "请输入一个容易辨认的账号名称。": {
     "en": "Enter a name that is easy to recognize.",

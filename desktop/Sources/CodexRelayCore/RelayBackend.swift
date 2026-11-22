@@ -127,11 +127,11 @@ public final class RelayBackend: @unchecked Sendable {
     }
 
     public func usage(alias: String? = nil) throws -> [RelayAccount] {
-        var args: [String] = ["usage"]
+        var args: [String] = ["usage", "--json"]
         if let alias, !alias.isEmpty {
+            args.append("--")
             args.append(alias)
         }
-        args.append("--json")
         let result = try runJSON(RelayAccountList.self, args, timeout: 180)
         return result.profiles
     }
@@ -139,8 +139,7 @@ public final class RelayBackend: @unchecked Sendable {
     public func sessions(limit: Int = 0, search: String? = nil) throws -> [RelaySession] {
         var args = ["sessions", "--json", "--limit", "\(max(0, limit))"]
         if let search, !search.isEmpty {
-            args.append("--search")
-            args.append(search)
+            args.append("--search=\(search)")
         }
         let result = try runJSON(RelaySessionList.self, args, timeout: 60)
         return result.threads
@@ -151,20 +150,20 @@ public final class RelayBackend: @unchecked Sendable {
     }
 
     public func inspect(threadID: String) throws -> RelayInspectReport {
-        try runJSON(RelayInspectReport.self, ["inspect", threadID, "--json"], timeout: 180)
+        try runJSON(RelayInspectReport.self, ["inspect", "--json", "--", threadID], timeout: 180)
     }
 
     public func setDisplayName(alias: String, displayName: String) throws -> RelayAccount {
         let result = try runJSON(
             RelayAccountLabelResult.self,
-            ["label", alias, displayName, "--json"],
+            ["label", "--json", "--", alias, displayName],
             timeout: 30
         )
         return result.profile
     }
 
     public func captureCurrent(alias: String) throws {
-        let output = try run(["add", "--capture", alias, "--json"], timeout: 30)
+        let output = try run(["add", "--capture", "--json", "--", alias], timeout: 30)
         if let data = output.data(using: .utf8),
            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            object["ok"] as? Bool == true {
@@ -184,9 +183,9 @@ public final class RelayBackend: @unchecked Sendable {
     ) throws -> RelaySwitchResult {
         let binary = try requireBinary()
         var args = [
-            "switch", alias,
+            "switch",
             "--desktop",
-            "--thread", threadID,
+            "--thread=\(threadID)",
             "--json",
             "--progress",
         ]
@@ -203,6 +202,7 @@ public final class RelayBackend: @unchecked Sendable {
             promptFile = file
             args += ["--continue-prompt-file", file.path]
         }
+        args += ["--", alias]
         defer { if let promptFile { try? FileManager.default.removeItem(at: promptFile) } }
         let output = try ProcessRunner.runStreaming(
             executable: binary,
@@ -237,7 +237,7 @@ public final class RelayBackend: @unchecked Sendable {
         progress: @escaping (RelayProgressEvent) -> Void
     ) throws -> RelaySwitchResult {
         let binary = try requireBinary()
-        var args = ["restart", "--thread", threadID, "--json", "--progress"]
+        var args = ["restart", "--thread=\(threadID)", "--json", "--progress"]
         if allowRestart {
             args.append("--allow-chatgpt-restart")
         }
@@ -274,8 +274,9 @@ public final class RelayBackend: @unchecked Sendable {
         onLine: @escaping (String) -> Void
     ) throws {
         let binary = try requireBinary()
-        var args = ["add", alias]
+        var args = ["add"]
         if deviceAuth { args.append("--device") }
+        args += ["--", alias]
         defer {
             lock.lock()
             activeAddProcess = nil
@@ -316,8 +317,9 @@ public final class RelayBackend: @unchecked Sendable {
     /// Opens a thread through the CLI so the explicit ChatGPT permission flag
     /// and the process-control guard are applied before any deep link is sent.
     public func resumeThread(_ threadID: String, allowRestart: Bool) throws {
-        var args = ["resume", threadID, "--desktop", "--json"]
+        var args = ["resume", "--desktop", "--json"]
         if allowRestart { args.append("--allow-chatgpt-restart") }
+        args += ["--", threadID]
         _ = try run(args, timeout: 45)
     }
 

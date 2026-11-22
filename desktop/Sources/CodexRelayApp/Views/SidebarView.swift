@@ -102,9 +102,11 @@ struct SidebarView: View {
                 HStack(spacing: 8) {
                     AccountAvatar(account: account, size: 20, cornerRadius: 3)
                     Rectangle()
-                        .fill(account.isHealthy
-                              ? (account.isExhausted ? RelayTheme.amber : RelayTheme.green)
-                              : RelayTheme.amber)
+                        .fill(
+                            account.needsRelogin || (!account.isHealthy && !account.hasSyncError)
+                                ? RelayTheme.red
+                                : (account.hasSyncError || account.isExhausted ? RelayTheme.amber : RelayTheme.green)
+                        )
                         .frame(width: 6, height: 6)
                     Text(account.displayName(locale: locale))
                         .font(.hudMono(12, weight: .bold))
@@ -121,7 +123,7 @@ struct SidebarView: View {
                     .lineLimit(1)
                 UsageBar(title: "5 小时", window: account.usage?.primary, compact: true, mode: preferences.quotaDisplayMode)
                 UsageBar(title: "1 周", window: account.usage?.secondary, compact: true, mode: preferences.quotaDisplayMode)
-                if let error = model.usageSyncError {
+                if let error = model.usageSyncError ?? (account.hasSyncError ? account.lastError : nil) {
                     Label(L10n.text("同步失败"), systemImage: "exclamationmark.triangle.fill")
                         .font(.hudLabel(8))
                         .foregroundStyle(RelayTheme.red)

@@ -72,6 +72,8 @@ public struct RelayAccount: Decodable, Identifiable, Hashable {
     }
 
     public var isActive: Bool { active == true }
+    public var needsRelogin: Bool { status == "needs_relogin" }
+    public var hasSyncError: Bool { status == "error" }
     public var isHealthy: Bool { (status ?? "ok") == "ok" }
 
     /// Prefer a user-set display name, then the server-provided account name,
@@ -108,12 +110,14 @@ public struct RelayAccount: Decodable, Identifiable, Hashable {
     }
     public var maxUsedPercent: Double {
         guard let usage else { return 0 }
-        if usage.rateLimitReachedType != nil { return 100 }
+        if usage.rateLimitReachedType != nil || usage.ordinaryUsageAllowed == false { return 100 }
         return max(usage.primary?.usedPercent ?? 0, usage.secondary?.usedPercent ?? 0)
     }
     public var isExhausted: Bool { maxUsedPercent >= 100 }
     public var statusLabel: String {
-        if !isHealthy { return status == "needs_relogin" ? "需要重新登录" : (status ?? "异常") }
+        if needsRelogin { return "需要重新登录" }
+        if hasSyncError { return "同步失败" }
+        if !isHealthy { return status ?? "异常" }
         if isExhausted { return "额度已耗尽" }
         return "可用"
     }
@@ -127,6 +131,7 @@ public struct RelayUsage: Decodable, Hashable {
     public let primary: RelayUsageWindow?
     public let secondary: RelayUsageWindow?
     public let rateLimitReachedType: RelayLimitReached?
+    public let ordinaryUsageAllowed: Bool?
 
     public init(
         checkedAt: String? = nil,
@@ -135,7 +140,8 @@ public struct RelayUsage: Decodable, Hashable {
         accountId: String? = nil,
         primary: RelayUsageWindow? = nil,
         secondary: RelayUsageWindow? = nil,
-        rateLimitReachedType: RelayLimitReached? = nil
+        rateLimitReachedType: RelayLimitReached? = nil,
+        ordinaryUsageAllowed: Bool? = nil
     ) {
         self.checkedAt = checkedAt
         self.source = source
@@ -144,6 +150,7 @@ public struct RelayUsage: Decodable, Hashable {
         self.primary = primary
         self.secondary = secondary
         self.rateLimitReachedType = rateLimitReachedType
+        self.ordinaryUsageAllowed = ordinaryUsageAllowed
     }
 }
 
