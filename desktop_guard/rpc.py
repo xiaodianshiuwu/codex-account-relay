@@ -22,6 +22,8 @@ class ReadOnlyServer(BoundedQueries):
         self.deadline()
         env = os.environ.copy()
         env['CODEX_HOME'] = self.home
+        for key in ('OPENAI_API_KEY', 'CODEX_ACCESS_TOKEN', 'CODEX_API_KEY', 'OPENAI_BASE_URL'):
+            env.pop(key, None)
         # No shell, no API key handling, no login mutation and no model runs.
         self.process = subprocess.Popen([self.binary, 'app-server', '--stdio'], env=env,
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE,

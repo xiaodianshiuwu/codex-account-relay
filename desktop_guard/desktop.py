@@ -95,6 +95,12 @@ class Desktop(BoundedQueries):
         self.dispatch_turn_id = None
         self.metadata_reader = metadata_reader
 
+    def _remaining(self, deadline=None):
+        remaining = (self.deadline() if deadline is None else deadline) - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('App 响应超时')
+        return remaining
+
     def __enter__(self):
         check_version(self.app_path)
         path = self.home / 'ipc/ipc.sock'
@@ -105,7 +111,7 @@ class Desktop(BoundedQueries):
             if any(s.st_uid != os.getuid() or s.st_mode & 0o077 for s in (directory, endpoint)):
                 raise AppError('IPC 权限或所有者不安全；不会自动修改权限')
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            self.sock.settimeout(self.deadline() - time.monotonic())
+            self.sock.settimeout(self._remaining())
             self.sock.connect(str(path))
             result = self.request('initialize', {'clientType': 'codex-auto-resume'}, 0)
             self.client_id = result['result']['clientId']
@@ -115,14 +121,21 @@ class Desktop(BoundedQueries):
             raise
 
     def close(self):
-        if self.sock:
-            if self.owner and self.thread_id:
+        sock = self.sock
+        if sock is not None:
+            try:
+                if self.owner and self.thread_id:
+                    try:
+                        self.follow(False)
+                    except (OSError, TimeoutError, AppError, ValueError):
+                        pass
+            finally:
                 try:
-                    self.follow(False)
-                except (OSError, TimeoutError, AppError):
+                    sock.close()
+                except OSError:
                     pass
-            self.sock.close()
-            self.sock = None
+                self.sock = None
+                self.owner = None
 
     def __exit__(self, *args):
         self.close()
@@ -131,16 +144,13 @@ class Desktop(BoundedQueries):
         data = json.dumps(msg, ensure_ascii=False).encode()
         if not 0 < len(data) <= MAX_FRAME:
             raise AppError('IPC 消息过大')
-        self.sock.settimeout(self.deadline() - time.monotonic())
+        self.sock.settimeout(self._remaining())
         self.sock.sendall(struct.pack('<I', len(data)) + data)
 
     def _exact(self, n, deadline):
         chunks, remaining = [], n
         while remaining:
-            timeout = deadline - time.monotonic()
-            if timeout <= 0:
-                raise TimeoutError('App 响应超时')
-            self.sock.settimeout(timeout)
+            self.sock.settimeout(self._remaining(deadline))
             chunk = self.sock.recv(remaining)
             if not chunk:
                 raise ConnectionUnavailable('App 连接已断开')

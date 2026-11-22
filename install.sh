@@ -18,9 +18,10 @@ if [ ! -x "$PYTHON" ]; then
 fi
 
 mkdir -p "$SHARE" "$BIN_DIR"
-rm -rf "$SHARE/codex_relay"
+rm -rf "$SHARE/codex_relay" "$SHARE/desktop_guard"
 cp -R "$ROOT/codex_relay" "$SHARE/codex_relay"
-find "$SHARE/codex_relay" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
+cp -R "$ROOT/desktop_guard" "$SHARE/desktop_guard"
+find "$SHARE/codex_relay" "$SHARE/desktop_guard" -name '__pycache__' -type d -prune -exec rm -rf {} + 2>/dev/null || true
 cp "$ROOT/README.md" "$SHARE/README.md" 2>/dev/null || true
 rm -rf "$SHARE/Resources"
 if [ -d "$ROOT/desktop/Resources" ]; then

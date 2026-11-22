@@ -156,8 +156,7 @@ def doctor(args):
     check_version(args.app)
     with desktop(args):
         result['desktopIpc'] = 'connected'
-    with server(args) as rpc:
-        q = quota(rpc.query('account/rateLimits/read'), time.time())
+    q = quota(read_quota(args), time.time())
     result.update(quotaKnown=q.known, windows=windows(q), reason=q.reason,
                   modelCalls=0, automaticActionsEnabled=False)
     emit(result)
@@ -169,9 +168,8 @@ def preview(args):
     while True:
         try:
             checked = check(args, args.thread_id)
-            with server(args) as rpc:
-                q = quota(rpc.query('account/rateLimits/read'), time.time(),
-                          args.threshold, args.resume_remaining, args.limit_id)
+            q = quota(read_quota(args), time.time(),
+                      args.threshold, args.resume_remaining, args.limit_id)
             result = {'mode': '只读预览', 'kind': checked['kind'], 'reason': checked['reason'],
                       'hostId': args.host,
                       'wouldInterrupt': checked['kind'] == 'running' and q.low and q.known,
@@ -254,9 +252,66 @@ def watch(args):
         store.close()
 
 
-def read_quota(args):
+def _http_window_to_rpc(window):
+    if not isinstance(window, dict):
+        return None
+    return {
+        'usedPercent': window.get('used_percent'),
+        'resetsAt': window.get('resets_at'),
+        'windowDurationMins': window.get('window_minutes'),
+    }
+
+
+def _http_usage_to_rate_limits(usage_data):
+    if not isinstance(usage_data, dict):
+        return {}
+    raw = usage_data.get('rate_limits_raw') if isinstance(usage_data.get('rate_limits_raw'), dict) else {}
+    spend = usage_data.get('spend_control') if isinstance(usage_data.get('spend_control'), dict) else {}
+    reached = usage_data.get('rate_limit_reached_type')
+    if reached is None and (usage_data.get('ordinary_usage_allowed') is False or raw.get('limit_reached') is True):
+        reached = 'rate_limit_reached'
+    bucket = {
+        'limitId': 'codex',
+        'primary': _http_window_to_rpc(usage_data.get('primary')),
+        'secondary': _http_window_to_rpc(usage_data.get('secondary')),
+        'rateLimitReachedType': reached,
+    }
+    if spend.get('reached') or spend.get('limit_reached') or spend.get('spend_control_reached'):
+        bucket['spendControlReached'] = True
+    individual = spend.get('individual_limit', spend.get('individualLimit'))
+    if individual is not None:
+        bucket['individualLimit'] = individual
+    return {'rateLimits': bucket, 'rateLimitsByLimitId': {'codex': bucket}}
+
+
+def _local_desktop_running():
+    from . import codex_env
+    return bool(codex_env.codex_processes()) or codex_env.app_running()
+
+
+def _read_local_quota_http(home, timeout=10.0):
+    from .authfile import read_auth
+    from .usage import fetch_usage_http
+    auth = read_auth(Path(home) / 'auth.json')
+    usage_data = fetch_usage_http(auth, timeout=timeout)
+    return _http_usage_to_rate_limits(usage_data)
+
+
+def read_quota(args, *, timeout=10.0):
+    """Read account quota safely.
+
+    For the local active account while Codex desktop/processes are running,
+    prefer read-only HTTP (`fetch_usage_http`) instead of spawning a second
+    `app-server` against `~/.codex`, avoiding OAuth refresh-token rotation
+    races. Fall back to `ReadOnlyServer` only when desktop is not running or a
+    non-default bucket (`limit_id != 'codex'`) is explicitly requested.
+    """
+    if getattr(args, 'host', 'local') == 'local':
+        limit_id = getattr(args, 'limit_id', 'codex')
+        if limit_id == 'codex' and _local_desktop_running():
+            return _read_local_quota_http(args.home, timeout=timeout)
     reader = server(args)
-    with reader.bounded(10), reader as rpc:
+    with reader.bounded(timeout), reader as rpc:
         return rpc.query('account/rateLimits/read')
 
 
@@ -273,18 +328,59 @@ def can_enroll(eligibility, record):
     return turn == paused['turnId'] or (kind == 'connecting' and not turn)
 
 
-def background(args):
-    from .store import Store as AccountStore
-    with AccountStore().lock():
-        return _background_locked(args)
-
-
-def _background_locked(args):
+def _check_local_auto_mutex():
     from .auto_config import load_auto_settings
     auto = load_auto_settings()
     if auto['enabled'] and auto['allow_chatgpt_restart']:
         raise RuntimeError('请先关闭自动切号或重启许可，再开始原聊天额度守护')
+
+
+def background(args):
+    if args.host == 'local':
+        _check_local_auto_mutex()
+    # Run read-only desktop/SSH check outside the account-store lock so network
+    # or IPC waits never block concurrent relay commands.
     eligibility = check(args, args.thread_id)
+    if args.host == 'local':
+        from .store import Store as AccountStore
+        with AccountStore().lock():
+            return _background_locked(args, eligibility)
+    return _background_locked(args, eligibility)
+
+
+def _terminate_process_group(process):
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    except (OSError, AttributeError):
+        try:
+            process.terminate()
+        except OSError:
+            return
+    try:
+        process.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            return
+        except (OSError, AttributeError):
+            try:
+                process.kill()
+            except OSError:
+                return
+        try:
+            process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            pass
+
+
+def _background_locked(args, eligibility=None):
+    if args.host == 'local':
+        _check_local_auto_mutex()
+    if eligibility is None:
+        eligibility = check(args, args.thread_id)
     store = Store(args.state_dir, args.thread_id, args.host)
     if not can_enroll(eligibility, store.data):
         raise RuntimeError(eligibility['reason'])
@@ -321,7 +417,7 @@ def _background_locked(args):
             time.sleep(0.05)
         else:
             store.cancel()
-            process.terminate()
+            _terminate_process_group(process)
             raise RuntimeError('后台启动未确认，已取消本次启动，请查看日志：' + str(log))
     finally:
         config_path.unlink(missing_ok=True)
@@ -355,7 +451,11 @@ def host_snapshot(args, descriptor, deadline=None):
                     'name': t.get('name') or t.get('preview', '')[:60] or '未命名聊天',
                     'cwd': t.get('cwd'), 'runtimeStatus': t.get('status')})
             try:
-                raw = rpc.query('account/rateLimits/read')
+                if host_id == 'local' and _local_desktop_running():
+                    remaining = (deadline - time.monotonic()) if deadline is not None else 10.0
+                    raw = _read_local_quota_http(args.home, timeout=max(1.0, min(10.0, remaining)))
+                else:
+                    raw = rpc.query('account/rateLimits/read')
                 config = getattr(args, 'configuration', settings.DEFAULTS)
                 now = time.time()
                 q = quota(raw, now, config['threshold'], config['resumeRemaining'])

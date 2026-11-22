@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import errno
 import io
 import json
 import os
@@ -8,7 +9,9 @@ import plistlib
 import re
 import shutil
 import signal
+import socket
 import sqlite3
+import stat
 import subprocess
 import sys
 import time
@@ -207,9 +210,14 @@ def _parse_lstart(value: str) -> Optional[datetime]:
 def _role_for_command(command: str) -> str:
     # Classify by executable name rather than substrings. Commands differ
     # across macOS, Windows and Linux, especially around .exe and path slashes.
-    normalized = command.replace("\\", "/") if command else ""
-    first = normalized.split(None, 1)[0] if normalized else ""
-    first = first.strip("'\"")
+    normalized = command.replace("\\", "/").strip() if command else ""
+    if normalized.startswith(('"', "'")):
+        quote = normalized[0]
+        end = normalized.find(quote, 1)
+        first = normalized[1:end] if end > 0 else normalized[1:]
+    else:
+        first = normalized.split(None, 1)[0] if normalized else ""
+        first = first.strip("'\"")
     first_lower = first.lower()
     name = Path(first).name.lower()
     lowered = normalized.lower()
@@ -223,6 +231,7 @@ def _role_for_command(command: str) -> str:
         or "/.codex/plugins/" in lowered
         or "chatgpt for chrome" in lowered
         or "/chatgpt.app/contents/frameworks/" in lowered
+        or bool(re.search(r"(?:^|/)(?:chatgpt|codex)[^/]*\.app/contents/frameworks/", lowered))
         or "codex framework.framework" in lowered
         or ("/codex relay" in lowered and (".app/" in lowered or "/contents/macos/" in lowered))
         or name.startswith("codexrelay")
@@ -237,21 +246,34 @@ def _role_for_command(command: str) -> str:
         or first_lower.startswith("/opt/chatgpt/")
         or first_lower.endswith("/chatgpt.appimage")
         or first_lower.endswith("/macos/chatgpt")
+        or bool(re.search(r"(?:^|/)chatgpt[^/]*\.app/contents/macos/chatgpt(?=$|[\s\"'])", lowered))
+        or bool(re.search(r"/chatgpt\.appimage(?=$|[\s\"'])", lowered))
     ):
         return "desktop-main"
-    if "/applications/codex.app/contents/macos/codex" in lowered:
+    if (
+        "/applications/codex.app/contents/macos/codex" in lowered
+        or bool(re.search(r"(?:^|/)codex(?:\s[^/]*)?\.app/contents/macos/codex(?=$|[\s\"'])", lowered))
+    ):
         return "desktop-main"
-    if "codexcli.app/contents/macos/codex" in lowered or "codex.exe" in lowered or name in ("codex.exe", "codex"):
+    is_desktop_embedded_codex = bool(
+        re.search(
+            r"(?:codexcli\.app/contents/macos/codex|"
+            r"(?:chatgpt|codex)[^/]*\.app/contents/resources/codex)(?=$|[\s\"'])",
+            lowered,
+        )
+    )
+    if is_desktop_embedded_codex or "codex.exe" in lowered or name in ("codex.exe", "codex"):
         if " app-server daemon" in lowered:
             return "daemon"
         if " app-server" in lowered:
-            return "desktop-app-server" if "codexcli.app" in lowered else "cli-app-server"
+            return "desktop-app-server" if is_desktop_embedded_codex else "cli-app-server"
         if " exec-server" in lowered:
             return "desktop-exec-server"
-        if " app-server daemon" in lowered:
-            return "daemon"
-        return "desktop-codex" if "codexcli.app" in lowered else "cli"
-    if name in ("codex-code-mode-host", "codex-code-mode-host.exe"):
+        return "desktop-codex" if is_desktop_embedded_codex else "cli"
+    if (
+        name in ("codex-code-mode-host", "codex-code-mode-host.exe")
+        or bool(re.search(r"(?:^|/)codex-code-mode-host(?:\.exe)?(?=$|[\s\"'])", lowered))
+    ):
         return "helper"
     if re.search(r"(^|/)codex( |$)", first):
         return "cli"
@@ -653,6 +675,16 @@ def wait_for_desktop_app_server(
     return None
 
 
+def _codex_home() -> Path:
+    from .config import configured_codex_home
+
+    return Path(
+        os.environ.get("CODEX_HOME")
+        or configured_codex_home()
+        or str(Path.home() / ".codex")
+    ).expanduser()
+
+
 def wait_for_desktop_renderer(launch_epoch: float, timeout: float = 30.0) -> bool:
     """Wait until the renderer has issued an app-server RPC after launch.
 
@@ -661,7 +693,7 @@ def wait_for_desktop_renderer(launch_epoch: float, timeout: float = 30.0) -> boo
     process a codex:// deep link. If the log DB is unavailable, fall back to a
     short fixed delay.
     """
-    log_db = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))) / "logs_2.sqlite"
+    log_db = _codex_home() / "logs_2.sqlite"
     if not log_db.exists():
         time.sleep(3.0)
         return True
@@ -721,13 +753,35 @@ def open_thread_deeplink(thread_id: str, retries: int = 2, repeat: int = 1) -> N
 
 def daemon_socket() -> Path:
     suffix = "app-server-control.sock"
-    if IS_WINDOWS:
-        suffix = "app-server-control.sock"
-    return Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))) / "app-server-control" / suffix
+    return _codex_home() / "app-server-control" / suffix
 
 
 def daemon_running() -> bool:
-    return daemon_socket().exists()
+    sock_path = daemon_socket()
+    if not sock_path.exists():
+        return False
+    if IS_WINDOWS or not hasattr(socket, "AF_UNIX"):
+        return True
+    try:
+        mode = sock_path.lstat().st_mode
+    except OSError:
+        return False
+    if not stat.S_ISSOCK(mode):
+        return False
+    probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        probe.settimeout(1.0)
+        probe.connect(str(sock_path))
+        return True
+    except (ConnectionRefusedError, FileNotFoundError):
+        return False
+    except OSError as exc:
+        if exc.errno in (errno.ECONNREFUSED, errno.ENOENT, errno.ENOTSOCK):
+            return False
+        # EACCES/EPERM/ENAMETOOLONG/timeout: cannot prove stale, fail safe.
+        return True
+    finally:
+        probe.close()
 
 
 def stop_daemon(timeout: float = 20.0) -> Tuple[bool, str]:

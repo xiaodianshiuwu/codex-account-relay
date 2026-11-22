@@ -1,4 +1,4 @@
-# Codex Relay Windows installer (PowerShell 5+).
+﻿# Codex Relay Windows installer (PowerShell 5+).
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Share = if ($env:CODEX_RELAY_SHARE) { $env:CODEX_RELAY_SHARE } else { Join-Path $HOME ".local\share\codex-relay" }
@@ -8,6 +8,9 @@ $Python = if ($env:CODEX_RELAY_PYTHON) { $env:CODEX_RELAY_PYTHON } else { "pytho
 New-Item -ItemType Directory -Force -Path $Share, $BinDir | Out-Null
 Remove-Item -Recurse -Force (Join-Path $Share "codex_relay") -ErrorAction SilentlyContinue
 Copy-Item -Recurse -Force (Join-Path $Root "codex_relay") (Join-Path $Share "codex_relay")
+Remove-Item -Recurse -Force (Join-Path $Share "desktop_guard") -ErrorAction SilentlyContinue
+Copy-Item -Recurse -Force (Join-Path $Root "desktop_guard") (Join-Path $Share "desktop_guard")
+Get-ChildItem -Path (Join-Path $Share "codex_relay"), (Join-Path $Share "desktop_guard") -Recurse -Directory -Filter "__pycache__" -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
 $resources = Join-Path $Root "desktop\Resources"
 if (-not (Test-Path $resources)) { $resources = Join-Path $Root "Resources" }
 if (Test-Path $resources) {

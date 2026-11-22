@@ -144,15 +144,27 @@ class RemoteReadOnlyServer(ReadOnlyServer):
         self.process.stdin.write(request.encode('ascii'))
         self.process.stdin.flush()
         deadline = self.deadline()
-        while b'\r\n\r\n' not in self.buffer:
+        discarded = 0
+        while True:
+            idx = self.buffer.find(b'\r\n\r\n')
+            if idx >= 0:
+                candidate = self.buffer[:idx]
+                if b'HTTP/1.1 ' in candidate:
+                    header, self.buffer = candidate, self.buffer[idx + 4:]
+                    break
+                discarded += idx + 4
+                if discarded > 32768:
+                    raise RuntimeError('SSH WebSocket 握手格式不受支持')
+                self.buffer = self.buffer[idx + 4:]
+                continue
             self._receive(deadline)
-            if len(self.buffer) > 32768:
+            if discarded + len(self.buffer) > 32768:
                 raise RuntimeError('SSH WebSocket 握手格式不受支持')
-        header, self.buffer = self.buffer.split(b'\r\n\r\n', 1)
-        # Login shells sometimes print a banner. Only an authenticated SSH peer
-        # can supply these bytes; require a complete valid WebSocket handshake.
+        # Login shells sometimes print a banner (possibly containing non-ASCII bytes).
+        # Only an authenticated SSH peer can supply these bytes; require a complete
+        # valid WebSocket handshake decoded per RFC 7230 (latin-1).
         start = header.find(b'HTTP/1.1 ')
-        lines = header[start:].decode('ascii').split('\r\n') if start >= 0 else []
+        lines = header[start:].decode('latin-1').split('\r\n') if start >= 0 else []
         values = {key.lower(): value.strip() for key, value in
                   (line.split(':', 1) for line in lines[1:] if ':' in line)}
         accept = base64.b64encode(hashlib.sha1((key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').encode()).digest()).decode()
