@@ -377,14 +377,14 @@ def fetch_usage(
             except RelayError as candidate_error:
                 if error is None:
                     error = candidate_error
-            if refreshed is not None and persist_callback is not None:
+            if refreshed is not None and refreshed != auth and persist_callback is not None:
                 try:
                     persist_callback(refreshed)
                 except Exception as persist_error:  # noqa: BLE001
                     if error is None:
                         error = persist_error
     if error is not None:
-        if refreshed is not None and isinstance(error, RelayError):
+        if refreshed is not None and refreshed != auth and isinstance(error, RelayError):
             setattr(error, "refreshed_auth", refreshed)
         raise error
     if refreshed is None:

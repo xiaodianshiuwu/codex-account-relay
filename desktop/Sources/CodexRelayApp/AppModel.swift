@@ -524,7 +524,7 @@ final class AppModel: ObservableObject {
             if isCurrent {
                 lastUsageSync = Date()
             }
-            if updated.status != "ok" {
+            if !updated.isHealthy {
                 let message = L10n.format("%@ 同步失败：%@", alias, updated.lastError ?? updated.status ?? "unknown")
                 if isCurrent { usageSyncError = message }
                 if !auto { presentError(L10n.text("同步用量失败"), message) }

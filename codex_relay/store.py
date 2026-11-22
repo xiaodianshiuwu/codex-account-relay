@@ -6,10 +6,12 @@ import os
 import re
 import shutil
 import tempfile
+import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, Iterator, List, Optional
 
 from .authfile import auth_summary, read_auth, validate_auth, write_auth
 from .config import configured_codex_home
@@ -29,6 +31,58 @@ from .util import (
 
 ALIAS_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$")
 PROFILE_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,80}$")
+
+_LOCK_REGISTRY_GUARD = threading.Lock()
+_LOCK_REGISTRY: Dict[Path, threading.RLock] = {}
+_THREAD_LOCK_STATE = threading.local()
+
+
+def _process_rlock_for(path: Path) -> threading.RLock:
+    key = path.resolve()
+    with _LOCK_REGISTRY_GUARD:
+        lock = _LOCK_REGISTRY.get(key)
+        if lock is None:
+            lock = threading.RLock()
+            _LOCK_REGISTRY[key] = lock
+        return lock
+
+
+@contextmanager
+def _reentrant_file_lock(path: Path, timeout: float = 20.0) -> Iterator[None]:
+    """Cross-process and cross-thread file lock that is re-entrant within one thread.
+
+    Using a per-path RLock prevents intra-process thread races while tracking
+    per-thread depth avoids POSIX `flock` self-deadlock on nested calls.
+    """
+    key = path.resolve()
+    deadline = time.monotonic() + max(0.0, timeout)
+    rlock = _process_rlock_for(key)
+    if not rlock.acquire(timeout=max(0.0, timeout)):
+        raise RelayError(f"另一个 codex-relay 操作正在进行（锁文件：{path}）。稍后重试。")
+    depths: Dict[Path, int] = getattr(_THREAD_LOCK_STATE, "depths", None)
+    if depths is None:
+        depths = {}
+        _THREAD_LOCK_STATE.depths = depths
+    depth = depths.get(key, 0)
+    try:
+        if depth > 0:
+            depths[key] = depth + 1
+            try:
+                yield
+            finally:
+                depths[key] -= 1
+                if depths[key] <= 0:
+                    depths.pop(key, None)
+        else:
+            remaining = max(0.1, deadline - time.monotonic())
+            with file_lock(path, timeout=remaining):
+                depths[key] = 1
+                try:
+                    yield
+                finally:
+                    depths.pop(key, None)
+    finally:
+        rlock.release()
 
 
 def _safe_component(value: str) -> str:
@@ -162,7 +216,13 @@ class Store:
         atomic_write_json(self.paths.state_path, self.state, mode=0o600)
 
     def lock(self, timeout: float = 20.0):
-        return file_lock(self.paths.lock_path, timeout=timeout)
+        return _reentrant_file_lock(self.paths.lock_path, timeout=timeout)
+
+    def profile_refresh_lock_path(self, profile_id: str) -> Path:
+        return self.paths.relay_home / "locks" / f"refresh-{_safe_component(profile_id)}.lock"
+
+    def profile_refresh_lock(self, profile_id: str, timeout: float = 95.0):
+        return _reentrant_file_lock(self.profile_refresh_lock_path(profile_id), timeout=timeout)
 
     # ---------------------------------------------------------------- profiles
     def profiles(self) -> List[Dict[str, Any]]:

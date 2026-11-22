@@ -57,7 +57,7 @@ final class ReviewTests: XCTestCase {
           test "$2" = --file && test -f "$3" || exit 1
           cat "$3"
         else
-          test "$1" = --host && test "$2" = remote-ssh-test && test "$3" = stop || exit 1
+          test "$1" = --host=remote-ssh-test && test "$2" = stop || exit 1
           echo '{"ok":true}'
         fi
         """

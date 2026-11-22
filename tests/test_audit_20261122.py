@@ -22,9 +22,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from codex_relay import codex_env, guard_cli, threads, usage, util
+from codex_relay import appserver, codex_env, guard_cli, threads, usage, util
 from codex_relay.appserver import JsonRpcProcess, RpcError
-from codex_relay.authfile import write_auth
+from codex_relay.authfile import read_auth, write_auth
 from codex_relay.auto_config import save_auto_settings
 from codex_relay.cli import _auto_once, cmd_auto, main
 from codex_relay.desktop_continue import switch_and_continue
@@ -304,6 +304,7 @@ class LockScopeAndUsageTests(unittest.TestCase):
         }
         with patch.dict(os.environ, env, clear=False), \
              patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", return_value=False), \
              patch("codex_relay.usage.verify_profile", side_effect=fake_verify):
             out = io.StringIO()
             with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
@@ -790,6 +791,308 @@ class CliDesktopContinueAndProtocolTests(unittest.TestCase):
             metrics = threads.rollout_metrics(utf8_rollout)
             self.assertEqual(metrics.reasoning_encrypted_bytes, len(cjk.encode("utf-8")))
             self.assertEqual(metrics.compactions[0].serialized_bytes, len(json.dumps(history, ensure_ascii=False).encode("utf-8")))
+
+    def test_threads_tail_preserves_u2028_u2029_and_multibyte_utf8_across_64k_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            rollout = Path(tmp) / "edge_rollout.jsonl"
+            # Build > 140 KiB of lines containing 3-byte CJK and 4-byte emoji
+            # so both the 64 KiB chunk seam and pos > 0 boundary cut inside
+            # multi-byte UTF-8 sequences.
+            prefix_lines = []
+            for i in range(900):
+                prefix_lines.append(
+                    json.dumps(
+                        {
+                            "type": "event_msg",
+                            "payload": {"type": "ping", "i": i, "text": "中文测试🚀边界" * 10},
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+            # Embed raw U+2028 (LS) and U+2029 (PS) directly inside a valid JSON string
+            # (valid in RFC 8259 JSON, which str.splitlines() would wrongly fragment).
+            raw_sep_line = (
+                '{"type":"response_item","timestamp":"2026-11-22T00:00:02Z",'
+                '"payload":{"type":"function_call","call_id":"call-sep-1",'
+                '"arguments":"line1\u2028line2\u2029🚀中文"}}'
+            )
+            content = "\n".join(prefix_lines + [raw_sep_line]) + "\n"
+            self.assertGreater(len(content.encode("utf-8")), 131072)
+            rollout.write_bytes(content.encode("utf-8"))
+
+            tail = threads._read_tail_lines(rollout, tail_lines=40, chunk_size=65536)
+            self.assertEqual(len(tail), 40)
+            self.assertFalse(any("\ufffd" in line for line in tail))
+            self.assertEqual(tail[-1], raw_sep_line)
+            parsed = json.loads(tail[-1])
+            self.assertEqual(parsed["payload"]["call_id"], "call-sep-1")
+            self.assertIn("\u2028", parsed["payload"]["arguments"])
+            self.assertIn("\u2029", parsed["payload"]["arguments"])
+
+            activity = threads.rollout_activity(rollout, tail_lines=40)
+            self.assertTrue(activity["available"])
+            self.assertEqual(activity["pending_tool_calls"], 1)
+            self.assertEqual(activity["pending_types"], ["function_call"])
+
+
+class ConcurrentRefreshHardeningTests(unittest.TestCase):
+    """Review B1 + Minor Note 1: Guard against stale refresh overwrites & concurrent rotation races."""
+
+    def test_unlocked_refresh_never_clobbers_concurrent_relogin_or_token_update(self) -> None:
+        store = new_store()
+        auth_v1 = make_auth("acct-a", "a@example.com", refresh_token="rt_v1_initial_secret")
+        auth_v2 = make_auth("acct-a", "a@example.com", refresh_token="rt_v2_relogin_secret")
+        auth_stale_rot = make_auth("acct-a", "a@example.com", refresh_token="rt_stale_rotated_secret")
+        prof = store.add_profile("a", auth_v1)
+        pid = prof["id"]
+
+        def fake_verify(_paths, _auth, *, persist_callback=None, **_kwargs):
+            # Another process re-logs into account 'a' while verify_profile is in flight.
+            other_store = Store(store.paths)
+            with other_store.lock():
+                other_store.reload()
+                other_store.add_profile("a", auth_v2)
+            # Stale refresh tries to persist a rotated token and then fails with 401.
+            if persist_callback is not None:
+                persist_callback(auth_stale_rot)
+            raise RelayError("401 unauthorized token expired")
+
+        with patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", return_value=False), \
+             patch("codex_relay.usage.verify_profile", side_effect=fake_verify):
+            outcomes = usage.refresh_profiles_unlocked(store, [pid])
+
+        self.assertTrue(outcomes[pid].get("skipped_stale_merge"))
+        store.reload()
+        self.assertEqual(store.read_secret(pid)["tokens"]["refresh_token"], "rt_v2_relogin_secret")
+        fresh = store.get_profile(pid)
+        self.assertEqual(fresh["status"], "ok")
+        self.assertIsNone(fresh.get("last_error"))
+
+    def test_unlocked_refresh_skips_stale_merge_when_last_verified_at_advances(self) -> None:
+        store = new_store()
+        auth_a = make_auth("acct-a", "a@example.com")
+        prof = store.add_profile("a", auth_a)
+        pid = prof["id"]
+        prof["last_verified_at"] = "2026-01-01T00:00:00Z"
+        store.save_state()
+        future = int(time.time()) + 3600
+
+        def fake_verify(_paths, _auth, **_kwargs):
+            other_store = Store(store.paths)
+            with other_store.lock():
+                other_store.reload()
+                p = other_store.get_profile(pid)
+                p["status"] = "ok"
+                p["last_verified_at"] = "2026-11-22T12:00:00Z"
+                p["usage"] = {"primary": {"used_percent": 7, "window_minutes": 300, "resets_at": future}}
+                p.pop("last_error", None)
+                other_store.save_state()
+            raise RelayError("transient network timeout")
+
+        with patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", return_value=False), \
+             patch("codex_relay.usage.verify_profile", side_effect=fake_verify):
+            outcomes = usage.refresh_profiles_unlocked(store, [pid])
+
+        self.assertTrue(outcomes[pid].get("skipped_stale_merge"))
+        store.reload()
+        fresh = store.get_profile(pid)
+        self.assertEqual(fresh["status"], "ok")
+        self.assertEqual(fresh["usage"]["primary"]["used_percent"], 7)
+
+    def test_unlocked_refresh_refuses_persist_if_profile_becomes_active_desktop_account(self) -> None:
+        store = new_store()
+        auth_a = make_auth("acct-a", "a@example.com", refresh_token="rt_active_a_secret")
+        auth_b = make_auth("acct-b", "b@example.com", refresh_token="rt_b_initial_secret")
+        auth_b_rot = make_auth("acct-b", "b@example.com", refresh_token="rt_b_rotated_secret")
+        store.add_profile("a", auth_a)
+        prof_b = store.add_profile("b", auth_b)
+        write_auth(store.paths.auth_path, auth_a)
+        pid_b = prof_b["id"]
+        desktop_running = {"value": False}
+        future = int(time.time()) + 3600
+
+        def fake_verify(_paths, _auth, *, persist_callback=None, **_kwargs):
+            # Account b becomes active on a now-running desktop before persist_callback fires.
+            write_auth(store.paths.auth_path, auth_b)
+            desktop_running["value"] = True
+            if persist_callback is not None:
+                persist_callback(auth_b_rot)
+            return ({"primary": {"used_percent": 12, "window_minutes": 300, "resets_at": future}}, auth_b_rot)
+
+        with patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", side_effect=lambda: desktop_running["value"]), \
+             patch("codex_relay.usage.verify_profile", side_effect=fake_verify):
+            usage.refresh_profiles_unlocked(store, [pid_b])
+
+        self.assertEqual(store.read_secret(pid_b)["tokens"]["refresh_token"], "rt_b_initial_secret")
+        self.assertEqual(read_auth(store.paths.auth_path)["tokens"]["refresh_token"], "rt_b_initial_secret")
+
+    def test_unlocked_refresh_preserves_concurrent_add_remove_and_rename(self) -> None:
+        store = new_store()
+        auth_a = make_auth("acct-a", "a@example.com")
+        auth_b = make_auth("acct-b", "b@example.com")
+        auth_c = make_auth("acct-c", "c@example.com")
+        auth_d = make_auth("acct-d", "d@example.com")
+        prof_a = store.add_profile("a", auth_a)
+        prof_b = store.add_profile("b", auth_b)
+        prof_c = store.add_profile("c", auth_c)
+        write_auth(store.paths.auth_path, auth_a)
+        future = int(time.time()) + 3600
+        mutated = {"done": False}
+        mu = threading.Lock()
+
+        def fake_verify(_paths, auth, **_kwargs):
+            with mu:
+                if not mutated["done"]:
+                    mutated["done"] = True
+                    other = Store(store.paths)
+                    with other.lock():
+                        other.reload()
+                        other.add_profile("d", auth_d)
+                        other.remove_profile("b")
+                        other.rename_profile("c", "c_renamed")
+            return ({"primary": {"used_percent": 22, "window_minutes": 300, "resets_at": future}}, auth)
+
+        with patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", return_value=False), \
+             patch("codex_relay.usage.verify_profile", side_effect=fake_verify):
+            usage.refresh_profiles_unlocked(store, [prof_a["id"], prof_b["id"], prof_c["id"]])
+
+        store.reload()
+        aliases = {p["alias"] for p in store.profiles()}
+        self.assertEqual(aliases, {"a", "c_renamed", "d"})
+        self.assertIsNone(store.get_profile(prof_b["id"]))
+        self.assertFalse(store.secret_path(prof_b["id"]).parent.exists())
+        prof_c_after = store.get_profile(prof_c["id"])
+        self.assertEqual(prof_c_after["alias"], "c_renamed")
+        self.assertEqual(prof_c_after["usage"]["primary"]["used_percent"], 22)
+
+    def test_concurrent_same_account_refresh_serializes_token_rotation(self) -> None:
+        store = new_store()
+        auth_v1 = make_auth("acct-a", "a@example.com", refresh_token="rt_v1_secret_token")
+        auth_v2 = make_auth("acct-a", "a@example.com", refresh_token="rt_v2_secret_token")
+        prof = store.add_profile("a", auth_v1)
+        pid = prof["id"]
+        future = int(time.time()) + 3600
+        seen_tokens: list[str] = []
+        active_calls = {"count": 0, "max_overlap": 0}
+        guard = threading.Lock()
+        first_entered = threading.Event()
+
+        def fake_verify(_paths, auth, *, persist_callback=None, **_kwargs):
+            tok = auth["tokens"]["refresh_token"]
+            with guard:
+                active_calls["count"] += 1
+                active_calls["max_overlap"] = max(active_calls["max_overlap"], active_calls["count"])
+                seen_tokens.append(tok)
+            try:
+                if tok == "rt_v1_secret_token":
+                    first_entered.set()
+                    time.sleep(0.12)
+                    if persist_callback is not None:
+                        persist_callback(auth_v2)
+                    return ({"primary": {"used_percent": 31, "window_minutes": 300, "resets_at": future}}, auth_v2)
+                return ({"primary": {"used_percent": 32, "window_minutes": 300, "resets_at": future}}, auth)
+            finally:
+                with guard:
+                    active_calls["count"] -= 1
+
+        errors: list[BaseException] = []
+
+        def worker(wait_for_first: bool) -> None:
+            try:
+                if wait_for_first:
+                    first_entered.wait(timeout=2.0)
+                worker_store = Store(store.paths)
+                usage.refresh_profiles_unlocked(worker_store, [pid])
+            except BaseException as exc:  # noqa: BLE001
+                errors.append(exc)
+
+        with patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", return_value=False), \
+             patch("codex_relay.usage.verify_profile", side_effect=fake_verify):
+            t1 = threading.Thread(target=worker, args=(False,))
+            t2 = threading.Thread(target=worker, args=(True,))
+            t1.start()
+            t2.start()
+            t1.join(timeout=5.0)
+            t2.join(timeout=5.0)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(active_calls["max_overlap"], 1)
+        self.assertEqual(seen_tokens, ["rt_v1_secret_token", "rt_v2_secret_token"])
+        store.reload()
+        self.assertEqual(store.read_secret(pid)["tokens"]["refresh_token"], "rt_v2_secret_token")
+
+    def test_appserver_fetch_usage_skips_persist_callback_when_auth_unchanged(self) -> None:
+        store = new_store()
+        auth = make_auth("acct-a", "a@example.com")
+        future = int(time.time()) + 3600
+        persisted: list[dict] = []
+
+        class FakeProcess:
+            request_timeout = 30.0
+
+            def request(self, method: str, _params: dict):
+                if method == "account/read":
+                    return {"account": {"email": "a@example.com", "planType": "plus"}}
+                if method == "account/rateLimits/read":
+                    return {
+                        "rateLimits": {
+                            "primary": {"usedPercent": 15, "windowDurationMins": 300, "resetsAt": future},
+                            "secondary": {"usedPercent": 20, "windowDurationMins": 10080, "resetsAt": future},
+                        }
+                    }
+                raise AssertionError(f"unexpected method: {method}")
+
+            def close(self) -> None:
+                pass
+
+        with patch("codex_relay.appserver._start_app_server", return_value=FakeProcess()):
+            result, refreshed = appserver.fetch_usage(
+                store.paths,
+                auth,
+                persist_callback=lambda updated: persisted.append(updated),
+            )
+        self.assertEqual(result["primary"]["used_percent"], 15)
+        self.assertEqual(refreshed, auth)
+        self.assertEqual(persisted, [])
+
+        class FailingProcess(FakeProcess):
+            def request(self, method: str, params: dict):
+                if method == "account/rateLimits/read":
+                    raise RelayError("rpc failed")
+                return super().request(method, params)
+
+        with patch("codex_relay.appserver._start_app_server", return_value=FailingProcess()):
+            with self.assertRaises(RelayError) as ctx:
+                appserver.fetch_usage(
+                    store.paths,
+                    auth,
+                    persist_callback=lambda updated: persisted.append(updated),
+                )
+        self.assertIsNone(getattr(ctx.exception, "refreshed_auth", None))
+        self.assertEqual(persisted, [])
+
+    def test_active_usage_prefers_http_when_app_running_without_codex_processes(self) -> None:
+        store = new_store()
+        auth = make_auth("acct-a", "a@example.com")
+        prof = store.add_profile("a", auth)
+        write_auth(store.paths.auth_path, auth)
+        future = int(time.time()) + 3600
+        http_payload = {"primary": {"used_percent": 18, "window_minutes": 300, "resets_at": future}}
+
+        with patch("codex_relay.usage.codex_env.codex_processes", return_value=[]), \
+             patch("codex_relay.usage.codex_env.app_running", return_value=True), \
+             patch("codex_relay.usage.fetch_usage_http", return_value=http_payload) as http_mock, \
+             patch("codex_relay.usage.verify_profile", side_effect=AssertionError("must not spawn app-server")):
+            result = usage.refresh_usage(store, prof)
+            self.assertEqual(result, http_payload)
+            outcomes = usage.refresh_profiles_unlocked(store, [prof["id"]])
+            self.assertTrue(outcomes[prof["id"]]["ok"])
+            self.assertEqual(http_mock.call_count, 2)
 
 
 if __name__ == "__main__":

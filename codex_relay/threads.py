@@ -377,6 +377,9 @@ def _read_tail_lines(path: Path, tail_lines: int = 500, chunk_size: int = 65536)
         pos = file_size
         chunks: List[bytes] = []
         newlines = 0
+        # Need tail_lines + 1 newlines when pos > 0 so any leading partial line
+        # (which may split a multi-byte UTF-8 sequence) sits before the first b"\n"
+        # while still retaining at least tail_lines complete lines after it.
         target_newlines = tail_lines + 2
         while pos > 0 and newlines < target_newlines:
             read_size = min(chunk_size, pos)
@@ -386,10 +389,20 @@ def _read_tail_lines(path: Path, tail_lines: int = 500, chunk_size: int = 65536)
             chunks.append(chunk)
             newlines += chunk.count(b"\n")
         data = b"".join(reversed(chunks))
-    lines = data.decode("utf-8", errors="replace").splitlines(keepends=True)
-    if len(lines) > tail_lines:
-        lines = lines[-tail_lines:]
-    return lines
+    if pos > 0:
+        first_nl = data.find(b"\n")
+        if first_nl >= 0:
+            data = data[first_nl + 1 :]
+    if data.endswith(b"\n"):
+        data = data[:-1]
+    if not data:
+        return []
+    # Split strictly on JSONL newline delimiter b"\n" so valid JSON strings
+    # containing U+2028/U+2029 are never fragmented by str.splitlines().
+    raw_lines = data.split(b"\n")
+    if len(raw_lines) > tail_lines:
+        raw_lines = raw_lines[-tail_lines:]
+    return [raw.decode("utf-8", errors="replace") for raw in raw_lines]
 
 
 def rollout_activity(path: Path, tail_lines: int = 500) -> Dict[str, Any]:

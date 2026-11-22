@@ -199,12 +199,21 @@ def switch(
         # Verify before any downtime. If the access token is expired, force a
         # refresh; otherwise let the app-server refresh only if it needs to.
         _progress(progress, "verify", "正在通过隔离 app-server 校验目标账号与额度")
-        usage, refreshed = verify_profile(
-            store.paths,
-            target_auth,
-            force_refresh=bool(target_identity.get("access_expired")),
-            persist_callback=lambda auth: store.persist_profile_auth(target, auth),
-        )
+        target_id = str(target["id"])
+        with store.profile_refresh_lock(target_id):
+            target_auth = store.read_secret(target_id)
+            target_identity = validate_auth(target_auth)
+
+            def _persist_verified(new_auth: Dict[str, Any]) -> None:
+                if new_auth != target_auth:
+                    store.persist_profile_auth(target, new_auth)
+
+            usage, refreshed = verify_profile(
+                store.paths,
+                target_auth,
+                force_refresh=bool(target_identity.get("access_expired")),
+                persist_callback=_persist_verified,
+            )
         target_auth = refreshed
         target["usage"] = usage
         target["last_verified_at"] = now_iso()

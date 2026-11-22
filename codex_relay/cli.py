@@ -286,14 +286,16 @@ def cmd_add(args: argparse.Namespace, store: Store) -> int:
         _confirm_restart_permission(args, "添加后切换")
         args.allow_chatgpt_restart = True
     if args.capture:
-        auth = store.current_auth()
-        if not auth:
-            raise RelayError(t("当前没有 auth.json，无法捕获；请先登录或使用 add <别名>"))
-        identity = validate_auth(auth)
-        profile = store.add_profile(alias, auth)
-        store.state["active_profile_id"] = profile["id"]
-        store.save_state()
-        result = {"ok": True, "captured": True, "profile": store.profile_summary(profile)}
+        with store.lock():
+            store.reload()
+            auth = store.current_auth()
+            if not auth:
+                raise RelayError(t("当前没有 auth.json，无法捕获；请先登录或使用 add <别名>"))
+            identity = validate_auth(auth)
+            profile = store.add_profile(alias, auth)
+            store.state["active_profile_id"] = profile["id"]
+            store.save_state()
+            result = {"ok": True, "captured": True, "profile": store.profile_summary(profile)}
     else:
         # appserver.py owns the login flow but still prints two Chinese
         # banners; print the localized versions here and swallow its copy.
@@ -306,8 +308,10 @@ def cmd_add(args: argparse.Namespace, store: Store) -> int:
                 timeout=args.timeout,
             )
         identity = validate_auth(auth)
-        profile = store.add_profile(alias, auth)
-        result = {"ok": True, "captured": False, "profile": store.profile_summary(profile)}
+        with store.lock():
+            store.reload()
+            profile = store.add_profile(alias, auth)
+            result = {"ok": True, "captured": False, "profile": store.profile_summary(profile)}
     if args.json:
         _print_json(result)
     else:
@@ -324,16 +328,19 @@ def cmd_add(args: argparse.Namespace, store: Store) -> int:
         mode = "desktop" if codex_env.discover_desktop().installed else "none"
         if mode == "desktop":
             _confirm_restart_permission(args, "添加后切换账号")
-        return _do_switch(
-            store,
-            alias,
-            mode,
-            "last",
-            force=False,
-            verify=True,
-            json_output=args.json,
-            allow_chatgpt_restart=args.allow_chatgpt_restart,
-        )
+        pid = str(profile["id"])
+        with store.profile_refresh_lock(pid), store.lock():
+            store.reload()
+            return _do_switch(
+                store,
+                str(profile.get("alias") or alias),
+                mode,
+                "last",
+                force=False,
+                verify=True,
+                json_output=args.json,
+                allow_chatgpt_restart=args.allow_chatgpt_restart,
+            )
     return EXIT_OK
 
 
@@ -1056,6 +1063,8 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
                     else t("自动接力会重启 ChatGPT，已默认禁用。")
                 )
             return EXIT_NOTHING
+    lock_fn = getattr(store, "lock", None)
+    reload_fn = getattr(store, "reload", None)
     current = store.current_profile()
     if not current:
         raise RelayError(t("当前账号未纳入账号仓库；请先 add --capture"))
@@ -1193,44 +1202,50 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
         latest = load_auto_settings()
         return bool(latest['enabled'] and latest['allow_chatgpt_restart'] and
                     latest['thread_id'] == (thread_id if thread_id != 'none' else '') and latest['prompt'] == prompt)
-    if not still_enabled():
-        if args.json:
-            _print_json({'action': 'none', 'reason': 'settings-changed'})
-        else:
-            print(t("自动续跑设置已变更，取消本次切换"))
-        return EXIT_NOTHING
     from .switch import preflight_processes
     force = bool(getattr(args, 'force', False))
-    preflight_processes('desktop', force)
-    if context:
-        try:
-            context = prepare_handoff(store, thread_id, execute=True, dispatch_guard=still_enabled)
-        except (RuntimeError, OSError, TimeoutError, ValueError) as exc:
-            err_text = tx(str(exc))
+    with lock_fn() if callable(lock_fn) else contextlib.nullcontext():
+        if callable(reload_fn):
+            reload_fn()
+        if not still_enabled():
             if args.json:
-                _print_json({'action': 'blocked', 'reason': 'interrupt-unconfirmed', 'continue_error': err_text})
+                _print_json({'action': 'none', 'reason': 'settings-changed'})
             else:
-                print(err_text, file=sys.stderr)
-            return EXIT_BLOCKED
-    if not still_enabled():
-        if args.json:
-            _print_json({'action': 'none', 'reason': 'settings-changed'})
-        else:
-            print(t("自动续跑设置已变更，取消本次切换"))
-        return EXIT_NOTHING
-    switch_result = switch(
-        store,
-        SwitchOptions(
-            target=str(target.get("alias")),
-            mode="desktop",
-            thread=thread_id,
-            force=force,
-            verify=False,
-            restart=True,
-            allow_chatgpt_restart=True,
-            operation_guard=still_enabled,
-        ),
-    )
+                print(t("自动续跑设置已变更，取消本次切换"))
+            return EXIT_NOTHING
+        preflight_processes('desktop', force)
+        if context:
+            try:
+                context = prepare_handoff(store, thread_id, execute=True, dispatch_guard=still_enabled)
+            except (RuntimeError, OSError, TimeoutError, ValueError) as exc:
+                err_text = tx(str(exc))
+                if args.json:
+                    _print_json({'action': 'blocked', 'reason': 'interrupt-unconfirmed', 'continue_error': err_text})
+                else:
+                    print(err_text, file=sys.stderr)
+                return EXIT_BLOCKED
+        if not still_enabled():
+            if args.json:
+                _print_json({'action': 'none', 'reason': 'settings-changed'})
+            else:
+                print(t("自动续跑设置已变更，取消本次切换"))
+            return EXIT_NOTHING
+        get_profile_fn = getattr(store, "get_profile", None)
+        latest_target = get_profile_fn(str(target.get("id"))) if callable(get_profile_fn) and target.get("id") else target
+        target_alias = str((latest_target or target).get("alias"))
+        switch_result = switch(
+            store,
+            SwitchOptions(
+                target=target_alias,
+                mode="desktop",
+                thread=thread_id,
+                force=force,
+                verify=False,
+                restart=True,
+                allow_chatgpt_restart=True,
+                operation_guard=still_enabled,
+            ),
+        )
     plan["action"] = "switched"
     plan["thread_id"] = switch_result.get("thread_id")
     prompt = str(getattr(args, "prompt", "") or "")
@@ -1339,7 +1354,7 @@ def cmd_auto(args: argparse.Namespace, store: Store) -> int:
         try:
             with store.lock():
                 store.reload()
-                _auto_once(store, args)
+            _auto_once(store, args)
         except RelayError as exc:
             print(t("检查失败: {error}", error=tx(str(exc))), file=sys.stderr)
         deadline = time.monotonic() + float(args.interval)
@@ -1904,11 +1919,28 @@ def _main(argv: Optional[List[str]] = None) -> int:
         store.ensure_layout()
         # Read-only commands consume atomic snapshots without waiting for a
         # network refresh. Serialize writers before loading any cached state.
-        # `list --refresh` and `usage` acquire short locks around snapshots and
-        # merges instead of holding store.lock() across network/subprocess I/O.
-        mutating = args.command in {'add', 'remove', 'rename', 'label', 'import', 'sync', 'switch', 'restart', 'resume'}
-        mutating = mutating or (args.command == 'auto' and args.once)
-        with store.lock() if mutating else contextlib.nullcontext():
+        # `list --refresh`, `usage`, `add`, and `auto` acquire short locks
+        # around snapshots/merges instead of holding store.lock() across
+        # network, browser login, or subprocess I/O. Commands that verify a
+        # target profile before switching acquire profile_refresh_lock(pid)
+        # strictly before store.lock() to prevent lock-order inversions.
+        mutating = args.command in {'remove', 'rename', 'label', 'import', 'sync', 'switch', 'restart', 'resume'}
+        refresh_lock_pid: Optional[str] = None
+        if args.command == 'switch' and not getattr(args, 'no_verify', False):
+            try:
+                resolved = store.resolve(str(args.alias))
+                refresh_lock_pid = str(resolved.get('id') or '') or None
+            except RelayError:
+                refresh_lock_pid = None
+        elif args.command == 'resume' and getattr(args, 'account', None) and not getattr(args, 'no_switch', False):
+            try:
+                resolved = store.resolve(str(args.account))
+                refresh_lock_pid = str(resolved.get('id') or '') or None
+            except RelayError:
+                refresh_lock_pid = None
+        refresh_ctx = store.profile_refresh_lock(refresh_lock_pid) if refresh_lock_pid else contextlib.nullcontext()
+        store_ctx = store.lock() if mutating else contextlib.nullcontext()
+        with refresh_ctx, store_ctx:
             if mutating: store.reload()
             return int(args.func(args, store))
     except (RelayError, ValueError) as exc:

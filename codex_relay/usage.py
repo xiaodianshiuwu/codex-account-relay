@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import json
 import math
+import threading
 import time
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-import threading
 from typing import Any, Callable, Dict, List, Optional
 from desktop_guard.desktop import ThreadUnavailable
 from desktop_guard.upstream_policy import latest_turn
@@ -146,6 +148,48 @@ def fetch_usage_http(
     }
 
 
+def _auth_fingerprint(auth: Dict[str, Any]) -> str:
+    canonical = json.dumps(auth, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _desktop_active() -> bool:
+    return bool(codex_env.codex_processes()) or codex_env.app_running()
+
+
+def _store_lock_ctx(store: Any):
+    lock_fn = getattr(store, "lock", None)
+    return lock_fn() if callable(lock_fn) else contextlib.nullcontext()
+
+
+def _profile_refresh_lock_ctx(store: Any, pid: str, timeout: float = 95.0):
+    lock_fn = getattr(store, "profile_refresh_lock", None)
+    return lock_fn(pid, timeout=timeout) if callable(lock_fn) else contextlib.nullcontext()
+
+
+def _disk_secret_fingerprint(store: Store, pid: str) -> Optional[str]:
+    try:
+        return _auth_fingerprint(store.read_secret(pid))
+    except RelayError:
+        return None
+
+
+def _profile_is_live_desktop_active(store: Store, pid: str) -> bool:
+    active = store.current_profile()
+    return bool(active and str(active.get("id") or "") == pid and _desktop_active())
+
+
+def _reload_store(store: Any) -> None:
+    reload_fn = getattr(store, "reload", None)
+    if callable(reload_fn):
+        reload_fn()
+
+
+def _sync_profile_dict(target: Dict[str, Any], source: Dict[str, Any]) -> None:
+    target.clear()
+    target.update(source)
+
+
 def refresh_usage(
     store: Store,
     profile: Dict[str, Any],
@@ -155,60 +199,141 @@ def refresh_usage(
     translator: Optional[Translator] = None,
 ) -> Dict[str, Any]:
     tr = translator or Translator()
-    active = store.current_profile()
-    is_active = bool(active and active.get("id") == profile.get("id"))
-    if is_active:
-        # The running app-server may have refreshed and rotated auth.json since
-        # the profile snapshot. Capture it before reading the profile secret.
-        snap = store.snapshot_current(adopt=True)
-        if snap:
-            profile.update(snap)
-    auth = store.read_secret(str(profile["id"]))
-    identity = validate_auth(auth)
-    live_processes = bool(codex_env.codex_processes())
-    if is_active and live_processes:
+    pid = str(profile["id"])
+    lock_timeout = min(max(timeout + 10.0, 30.0), 120.0)
+
+    with _profile_refresh_lock_ctx(store, pid, timeout=lock_timeout):
+        with _store_lock_ctx(store):
+            _reload_store(store)
+            fresh = store.get_profile(pid) if callable(getattr(store, "get_profile", None)) else profile
+            if fresh is None:
+                fresh = profile
+            active = store.current_profile()
+            is_active = bool(active and str(active.get("id") or "") == pid)
+            if is_active:
+                # The running app-server may have refreshed and rotated auth.json since
+                # the profile snapshot. Capture it before reading the profile secret.
+                snap = store.snapshot_current(adopt=True)
+                if snap:
+                    fresh = snap
+                    _sync_profile_dict(profile, snap)
+            auth = store.read_secret(pid)
+            identity = validate_auth(auth)
+            snapshot_fp = _auth_fingerprint(auth)
+            snapshot_verified_at = fresh.get("last_verified_at")
+            use_http = is_active and _desktop_active()
+
+        if use_http:
+            try:
+                usage = fetch_usage_http(auth, timeout=min(timeout, 20.0), translator=tr)
+            except RelayError as exc:
+                safe_error = str(redact(str(exc)))[:500]
+                checked = now_iso()
+                with _store_lock_ctx(store):
+                    _reload_store(store)
+                    current_prof = store.get_profile(pid) if callable(getattr(store, "get_profile", None)) else profile
+                    if (
+                        current_prof is not None
+                        and _disk_secret_fingerprint(store, pid) == snapshot_fp
+                        and current_prof.get("last_verified_at") == snapshot_verified_at
+                    ):
+                        current_prof.update(status="error", last_error=safe_error, last_error_at=checked)
+                        store.save_state()
+                        _sync_profile_dict(profile, current_prof)
+                    elif current_prof is not None:
+                        _sync_profile_dict(profile, current_prof)
+                raise
+            checked = now_iso()
+            with _store_lock_ctx(store):
+                _reload_store(store)
+                current_prof = store.get_profile(pid) if callable(getattr(store, "get_profile", None)) else profile
+                if (
+                    current_prof is not None
+                    and _disk_secret_fingerprint(store, pid) == snapshot_fp
+                    and current_prof.get("last_verified_at") == snapshot_verified_at
+                ):
+                    current_prof["usage"] = usage
+                    current_prof["last_verified_at"] = checked
+                    current_prof["status"] = "ok"
+                    current_prof.pop("last_error", None)
+                    current_prof.pop("last_error_at", None)
+                    store.save_state()
+                    _sync_profile_dict(profile, current_prof)
+                elif current_prof is not None:
+                    _sync_profile_dict(profile, current_prof)
+            return usage
+
+        state_ref = {"current_fp": snapshot_fp, "persisted": False}
+
+        def persist(new_auth: Dict[str, Any]) -> None:
+            if new_auth == auth:
+                return
+            new_fp = _auth_fingerprint(new_auth)
+            if new_fp == state_ref["current_fp"]:
+                return
+            with _store_lock_ctx(store):
+                _reload_store(store)
+                current_prof = store.get_profile(pid) if callable(getattr(store, "get_profile", None)) else profile
+                if current_prof is None:
+                    return
+                if _disk_secret_fingerprint(store, pid) != state_ref["current_fp"]:
+                    return
+                if _profile_is_live_desktop_active(store, pid):
+                    return
+                store.persist_profile_auth(current_prof, new_auth)
+                state_ref["current_fp"] = new_fp
+                state_ref["persisted"] = True
+                _sync_profile_dict(profile, current_prof)
+
         try:
-            usage = fetch_usage_http(auth, timeout=min(timeout, 20.0), translator=tr)
+            usage, _refreshed = verify_profile(
+                store.paths,
+                auth,
+                force_refresh=force_refresh or bool(identity.get("access_expired")),
+                persist_callback=persist,
+                timeout=timeout,
+            )
         except RelayError as exc:
-            profile.update(status='error', last_error=str(redact(str(exc)))[:500], last_error_at=now_iso())
-            store.save_state()
+            refreshed = getattr(exc, "refreshed_auth", None)
+            if isinstance(refreshed, dict) and not state_ref["persisted"]:
+                persist(refreshed)
+            safe_error = str(redact(str(exc)))
+            checked = now_iso()
+            with _store_lock_ctx(store):
+                _reload_store(store)
+                current_prof = store.get_profile(pid) if callable(getattr(store, "get_profile", None)) else profile
+                if (
+                    current_prof is not None
+                    and _disk_secret_fingerprint(store, pid) == state_ref["current_fp"]
+                    and current_prof.get("last_verified_at") == snapshot_verified_at
+                ):
+                    current_prof["status"] = "needs_relogin" if _is_auth_error(safe_error) else "error"
+                    current_prof["last_error"] = safe_error[:500]
+                    current_prof["last_error_at"] = checked
+                    store.save_state()
+                    _sync_profile_dict(profile, current_prof)
+                elif current_prof is not None:
+                    _sync_profile_dict(profile, current_prof)
             raise
-        profile["usage"] = usage
-        profile["last_verified_at"] = now_iso()
-        profile["status"] = "ok"
-        profile.pop("last_error", None)
-        profile.pop("last_error_at", None)
-        store.save_state()
+        checked = now_iso()
+        with _store_lock_ctx(store):
+            _reload_store(store)
+            current_prof = store.get_profile(pid) if callable(getattr(store, "get_profile", None)) else profile
+            if (
+                current_prof is not None
+                and _disk_secret_fingerprint(store, pid) == state_ref["current_fp"]
+                and current_prof.get("last_verified_at") == snapshot_verified_at
+            ):
+                current_prof["usage"] = usage
+                current_prof["last_verified_at"] = checked
+                current_prof["status"] = "ok"
+                current_prof.pop("last_error", None)
+                current_prof.pop("last_error_at", None)
+                store.save_state()
+                _sync_profile_dict(profile, current_prof)
+            elif current_prof is not None:
+                _sync_profile_dict(profile, current_prof)
         return usage
-
-    def persist(new_auth: Dict[str, Any]) -> None:
-        store.persist_profile_auth(profile, new_auth)
-
-    try:
-        usage, refreshed = verify_profile(
-            store.paths,
-            auth,
-            force_refresh=force_refresh or bool(identity.get("access_expired")),
-            persist_callback=persist,
-            timeout=timeout,
-        )
-    except RelayError as exc:
-        refreshed = getattr(exc, "refreshed_auth", None)
-        if isinstance(refreshed, dict):
-            persist(refreshed)
-        safe_error = str(redact(str(exc)))
-        profile["status"] = "needs_relogin" if _is_auth_error(safe_error) else "error"
-        profile["last_error"] = safe_error[:500]
-        profile["last_error_at"] = now_iso()
-        store.save_state()
-        raise
-    profile["usage"] = usage
-    profile["last_verified_at"] = now_iso()
-    profile["status"] = "ok"
-    profile.pop("last_error", None)
-    profile.pop("last_error_at", None)
-    store.save_state()
-    return usage
 
 
 def refresh_profiles_unlocked(
@@ -222,129 +347,155 @@ def refresh_profiles_unlocked(
 ) -> Dict[str, Dict[str, Any]]:
     """Refresh usage for profiles without holding store.lock() across network I/O.
 
-    1. Acquire short lock to snapshot active auth & target secrets.
-    2. Fetch usage outside the lock (concurrently for multiple profiles).
-       Any OAuth token rotation from verify_profile persists under a brief lock.
-    3. Re-acquire short lock to reload state and merge updated usage/status.
+    Each profile is serialized by a per-profile refresh lock (strictly acquired
+    before short store.lock() scopes) so concurrent refreshes of the same
+    account never race on rotating OAuth refresh tokens while unrelated profiles
+    still refresh in parallel and store.lock() stays free for concurrent writers.
+    Every credential persist and final status/usage merge verifies the on-disk
+    credential fingerprint and last_verified_at so a stale job can never clobber
+    a concurrent re-login, token update, or deletion.
     """
     tr = translator or Translator()
-    target_set = set(profile_ids)
-    jobs: List[Dict[str, Any]] = []
+    unique_ids = list(dict.fromkeys(str(pid) for pid in profile_ids if pid))
+    if not unique_ids:
+        return {}
+
     outcomes: Dict[str, Dict[str, Any]] = {}
-
-    with store.lock():
-        store.reload()
-        active = store.current_profile()
-        active_id = str(active["id"]) if active and active.get("id") else None
-        if active_id and active_id in target_set:
-            store.snapshot_current(adopt=True)
-        for pid in profile_ids:
-            prof = store.get_profile(pid)
-            if not prof:
-                continue
-            alias = str(prof.get("alias") or pid)
-            try:
-                auth = store.read_secret(pid)
-                identity = validate_auth(auth)
-            except RelayError as exc:
-                safe_err = str(redact(str(exc)))
-                outcomes[pid] = {
-                    "ok": False,
-                    "alias": alias,
-                    "status": "needs_relogin" if _is_auth_error(safe_err) else "error",
-                    "error": safe_err[:500],
-                }
-                continue
-            jobs.append(
-                {
-                    "id": pid,
-                    "alias": alias,
-                    "is_active": bool(active_id and pid == active_id),
-                    "auth": auth,
-                    "access_expired": bool(identity.get("access_expired")),
-                }
-            )
-
-    live_processes = bool(codex_env.codex_processes())
     callback_lock = threading.Lock()
+    lock_timeout = min(max(timeout + 10.0, 30.0), 120.0)
 
-    def _run_job(job: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
-        pid = job["id"]
-        alias = job["alias"]
-        if on_start is not None:
-            with callback_lock:
-                on_start(alias)
-        if job["is_active"] and live_processes:
-            try:
-                usage_data = fetch_usage_http(job["auth"], timeout=min(timeout, 20.0), translator=tr)
-                return pid, {"ok": True, "alias": alias, "usage": usage_data}
-            except RelayError as exc:
-                safe_err = str(redact(str(exc)))
-                return pid, {"ok": False, "alias": alias, "status": "error", "error": safe_err[:500]}
+    def _run_profile(pid: str) -> tuple[str, Optional[Dict[str, Any]]]:
+        with _profile_refresh_lock_ctx(store, pid, timeout=lock_timeout):
+            # Step 1: short store.lock() snapshot of credential fingerprint & last_verified_at.
+            with store.lock():
+                store.reload()
+                prof = store.get_profile(pid)
+                if prof is None:
+                    return pid, None
+                active = store.current_profile()
+                is_active = bool(active and str(active.get("id") or "") == pid)
+                if is_active:
+                    snap = store.snapshot_current(adopt=True)
+                    if snap is not None:
+                        prof = snap
+                alias = str(prof.get("alias") or pid)
+                snapshot_verified_at = prof.get("last_verified_at")
+                try:
+                    auth = store.read_secret(pid)
+                    identity = validate_auth(auth)
+                except RelayError as exc:
+                    safe_err = str(redact(str(exc)))
+                    checked = now_iso()
+                    status = "needs_relogin" if _is_auth_error(safe_err) else "error"
+                    prof["status"] = status
+                    prof["last_error"] = safe_err[:500]
+                    prof["last_error_at"] = checked
+                    store.save_state()
+                    return pid, {
+                        "ok": False,
+                        "alias": alias,
+                        "status": status,
+                        "error": safe_err[:500],
+                    }
+                snapshot_fp = _auth_fingerprint(auth)
+                access_expired = bool(identity.get("access_expired"))
+                use_http = is_active and _desktop_active()
 
-        persisted_ref = {"done": False}
+            if on_start is not None:
+                with callback_lock:
+                    on_start(alias)
 
-        def persist_under_lock(new_auth: Dict[str, Any]) -> None:
+            # Step 2: network / app-server I/O outside store.lock().
+            state_ref = {"current_fp": snapshot_fp, "persisted": False}
+            if use_http:
+                try:
+                    usage_data = fetch_usage_http(auth, timeout=min(timeout, 20.0), translator=tr)
+                    outcome: Dict[str, Any] = {"ok": True, "alias": alias, "usage": usage_data}
+                except RelayError as exc:
+                    safe_err = str(redact(str(exc)))
+                    outcome = {"ok": False, "alias": alias, "status": "error", "error": safe_err[:500]}
+            else:
+                def persist_under_lock(new_auth: Dict[str, Any]) -> None:
+                    if new_auth == auth:
+                        return
+                    new_fp = _auth_fingerprint(new_auth)
+                    if new_fp == state_ref["current_fp"]:
+                        return
+                    with store.lock():
+                        store.reload()
+                        fresh = store.get_profile(pid)
+                        if fresh is None:
+                            return
+                        if _disk_secret_fingerprint(store, pid) != state_ref["current_fp"]:
+                            return
+                        if _profile_is_live_desktop_active(store, pid):
+                            return
+                        store.persist_profile_auth(fresh, new_auth)
+                        state_ref["current_fp"] = new_fp
+                        state_ref["persisted"] = True
+
+                try:
+                    usage_data, _ = verify_profile(
+                        store.paths,
+                        auth,
+                        force_refresh=access_expired,
+                        persist_callback=persist_under_lock,
+                        timeout=timeout,
+                    )
+                    outcome = {"ok": True, "alias": alias, "usage": usage_data}
+                except RelayError as exc:
+                    refreshed = getattr(exc, "refreshed_auth", None)
+                    if isinstance(refreshed, dict) and not state_ref["persisted"]:
+                        persist_under_lock(refreshed)
+                    safe_err = str(redact(str(exc)))
+                    outcome = {
+                        "ok": False,
+                        "alias": alias,
+                        "status": "needs_relogin" if _is_auth_error(safe_err) else "error",
+                        "error": safe_err[:500],
+                    }
+
+            # Step 3: guarded merge under short store.lock() while still holding per-profile lock.
             with store.lock():
                 store.reload()
                 fresh = store.get_profile(pid)
                 if fresh is not None:
-                    store.persist_profile_auth(fresh, new_auth)
-                    persisted_ref["done"] = True
+                    disk_fp = _disk_secret_fingerprint(store, pid)
+                    if disk_fp == state_ref["current_fp"] and fresh.get("last_verified_at") == snapshot_verified_at:
+                        checked = now_iso()
+                        if outcome.get("ok"):
+                            fresh["usage"] = outcome["usage"]
+                            fresh["last_verified_at"] = checked
+                            fresh["status"] = "ok"
+                            fresh.pop("last_error", None)
+                            fresh.pop("last_error_at", None)
+                        else:
+                            fresh["status"] = outcome.get("status") or "error"
+                            fresh["last_error"] = outcome.get("error")
+                            fresh["last_error_at"] = checked
+                        store.save_state()
+                    else:
+                        outcome["skipped_stale_merge"] = True
+            return pid, outcome
 
-        try:
-            usage_data, _ = verify_profile(
-                store.paths,
-                job["auth"],
-                force_refresh=job["access_expired"],
-                persist_callback=persist_under_lock,
-                timeout=timeout,
-            )
-            return pid, {"ok": True, "alias": alias, "usage": usage_data}
-        except RelayError as exc:
-            refreshed = getattr(exc, "refreshed_auth", None)
-            if isinstance(refreshed, dict) and not persisted_ref["done"]:
-                persist_under_lock(refreshed)
-            safe_err = str(redact(str(exc)))
-            return pid, {
-                "ok": False,
-                "alias": alias,
-                "status": "needs_relogin" if _is_auth_error(safe_err) else "error",
-                "error": safe_err[:500],
-            }
-
-    if len(jobs) == 1:
-        pid, outcome = _run_job(jobs[0])
-        outcomes[pid] = outcome
-    elif jobs:
-        with ThreadPoolExecutor(max_workers=min(4, len(jobs))) as pool:
-            for pid, outcome in pool.map(_run_job, jobs):
-                outcomes[pid] = outcome
+    if len(unique_ids) == 1:
+        pid, outcome = _run_profile(unique_ids[0])
+        if outcome is not None:
+            outcomes[pid] = outcome
+    else:
+        with ThreadPoolExecutor(max_workers=min(4, len(unique_ids))) as pool:
+            for pid, outcome in pool.map(_run_profile, unique_ids):
+                if outcome is not None:
+                    outcomes[pid] = outcome
 
     if on_error is not None:
-        for pid in profile_ids:
+        for pid in unique_ids:
             outcome = outcomes.get(pid)
-            if outcome and not outcome.get("ok"):
+            if outcome and not outcome.get("ok") and not outcome.get("skipped_stale_merge"):
                 on_error(str(outcome.get("alias") or pid), str(outcome.get("error") or ""))
 
     with store.lock():
         store.reload()
-        checked = now_iso()
-        for pid, outcome in outcomes.items():
-            prof = store.get_profile(pid)
-            if not prof:
-                continue
-            if outcome.get("ok"):
-                prof["usage"] = outcome["usage"]
-                prof["last_verified_at"] = checked
-                prof["status"] = "ok"
-                prof.pop("last_error", None)
-                prof.pop("last_error_at", None)
-            else:
-                prof["status"] = outcome.get("status") or "error"
-                prof["last_error"] = outcome.get("error")
-                prof["last_error_at"] = checked
-        store.save_state()
     return outcomes
 
 

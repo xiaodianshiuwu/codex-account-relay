@@ -128,6 +128,9 @@ public enum AutoSettingsStore {
                     if code == EINTR { continue }
                     throw POSIXError(POSIXErrorCode(rawValue: code) ?? .EIO)
                 }
+                if written == 0 {
+                    throw POSIXError(.EIO)
+                }
                 offset += written
                 remaining -= written
             }

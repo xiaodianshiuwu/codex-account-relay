@@ -175,24 +175,34 @@ final class AppPreferences: ObservableObject {
                 } catch {
                     return
                 }
-                guard let self else { return }
+                guard !Task.isCancelled,
+                      let self,
+                      self.keyGeneration[key] == generation,
+                      self.pendingDebouncedValues[key] != nil else {
+                    return
+                }
+                self.inflightSaves += 1
                 self.debounceTasks.removeValue(forKey: key)
                 self.pendingDebouncedValues.removeValue(forKey: key)
                 await self.commitPersist(key, value, generation: generation)
             }
         } else {
+            inflightSaves += 1
             Task { @MainActor [weak self] in
-                await self?.commitPersist(key, value, generation: generation)
+                guard let self else { return }
+                await self.commitPersist(key, value, generation: generation)
             }
         }
     }
 
     private func commitPersist(_ key: String, _ value: AutoSettingValue, generation: Int) async {
-        guard keyGeneration[key] == generation else {
+        defer {
+            inflightSaves = max(0, inflightSaves - 1)
             notifyPendingSaveWaitersIfIdle()
+        }
+        guard keyGeneration[key] == generation else {
             return
         }
-        inflightSaves += 1
         let writeQueue = self.autoWriteQueue
         let writeError: Error? = await withCheckedContinuation { continuation in
             writeQueue.async {
@@ -204,7 +214,6 @@ final class AppPreferences: ObservableObject {
                 }
             }
         }
-        inflightSaves = max(0, inflightSaves - 1)
         if let error = writeError {
             settingsError = L10n.text("设置保存失败") + ": " + error.localizedDescription
             if keyGeneration[key] == generation {
@@ -216,7 +225,6 @@ final class AppPreferences: ObservableObject {
                 settingsError = nil
             }
         }
-        notifyPendingSaveWaitersIfIdle()
     }
 
     private static func strictBool(_ raw: Any?) -> Bool? {
@@ -318,17 +326,19 @@ final class AppPreferences: ObservableObject {
 
     func flushDebouncedAutoSettings() {
         let pending = pendingDebouncedValues
+        for (key, value) in pending {
+            let generation = keyGeneration[key] ?? 0
+            inflightSaves += 1
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                await self.commitPersist(key, value, generation: generation)
+            }
+        }
         for (key, task) in debounceTasks {
             task.cancel()
             debounceTasks.removeValue(forKey: key)
         }
         pendingDebouncedValues.removeAll()
-        for (key, value) in pending {
-            let generation = keyGeneration[key] ?? 0
-            Task { @MainActor [weak self] in
-                await self?.commitPersist(key, value, generation: generation)
-            }
-        }
     }
 
     func waitForPendingAutoSettings() async {
