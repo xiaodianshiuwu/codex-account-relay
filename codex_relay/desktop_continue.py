@@ -113,11 +113,26 @@ def continue_desktop_thread(store, context, prompt):
 
 def switch_and_continue(store, options, prompt, progress=None):
     from dataclasses import replace
-    from .switch import switch, preflight_processes
+    from .switch import switch, preflight_processes, _identity_of
     from .usage import refresh_usage, idle_check, idle_blocked_message, usage_known, max_used_percent
     if options.mode != 'desktop' or options.thread in (None, 'none', 'last') or not prompt.strip():
         raise RelayError('Continuation requires an exact local chat and a nonempty prompt')
     target = store.resolve(options.target)
+    active = store.current_profile()
+    target_is_active = bool(active and active.get('id') == target.get('id'))
+    if target_is_active:
+        return {
+            'ok': True,
+            'changed': False,
+            'reason': 'dry-run' if options.dry_run else 'already-active',
+            'mode': 'desktop',
+            'account': _identity_of(target),
+            'target': _identity_of(target),
+            'to': _identity_of(target),
+            'thread_id': options.thread,
+            'continued': False,
+            'notes': [],
+        }
     if options.verify:
         usage = refresh_usage(store, target)
         if not usage_known(usage) or max_used_percent(usage) >= 100:

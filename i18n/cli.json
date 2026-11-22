@@ -2266,5 +2266,23 @@
     "zh-Hant": "其他聊天仍在執行或狀態待核實，請查看偵測詳情。",
     "en": "Other chats are running or unconfirmed. Review the runtime check.",
     "ja": "他のチャットは実行中または未確認です。確認結果をご覧ください。"
+  },
+  "当前账号额度不可用，未执行切换": {
+    "en": "Active account quota is unavailable; no switch was performed.",
+    "ja": "現在のアカウントの利用枠を取得できないため、切り替えを行いませんでした。",
+    "zh-Hans": "当前账号额度不可用，未执行切换",
+    "zh-Hant": "目前帳號額度不可用，未執行切換"
+  },
+  "发送续跑提示词需要指定 --thread <会话 UUID>": {
+    "en": "Sending a continuation prompt requires specifying --thread <session UUID>.",
+    "ja": "再開プロンプトを送信するには --thread <セッション UUID> の指定が必要です。",
+    "zh-Hans": "发送续跑提示词需要指定 --thread <会话 UUID>",
+    "zh-Hant": "傳送續跑提示詞需要指定 --thread <工作階段 UUID>"
+  },
+  "自动续跑设置已变更，取消本次切换": {
+    "en": "Auto-continue settings changed; cancelling this switch.",
+    "ja": "自動再開設定が変更されたため、今回の切り替えをキャンセルしました。",
+    "zh-Hans": "自动续跑设置已变更，取消本次切换",
+    "zh-Hant": "自動續跑設定已變更，取消本次切換"
   }
 }

@@ -180,6 +180,12 @@ def redact(value: Any) -> Any:
         return [redact(item) for item in value]
     if isinstance(value, str):
         value = re.sub(r"(?i)Bearer\s+[^\s\"']+", "Bearer <redacted>", value)
+        value = re.sub(r"(?<![A-Za-z0-9_-])sk-[A-Za-z0-9_-]{8,}", "<redacted-key>", value)
+        value = re.sub(
+            r"(?<![A-Za-z0-9_-])rt_[A-Za-z0-9_-][A-Za-z0-9._-]{6,}[A-Za-z0-9_-]",
+            "<redacted-token>",
+            value,
+        )
         return re.sub(r"[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}", "<redacted-jwt>", value)
     return value
 

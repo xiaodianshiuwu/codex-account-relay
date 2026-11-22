@@ -28,7 +28,16 @@ from .reporting import inspect_thread, report_handoff
 from .store import Store, default_paths
 from .switch import SwitchOptions, switch
 from .threads import get_thread, list_threads, most_recent_thread
-from .usage import usage_known, idle_check, idle_blocked_message, max_used_percent, refresh_usage, usage_line, usage_text
+from .usage import (
+    usage_known,
+    idle_check,
+    idle_blocked_message,
+    max_used_percent,
+    refresh_profiles_unlocked,
+    refresh_usage,
+    usage_line,
+    usage_text,
+)
 from .util import RelayError, ensure_tls_certificates, executable_command, human_bytes, now_iso, parse_iso
 
 
@@ -204,19 +213,24 @@ def cmd_status(args: argparse.Namespace, store: Store) -> int:
 
 # ----------------------------------------------------------------------- list
 def _refresh_profiles(store: Store, profiles: List[Dict[str, Any]], timeout: float = 90.0) -> None:
-    for profile in profiles:
-        alias = profile.get("alias")
-        print(t("刷新用量: {alias} ...", alias=alias), file=sys.stderr)
-        try:
-            refresh_usage(store, profile, timeout=timeout)
-        except RelayError as exc:
-            print(f"  {alias}: {tx(str(exc))}", file=sys.stderr)
+    profile_ids = [str(p["id"]) for p in profiles if p.get("id")]
+    if not profile_ids:
+        return
+    refresh_profiles_unlocked(
+        store,
+        profile_ids,
+        timeout=timeout,
+        translator=translator(),
+        on_start=lambda alias: print(t("刷新用量: {alias} ...", alias=alias), file=sys.stderr),
+        on_error=lambda alias, err: print(f"  {alias}: {tx(err)}", file=sys.stderr),
+    )
 
 
 def cmd_list(args: argparse.Namespace, store: Store) -> int:
     profiles = store.profiles()
     if args.refresh:
         _refresh_profiles(store, profiles, timeout=args.timeout)
+        profiles = store.profiles()
     active_id = _active_account_id(store)
     data = []
     rows = []
@@ -980,14 +994,19 @@ def cmd_usage(args: argparse.Namespace, store: Store) -> int:
         profiles = [current]
     if not profiles:
         raise RelayError(t("还没有保存任何账号"))
+    target_ids = [str(p["id"]) for p in profiles if p.get("id")]
+    if not args.cached and target_ids:
+        refresh_profiles_unlocked(
+            store,
+            target_ids,
+            timeout=args.timeout,
+            translator=translator(),
+            on_start=lambda alias: print(t("刷新 {alias} ...", alias=alias), file=sys.stderr),
+            on_error=lambda alias, err: print(f"  {alias}: {tx(err)}", file=sys.stderr),
+        )
+        profiles = [p for p in (store.get_profile(pid) for pid in target_ids) if p is not None]
     results = []
     for profile in profiles:
-        if not args.cached:
-            print(t("刷新 {alias} ...", alias=profile.get("alias")), file=sys.stderr)
-            try:
-                refresh_usage(store, profile, timeout=args.timeout)
-            except RelayError as exc:
-                print(f"  {profile.get('alias')}: {tx(str(exc))}", file=sys.stderr)
         item = store.profile_summary(profile)
         if item.get("last_error"): item["last_error"] = tx(item["last_error"])
         results.append(item)
@@ -1027,18 +1046,29 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
     if getattr(args, 'respect_settings', False):
         latest = load_auto_settings()
         if not latest['enabled'] or not latest['allow_chatgpt_restart']:
-            _print_json({'action': 'none', 'reason': 'disabled' if not latest['enabled'] else 'process-control-disabled'})
+            reason = 'disabled' if not latest['enabled'] else 'process-control-disabled'
+            if getattr(args, 'json', False):
+                _print_json({'action': 'none', 'reason': reason})
+            else:
+                print(
+                    t("自动续跑未启用；请先在设置页启用，或把 auto.json 的 enabled 设为 true")
+                    if reason == 'disabled'
+                    else t("自动接力会重启 ChatGPT，已默认禁用。")
+                )
             return EXIT_NOTHING
     current = store.current_profile()
     if not current:
         raise RelayError(t("当前账号未纳入账号仓库；请先 add --capture"))
     refresh_usage(store, current, timeout=float(getattr(args, "timeout", 60.0)))
-    used = max_used_percent(current.get("usage"))
-    threshold = _used_threshold(args)
-    exhausted = bool((current.get("usage") or {}).get("rate_limit_reached_type"))
     usage = current.get('usage') or {}
+    used = max_used_percent(usage)
+    threshold = _used_threshold(args)
+    exhausted = bool(usage.get("rate_limit_reached_type") or usage.get("ordinary_usage_allowed") is False)
     if not usage_known(usage):
-        if args.json: _print_json({'action': 'blocked', 'reason': 'usage-unknown'})
+        if args.json:
+            _print_json({'action': 'blocked', 'reason': 'usage-unknown'})
+        else:
+            print(t("当前账号额度不可用，未执行切换"), file=sys.stderr)
         return EXIT_BLOCKED
     if used < threshold and not exhausted:
         result = {
@@ -1106,7 +1136,10 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
     target = usable[0]
     thread_id = getattr(args, 'thread', None) or 'none'
     if str(getattr(args, 'prompt', '') or '').strip() and thread_id == 'none':
-        if args.json: _print_json({'action': 'blocked', 'reason': 'thread-required'})
+        if args.json:
+            _print_json({'action': 'blocked', 'reason': 'thread-required'})
+        else:
+            print(t("发送续跑提示词需要指定 --thread <会话 UUID>"), file=sys.stderr)
         return EXIT_BLOCKED
     prompt = str(getattr(args, 'prompt', '') or '')
     try:
@@ -1161,18 +1194,29 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
         return bool(latest['enabled'] and latest['allow_chatgpt_restart'] and
                     latest['thread_id'] == (thread_id if thread_id != 'none' else '') and latest['prompt'] == prompt)
     if not still_enabled():
-        if args.json: _print_json({'action':'none', 'reason':'settings-changed'})
+        if args.json:
+            _print_json({'action': 'none', 'reason': 'settings-changed'})
+        else:
+            print(t("自动续跑设置已变更，取消本次切换"))
         return EXIT_NOTHING
     from .switch import preflight_processes
-    preflight_processes('desktop', False)
+    force = bool(getattr(args, 'force', False))
+    preflight_processes('desktop', force)
     if context:
         try:
             context = prepare_handoff(store, thread_id, execute=True, dispatch_guard=still_enabled)
         except (RuntimeError, OSError, TimeoutError, ValueError) as exc:
-            if args.json: _print_json({'action':'blocked', 'reason':'interrupt-unconfirmed', 'continue_error':tx(str(exc))})
+            err_text = tx(str(exc))
+            if args.json:
+                _print_json({'action': 'blocked', 'reason': 'interrupt-unconfirmed', 'continue_error': err_text})
+            else:
+                print(err_text, file=sys.stderr)
             return EXIT_BLOCKED
     if not still_enabled():
-        if args.json: _print_json({'action':'none', 'reason':'settings-changed'})
+        if args.json:
+            _print_json({'action': 'none', 'reason': 'settings-changed'})
+        else:
+            print(t("自动续跑设置已变更，取消本次切换"))
         return EXIT_NOTHING
     switch_result = switch(
         store,
@@ -1180,7 +1224,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
             target=str(target.get("alias")),
             mode="desktop",
             thread=thread_id,
-            force=False,
+            force=force,
             verify=False,
             restart=True,
             allow_chatgpt_restart=True,
@@ -1194,7 +1238,7 @@ def _auto_once(store: Store, args: argparse.Namespace) -> int:
         try:
             plan['continued_turn_id'] = continue_desktop_thread(store, context, prompt)
             plan["continued"] = True
-        except (RelayError, RuntimeError, OSError, TimeoutError) as exc:
+        except (RelayError, RuntimeError, OSError, TimeoutError, ValueError) as exc:
             plan["continued"] = False
             plan["continue_error"] = tx(str(exc))
     elif prompt.strip():
@@ -1246,24 +1290,32 @@ def cmd_auto(args: argparse.Namespace, store: Store) -> int:
         settings = load_auto_settings()
     explicit_threshold = getattr(args, "threshold", None) is not None
     explicit_remaining = getattr(args, "remaining_threshold", None) is not None
+    explicit_prompt = getattr(args, "prompt", None) is not None
+    explicit_interval = getattr(args, "interval", None) is not None
+    explicit_strategy = getattr(args, "strategy", None) is not None
+    explicit_thread = getattr(args, "thread", None) is not None
     if explicit_threshold and explicit_remaining:
         raise RelayError(t("--threshold 与 --remaining-threshold 只能指定一个"))
-    if getattr(args, "prompt", None) is None:
-        # An explicit empty prompt in an existing auto.json disables
-        # continuation; only a missing file gets the friendly default.
-        args.prompt = str(settings.get("prompt") or "")
-        if not args.prompt and not auto_path().exists():
-            args.prompt = t("继续")
-    if not explicit_threshold and not explicit_remaining:
-        args.remaining_threshold = float(settings.get("remaining_threshold", 10.0))
-    elif explicit_threshold:
-        args.remaining_threshold = None
-    if getattr(args, "interval", None) is None:
-        args.interval = float(settings.get("interval", 60.0))
-    if getattr(args, "strategy", None) is None:
-        args.strategy = str(settings.get("strategy", "best"))
-    if getattr(args, 'thread', None) is None:
-        args.thread = settings.get('thread_id') or 'none'
+
+    def _apply_auto_settings(cfg: Dict[str, Any]) -> None:
+        if not explicit_prompt:
+            # An explicit empty prompt in an existing auto.json disables
+            # continuation; only a missing file gets the friendly default.
+            args.prompt = str(cfg.get("prompt") or "")
+            if not args.prompt and not auto_path().exists():
+                args.prompt = t("继续")
+        if not explicit_threshold and not explicit_remaining:
+            args.remaining_threshold = float(cfg.get("remaining_threshold", 10.0))
+        elif explicit_threshold:
+            args.remaining_threshold = None
+        if not explicit_interval:
+            args.interval = float(cfg.get("interval", 60.0))
+        if not explicit_strategy:
+            args.strategy = str(cfg.get("strategy", "best"))
+        if not explicit_thread:
+            args.thread = cfg.get('thread_id') or 'none'
+
+    _apply_auto_settings(settings)
     if args.once:
         return _auto_once(store, args)
     if not settings.get("enabled"):
@@ -1276,23 +1328,25 @@ def cmd_auto(args: argparse.Namespace, store: Store) -> int:
         ))
     print(t(
         "自动接力守护已启动（阈值 {threshold}%，间隔 {interval}s）。Ctrl-C 退出。",
-        threshold=args.threshold,
+        threshold=_used_threshold(args),
         interval=args.interval,
     ))
     while True:
+        latest = load_auto_settings()
+        if not latest['enabled']:
+            return EXIT_NOTHING
+        _apply_auto_settings(latest)
         try:
-            latest = load_auto_settings()
-            if not latest['enabled']: return EXIT_NOTHING
             with store.lock():
                 store.reload()
-                code = _auto_once(store, args)
+                _auto_once(store, args)
         except RelayError as exc:
             print(t("检查失败: {error}", error=tx(str(exc))), file=sys.stderr)
-            code = EXIT_ERROR
-        if code == EXIT_OK:
-            time.sleep(args.interval)
-        else:
-            time.sleep(args.interval)
+        deadline = time.monotonic() + float(args.interval)
+        while time.monotonic() < deadline:
+            if not load_auto_settings().get('enabled'):
+                return EXIT_NOTHING
+            time.sleep(min(1.0, max(0.0, deadline - time.monotonic())))
     return EXIT_OK
 
 
@@ -1358,6 +1412,13 @@ def cmd_setup(args: argparse.Namespace, store: Store) -> int:
             raise RelayError(t("指定的 Codex 数据目录不存在：{path}", path=home_path))
         home_arg = str(home_path.resolve())
 
+    if codex_arg:
+        config["codex_binary"] = codex_arg
+    if home_arg:
+        config["codex_home"] = home_arg
+    if codex_arg or home_arg:
+        save_config(config)
+
     if detected:
         version = codex_env.version_of(str(detected)) if hasattr(codex_env, "version_of") else None
         if not version:
@@ -1365,12 +1426,6 @@ def cmd_setup(args: argparse.Namespace, store: Store) -> int:
             # platform-specific probe cannot report a version.
             from .util import version_of
             version = version_of(str(detected))
-        if codex_arg:
-            config["codex_binary"] = codex_arg
-        if home_arg:
-            config["codex_home"] = home_arg
-        if codex_arg or home_arg:
-            save_config(config)
         result = {
             "detected": str(detected),
             "version": version,
@@ -1387,6 +1442,20 @@ def cmd_setup(args: argparse.Namespace, store: Store) -> int:
                 print(t("Codex 数据目录：{path}", path=home_arg or config.get("codex_home")))
             if not codex_arg and not home_arg:
                 print(t("自动发现可用；如需固定自定义路径，请运行 codex-relay setup --codex <路径> --codex-home <目录>。"))
+        return EXIT_OK
+
+    if home_arg:
+        result = {
+            "detected": None,
+            "version": None,
+            "codex_home": home_arg,
+            "saved": True,
+        }
+        if args.json:
+            _print_json(result)
+        else:
+            print(t("Codex 数据目录：{path}", path=home_arg))
+            print(t("未找到 Codex CLI。请先安装 Codex，或用 --codex <路径> 指定可执行文件。"), file=sys.stderr)
         return EXIT_OK
 
     print(t("未找到 Codex CLI。请先安装 Codex，或用 --codex <路径> 指定可执行文件。"), file=sys.stderr)
@@ -1766,21 +1835,61 @@ def _extract_lang(argv: List[str]) -> Optional[str]:
     return value
 
 
+def _guard_argv(args_list: List[str]) -> Optional[List[str]]:
+    """Extract subcommand arguments when invoking `guard` (with optional `--lang`)."""
+    index = 0
+    while index < len(args_list):
+        arg = args_list[index]
+        if arg == "--lang" and index + 1 < len(args_list):
+            index += 2
+            continue
+        if arg.startswith("--lang="):
+            index += 1
+            continue
+        if arg == "guard":
+            tail: List[str] = []
+            pos = index + 1
+            while pos < len(args_list):
+                item = args_list[pos]
+                if item == "--lang" and pos + 1 < len(args_list):
+                    pos += 2
+                    continue
+                if item.startswith("--lang="):
+                    pos += 1
+                    continue
+                tail.append(item)
+                pos += 1
+            return tail
+        break
+    return None
+
+
 def _main(argv: Optional[List[str]] = None) -> int:
     _configure_stdio()
     ensure_tls_certificates()
     global _TRANSLATOR
     args_list = list(sys.argv[1:] if argv is None else argv)
-    if args_list and args_list[0] == 'guard':
+    explicit_lang = _extract_lang(args_list)
+    language = resolve_language(explicit_lang)
+    _TRANSLATOR = Translator(language)
+    guard_args = _guard_argv(args_list)
+    if guard_args is not None:
         from .guard_cli import main as guard_main
+        previous_lang = os.environ.get("CODEX_RELAY_LANG")
+        if explicit_lang:
+            os.environ["CODEX_RELAY_LANG"] = language
         try:
-            guard_main(args_list[1:])
+            guard_main(guard_args)
             return EXIT_OK
         except (RuntimeError, ValueError, OSError) as exc:
-            print(f"codex-relay: {Translator().external(str(exc))}", file=sys.stderr)
+            print(f"codex-relay: {_TRANSLATOR.external(str(exc))}", file=sys.stderr)
             return EXIT_ERROR
-    language = resolve_language(_extract_lang(args_list))
-    _TRANSLATOR = Translator(language)
+        finally:
+            if explicit_lang:
+                if previous_lang is None:
+                    os.environ.pop("CODEX_RELAY_LANG", None)
+                else:
+                    os.environ["CODEX_RELAY_LANG"] = previous_lang
     parser = build_parser(_TRANSLATOR)
     args = parser.parse_args(args_list)
     if getattr(args, "version", False):
@@ -1795,14 +1904,14 @@ def _main(argv: Optional[List[str]] = None) -> int:
         store.ensure_layout()
         # Read-only commands consume atomic snapshots without waiting for a
         # network refresh. Serialize writers before loading any cached state.
+        # `list --refresh` and `usage` acquire short locks around snapshots and
+        # merges instead of holding store.lock() across network/subprocess I/O.
         mutating = args.command in {'add', 'remove', 'rename', 'label', 'import', 'sync', 'switch', 'restart', 'resume'}
-        mutating = mutating or (args.command == 'list' and getattr(args, 'refresh', False))
-        mutating = mutating or (args.command == 'usage' and not args.cached)
         mutating = mutating or (args.command == 'auto' and args.once)
         with store.lock() if mutating else contextlib.nullcontext():
             if mutating: store.reload()
             return int(args.func(args, store))
-    except RelayError as exc:
+    except (RelayError, ValueError) as exc:
         print(f"codex-relay: {tx(str(exc))}", file=sys.stderr)
         return EXIT_ERROR
     except KeyboardInterrupt:

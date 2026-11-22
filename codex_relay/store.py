@@ -5,6 +5,7 @@ import json
 import os
 import re
 import shutil
+import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,6 +15,7 @@ from .authfile import auth_summary, read_auth, validate_auth, write_auth
 from .config import configured_codex_home
 from .util import (
     RelayError,
+    atomic_write_bytes,
     atomic_write_json,
     ensure_dir,
     file_lock,
@@ -243,6 +245,8 @@ class Store:
                     "display_name": existing.get("display_name") or display_name,
                 }
             )
+            existing.pop("last_error", None)
+            existing.pop("last_error_at", None)
             profile = existing
         else:
             for other in self.profiles():
@@ -328,6 +332,8 @@ class Store:
                 "status": "ok",
             }
         )
+        profile.pop("last_error", None)
+        profile.pop("last_error_at", None)
         self.save_state()
 
     def persist_profile_auth(self, profile: Dict[str, Any], auth: Dict[str, Any]) -> None:
@@ -382,8 +388,15 @@ class Store:
             return profile
         if not adopt:
             return None
-        short = str(identity.get("account_id"))[:8]
-        alias = f"captured-{short}"
+        safe_id = _safe_component(str(identity.get("account_id") or "account"))
+        base = f"captured-{safe_id[:8]}"
+        existing_aliases = {str(p.get("alias", "")).lower() for p in self.profiles()}
+        alias = base
+        suffix = 2
+        while alias.lower() in existing_aliases:
+            tail = f"-{suffix}"
+            alias = f"{base[: 32 - len(tail)]}{tail}"
+            suffix += 1
         profile = self.add_profile(alias, auth, adopt=True)
         self.state["active_profile_id"] = profile["id"]
         self.save_state()
@@ -396,23 +409,45 @@ class Store:
 
     # ----------------------------------------------------------------- backups
     def backup(self, label: str = "switch", *, include_auth: bool = True) -> Path:
+        self.ensure_layout()
         stamp = time.strftime("%Y%m%d-%H%M%S")
-        target = self.paths.backups_dir / f"{stamp}-{label}"
-        suffix = 1
-        while target.exists():
-            suffix += 1
-            target = self.paths.backups_dir / f"{stamp}-{label}-{suffix}"
-        ensure_dir(target, 0o700)
-        meta = {"created_at": now_iso(), "label": label, "auth_path": str(self.paths.auth_path)}
-        if include_auth and self.paths.auth_path.exists():
-            data = self.paths.auth_path.read_bytes()
-            (target / "auth.json").write_bytes(data)
-            os.chmod(target / "auth.json", 0o600)
-            meta["auth_sha256"] = hashlib.sha256(data).hexdigest()
-        if self.paths.state_path.exists():
-            shutil.copy2(self.paths.state_path, target / "state.json")
-            os.chmod(target / "state.json", 0o600)
-        atomic_write_json(target / "meta.json", meta, mode=0o600)
+        staging = Path(
+            tempfile.mkdtemp(prefix=f".{stamp}-{label}-", dir=str(self.paths.backups_dir))
+        )
+        moved = False
+        try:
+            try:
+                os.chmod(staging, 0o700)
+            except OSError:
+                pass
+            meta = {"created_at": now_iso(), "label": label, "auth_path": str(self.paths.auth_path)}
+            if include_auth and self.paths.auth_path.exists():
+                data = self.paths.auth_path.read_bytes()
+                atomic_write_bytes(staging / "auth.json", data, mode=0o600)
+                meta["auth_sha256"] = hashlib.sha256(data).hexdigest()
+            if self.paths.state_path.exists():
+                state_data = self.paths.state_path.read_bytes()
+                atomic_write_bytes(staging / "state.json", state_data, mode=0o600)
+            atomic_write_json(staging / "meta.json", meta, mode=0o600)
+            suffix = 1
+            while True:
+                name = f"{stamp}-{label}" if suffix == 1 else f"{stamp}-{label}-{suffix}"
+                target = self.paths.backups_dir / name
+                if target.exists():
+                    suffix += 1
+                    continue
+                try:
+                    os.rename(staging, target)
+                    moved = True
+                    break
+                except OSError:
+                    if target.exists():
+                        suffix += 1
+                        continue
+                    raise
+        finally:
+            if not moved:
+                shutil.rmtree(staging, ignore_errors=True)
         keep = self.state.get("settings", {}).get("backup_keep", 0)
         if isinstance(keep, int) and not isinstance(keep, bool) and keep > 0:
             self.prune_backups(keep)
@@ -422,7 +457,11 @@ class Store:
         if keep <= 0 or not self.paths.backups_dir.exists():
             return
         entries = sorted(
-            [p for p in self.paths.backups_dir.iterdir() if p.is_dir()],
+            [
+                p
+                for p in self.paths.backups_dir.iterdir()
+                if p.is_dir() and not p.name.startswith(".")
+            ],
             key=lambda p: (p.stat().st_mtime_ns, p.name),
         )
         for old in entries[:-keep]:

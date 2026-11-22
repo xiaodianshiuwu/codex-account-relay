@@ -5,8 +5,10 @@ import math
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+import threading
+from typing import Any, Callable, Dict, List, Optional
 from desktop_guard.desktop import ThreadUnavailable
 from desktop_guard.upstream_policy import latest_turn
 
@@ -16,7 +18,7 @@ from .authfile import validate_auth
 from .i18n import Translator
 from .store import Store
 from .threads import active_turn_status, rollout_activity, rollout_path_for, get_thread
-from .util import RelayError, local_time, now_iso
+from .util import RelayError, local_time, now_iso, redact
 
 
 AUTH_ERROR_MARKERS = (
@@ -36,12 +38,16 @@ def _is_auth_error(message: str) -> bool:
     return any(marker in lowered for marker in AUTH_ERROR_MARKERS)
 
 
+def _is_finite_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
 def _window_from_http(value: Any) -> Optional[Dict[str, Any]]:
     if not isinstance(value, dict):
         return None
     seconds = value.get("limit_window_seconds")
     minutes = None
-    if isinstance(seconds, (int, float)):
+    if _is_finite_number(seconds):
         minutes = int(seconds // 60)
     return {
         "used_percent": value.get("used_percent"),
@@ -89,14 +95,14 @@ def fetch_usage_http(
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read().decode("utf-8")
     except urllib.error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")[:500]
+        body = str(redact(exc.read().decode("utf-8", errors="replace")))[:500]
         if exc.code == 401:
             raise RelayError(
                 tr.t("用量接口返回 401：活动账号 token 已失效。请让 Codex App 刷新/重新登录后再试。")
             ) from exc
         raise RelayError(tr.t("用量接口 HTTP {code}：{body}", code=exc.code, body=body)) from exc
     except Exception as exc:  # noqa: BLE001 - network diagnostics
-        raise RelayError(tr.t("用量接口请求失败：{error}", error=exc)) from exc
+        raise RelayError(tr.t("用量接口请求失败：{error}", error=redact(str(exc)))) from exc
     try:
         data = json.loads(raw)
     except ValueError as exc:
@@ -164,7 +170,7 @@ def refresh_usage(
         try:
             usage = fetch_usage_http(auth, timeout=min(timeout, 20.0), translator=tr)
         except RelayError as exc:
-            profile.update(status='error', last_error=str(exc)[:500], last_error_at=now_iso())
+            profile.update(status='error', last_error=str(redact(str(exc)))[:500], last_error_at=now_iso())
             store.save_state()
             raise
         profile["usage"] = usage
@@ -190,8 +196,9 @@ def refresh_usage(
         refreshed = getattr(exc, "refreshed_auth", None)
         if isinstance(refreshed, dict):
             persist(refreshed)
-        profile["status"] = "needs_relogin" if _is_auth_error(str(exc)) else "error"
-        profile["last_error"] = str(exc)[:500]
+        safe_error = str(redact(str(exc)))
+        profile["status"] = "needs_relogin" if _is_auth_error(safe_error) else "error"
+        profile["last_error"] = safe_error[:500]
         profile["last_error_at"] = now_iso()
         store.save_state()
         raise
@@ -204,6 +211,143 @@ def refresh_usage(
     return usage
 
 
+def refresh_profiles_unlocked(
+    store: Store,
+    profile_ids: List[str],
+    *,
+    timeout: float = 90.0,
+    translator: Optional[Translator] = None,
+    on_start: Optional[Callable[[str], None]] = None,
+    on_error: Optional[Callable[[str, str], None]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Refresh usage for profiles without holding store.lock() across network I/O.
+
+    1. Acquire short lock to snapshot active auth & target secrets.
+    2. Fetch usage outside the lock (concurrently for multiple profiles).
+       Any OAuth token rotation from verify_profile persists under a brief lock.
+    3. Re-acquire short lock to reload state and merge updated usage/status.
+    """
+    tr = translator or Translator()
+    target_set = set(profile_ids)
+    jobs: List[Dict[str, Any]] = []
+    outcomes: Dict[str, Dict[str, Any]] = {}
+
+    with store.lock():
+        store.reload()
+        active = store.current_profile()
+        active_id = str(active["id"]) if active and active.get("id") else None
+        if active_id and active_id in target_set:
+            store.snapshot_current(adopt=True)
+        for pid in profile_ids:
+            prof = store.get_profile(pid)
+            if not prof:
+                continue
+            alias = str(prof.get("alias") or pid)
+            try:
+                auth = store.read_secret(pid)
+                identity = validate_auth(auth)
+            except RelayError as exc:
+                safe_err = str(redact(str(exc)))
+                outcomes[pid] = {
+                    "ok": False,
+                    "alias": alias,
+                    "status": "needs_relogin" if _is_auth_error(safe_err) else "error",
+                    "error": safe_err[:500],
+                }
+                continue
+            jobs.append(
+                {
+                    "id": pid,
+                    "alias": alias,
+                    "is_active": bool(active_id and pid == active_id),
+                    "auth": auth,
+                    "access_expired": bool(identity.get("access_expired")),
+                }
+            )
+
+    live_processes = bool(codex_env.codex_processes())
+    callback_lock = threading.Lock()
+
+    def _run_job(job: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
+        pid = job["id"]
+        alias = job["alias"]
+        if on_start is not None:
+            with callback_lock:
+                on_start(alias)
+        if job["is_active"] and live_processes:
+            try:
+                usage_data = fetch_usage_http(job["auth"], timeout=min(timeout, 20.0), translator=tr)
+                return pid, {"ok": True, "alias": alias, "usage": usage_data}
+            except RelayError as exc:
+                safe_err = str(redact(str(exc)))
+                return pid, {"ok": False, "alias": alias, "status": "error", "error": safe_err[:500]}
+
+        persisted_ref = {"done": False}
+
+        def persist_under_lock(new_auth: Dict[str, Any]) -> None:
+            with store.lock():
+                store.reload()
+                fresh = store.get_profile(pid)
+                if fresh is not None:
+                    store.persist_profile_auth(fresh, new_auth)
+                    persisted_ref["done"] = True
+
+        try:
+            usage_data, _ = verify_profile(
+                store.paths,
+                job["auth"],
+                force_refresh=job["access_expired"],
+                persist_callback=persist_under_lock,
+                timeout=timeout,
+            )
+            return pid, {"ok": True, "alias": alias, "usage": usage_data}
+        except RelayError as exc:
+            refreshed = getattr(exc, "refreshed_auth", None)
+            if isinstance(refreshed, dict) and not persisted_ref["done"]:
+                persist_under_lock(refreshed)
+            safe_err = str(redact(str(exc)))
+            return pid, {
+                "ok": False,
+                "alias": alias,
+                "status": "needs_relogin" if _is_auth_error(safe_err) else "error",
+                "error": safe_err[:500],
+            }
+
+    if len(jobs) == 1:
+        pid, outcome = _run_job(jobs[0])
+        outcomes[pid] = outcome
+    elif jobs:
+        with ThreadPoolExecutor(max_workers=min(4, len(jobs))) as pool:
+            for pid, outcome in pool.map(_run_job, jobs):
+                outcomes[pid] = outcome
+
+    if on_error is not None:
+        for pid in profile_ids:
+            outcome = outcomes.get(pid)
+            if outcome and not outcome.get("ok"):
+                on_error(str(outcome.get("alias") or pid), str(outcome.get("error") or ""))
+
+    with store.lock():
+        store.reload()
+        checked = now_iso()
+        for pid, outcome in outcomes.items():
+            prof = store.get_profile(pid)
+            if not prof:
+                continue
+            if outcome.get("ok"):
+                prof["usage"] = outcome["usage"]
+                prof["last_verified_at"] = checked
+                prof["status"] = "ok"
+                prof.pop("last_error", None)
+                prof.pop("last_error_at", None)
+            else:
+                prof["status"] = outcome.get("status") or "error"
+                prof["last_error"] = outcome.get("error")
+                prof["last_error_at"] = checked
+        store.save_state()
+    return outcomes
+
+
 def usage_known(usage: Optional[Dict[str, Any]]) -> bool:
     if not isinstance(usage, dict): return False
     if usage.get('rate_limit_reached_type') or usage.get('ordinary_usage_allowed') is False: return True
@@ -213,10 +357,10 @@ def usage_known(usage: Optional[Dict[str, Any]]) -> bool:
         if window is None: continue
         if not isinstance(window, dict): return False
         value = window.get('used_percent')
-        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= 100:
+        if not _is_finite_number(value) or not 0 <= value <= 100:
             return False
         reset = window.get('resets_at')
-        if reset is not None and (not isinstance(reset, (int, float)) or not math.isfinite(reset) or reset <= time.time()):
+        if reset is not None and (not _is_finite_number(reset) or reset <= time.time()):
             return False
         valid += 1
     return valid > 0
@@ -231,10 +375,14 @@ def max_used_percent(usage: Optional[Dict[str, Any]]) -> float:
     for key in ("primary", "secondary"):
         window = usage.get(key)
         if isinstance(window, dict):
-            try:
-                values.append(float(window.get("used_percent") or 0))
-            except (TypeError, ValueError):
-                pass
+            raw = window.get("used_percent")
+            if raw is not None and not isinstance(raw, bool):
+                try:
+                    parsed = float(raw)
+                    if math.isfinite(parsed):
+                        values.append(parsed)
+                except (TypeError, ValueError):
+                    pass
     return max(values) if values else 0.0
 
 
@@ -245,18 +393,21 @@ def _window_text(window: Any, tr: Translator) -> str:
     minutes = window.get("window_minutes")
     resets = window.get("resets_at")
     label = "-"
-    if isinstance(minutes, (int, float)):
+    if _is_finite_number(minutes):
         label = tr.duration(minutes)
     reset_text = ""
-    if isinstance(resets, (int, float)):
+    if _is_finite_number(resets):
         try:
             reset_text = tr.t("，{time} 重置", time=tr.dt(datetime.fromtimestamp(resets)))
         except (OverflowError, OSError, ValueError):
             reset_text = ""
-    if used is None:
+    if used is None or isinstance(used, bool):
         return "-"
     try:
-        percent = f"{float(used):.1f}"
+        parsed_used = float(used)
+        if not math.isfinite(parsed_used):
+            return "-"
+        percent = f"{parsed_used:.1f}"
     except (TypeError, ValueError):
         percent = "-"
     return tr.t(

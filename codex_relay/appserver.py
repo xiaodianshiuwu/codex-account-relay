@@ -20,10 +20,11 @@ from .util import RelayError, ensure_dir, executable_command, now_iso, redact, w
 
 class RpcError(RelayError):
     def __init__(self, method: str, code: Optional[int], message: str):
-        super().__init__(f"{method} 失败（{code}）：{message}")
+        safe_message = str(redact(message))
+        super().__init__(f"{method} 失败（{code}）：{safe_message}")
         self.method = method
         self.code = code
-        self.message = message
+        self.message = safe_message
 
 
 class JsonRpcProcess:
@@ -42,6 +43,8 @@ class JsonRpcProcess:
         self._messages: "queue.Queue[Any]" = queue.Queue()
         self._stderr_lines: List[str] = []
         self._stderr_lock = threading.Lock()
+        self._id_lock = threading.Lock()
+        self._next_request_id = 1
         self._closed = False
         try:
             kwargs = {}
@@ -61,7 +64,7 @@ class JsonRpcProcess:
                 **kwargs,
             )
         except OSError as exc:
-            raise RelayError(f"无法启动 app-server：{exc}") from exc
+            raise RelayError(f"无法启动 app-server：{redact(str(exc))}") from exc
         self._stdout_thread = threading.Thread(target=self._read_stdout, daemon=True)
         self._stderr_thread = threading.Thread(target=self._read_stderr, daemon=True)
         self._stdout_thread.start()
@@ -77,7 +80,9 @@ class JsonRpcProcess:
                 message = json.loads(line)
             except ValueError:
                 with self._stderr_lock:
-                    self._stderr_lines.append(f"非 JSON 输出: {line[:300]}")
+                    safe = redact(line)
+                    text = safe[:300] if isinstance(safe, str) else line[:300]
+                    self._stderr_lines.append(f"非 JSON 输出: {text}")
                 continue
             self._messages.put(message)
         self._messages.put(None)
@@ -106,7 +111,7 @@ class JsonRpcProcess:
             self.process.stdin.write(json.dumps(message, ensure_ascii=False) + "\n")
             self.process.stdin.flush()
         except (BrokenPipeError, OSError) as exc:
-            raise RelayError(f"写入 app-server 失败：{exc}\n{self.stderr_tail()}") from exc
+            raise RelayError(f"写入 app-server 失败：{redact(str(exc))}\n{self.stderr_tail()}") from exc
 
     def notify(self, method: str, params: Any = None) -> None:
         message: Dict[str, Any] = {"jsonrpc": "2.0", "method": method}
@@ -115,7 +120,12 @@ class JsonRpcProcess:
         self._send(message)
 
     def request(self, method: str, params: Any = None, request_id: Optional[int] = None) -> Any:
-        request_id = request_id if request_id is not None else int(time.time() * 1000) % 2_000_000_000
+        with self._id_lock:
+            if request_id is None:
+                request_id = self._next_request_id
+                self._next_request_id += 1
+            else:
+                self._next_request_id = max(self._next_request_id, request_id + 1)
         message: Dict[str, Any] = {
             "jsonrpc": "2.0",
             "id": request_id,
@@ -455,7 +465,7 @@ def login_in_isolated_home(
         except subprocess.TimeoutExpired as exc:
             raise RelayError(f"登录超时（{timeout:.0f}s），未保存任何凭据") from exc
         except OSError as exc:
-            raise RelayError(f"无法启动 codex login：{exc}") from exc
+            raise RelayError(f"无法启动 codex login：{redact(str(exc))}") from exc
         if result.returncode != 0:
             raise RelayError(f"codex login 失败，退出码 {result.returncode}")
         auth_path = directory / "auth.json"

@@ -13,8 +13,8 @@ from .appserver import verify_profile
 from .authfile import auth_summary, read_auth, validate_auth, write_auth
 from .store import Store
 from .threads import get_thread, most_recent_thread
-from .usage import idle_check, idle_blocked_message, max_used_percent
-from .util import RelayError, now_iso, safe_unlink
+from .usage import idle_check, idle_blocked_message, max_used_percent, usage_known
+from .util import RelayError, now_iso, redact, safe_unlink
 
 
 @dataclass
@@ -120,7 +120,7 @@ def _rollback(
                 codex_env.launch_desktop()
                 notes.append("尚未替换 auth.json；已重新启动 ChatGPT App")
             except RelayError as exc:
-                notes.append(f"重新启动 App 失败：{exc}")
+                notes.append(f"重新启动 App 失败：{redact(str(exc))}")
         else:
             notes.append("尚未替换 auth.json，无需回滚")
         return notes
@@ -151,7 +151,7 @@ def _rollback(
             codex_env.launch_desktop()
             notes.append("已重新启动 ChatGPT App")
         except RelayError as exc:
-            notes.append(f"回滚时启动 App 失败：{exc}")
+            notes.append(f"回滚时启动 App 失败：{redact(str(exc))}")
     return notes
 
 
@@ -209,8 +209,18 @@ def switch(
         target["usage"] = usage
         target["last_verified_at"] = now_iso()
         target["status"] = "ok"
+        target.pop("last_error", None)
+        target.pop("last_error_at", None)
         store.save_state()
-        if max_used_percent(usage) >= 100 or usage.get("rate_limit_reached_type"):
+        if not usage_known(usage):
+            message = (
+                f"目标账号 {target.get('alias')} 额度信息不可用或已过期，"
+                "无法确认是否仍有可用额度；如仍要切换请加 --force 或 --no-verify。"
+            )
+            if not options.force:
+                raise RelayError(message)
+            notes.append(message)
+        elif max_used_percent(usage) >= 100 or usage.get("rate_limit_reached_type") or usage.get("ordinary_usage_allowed") is False:
             message = (
                 f"目标账号 {target.get('alias')} 当前额度已耗尽"
                 f"（{usage.get('primary')} / {usage.get('secondary')}）。"
@@ -301,9 +311,9 @@ def switch(
             if not daemon_stopped:
                 raise RelayError(
                     "共享 app-server daemon 正在运行且无法停止；它可能缓存旧账号。"
-                    f"请先手动 `codex app-server daemon stop`（{daemon_note}）"
+                    f"请先手动 `codex app-server daemon stop`（{redact(str(daemon_note))}）"
                 )
-            notes.append(f"已停止共享 app-server daemon：{daemon_note}")
+            notes.append(f"已停止共享 app-server daemon：{redact(str(daemon_note))}")
 
         _progress(progress, "backup", "正在备份凭据与状态")
         backup = store.backup("switch")
@@ -386,9 +396,11 @@ def switch(
             )
         except Exception as rollback_error:
             rollback_notes = [
-                f"自动回滚未完成：{rollback_error}；"
+                f"自动回滚未完成：{redact(str(rollback_error))}；"
                 f"auth.json 可能仍为目标账号，请先退出 ChatGPT 再重试；备份保留于 {backup}"
             ]
+        safe_exc = str(redact(str(exc)))
+        rollback_notes = [str(redact(note)) for note in rollback_notes]
         store.journal(
             {
                 "event": "switch",
@@ -396,11 +408,11 @@ def switch(
                 "target": _identity_of(target),
                 "mode": options.mode,
                 "thread_id": thread_id,
-                "error": str(exc)[:500],
+                "error": safe_exc[:500],
                 "rollback": rollback_notes,
             }
         )
-        message = f"切换失败：{exc}"
+        message = f"切换失败：{safe_exc}"
         if rollback_notes:
             message += "\n回滚：" + "；".join(rollback_notes)
         raise RelayError(message) from exc

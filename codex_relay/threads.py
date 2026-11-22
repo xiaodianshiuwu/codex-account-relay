@@ -366,6 +366,32 @@ def rollout_path_for(paths: RelayPaths, thread: ThreadInfo) -> Path:
     return path
 
 
+def _read_tail_lines(path: Path, tail_lines: int = 500, chunk_size: int = 65536) -> List[str]:
+    if tail_lines <= 0:
+        return []
+    with path.open("rb") as handle:
+        handle.seek(0, os.SEEK_END)
+        file_size = handle.tell()
+        if file_size == 0:
+            return []
+        pos = file_size
+        chunks: List[bytes] = []
+        newlines = 0
+        target_newlines = tail_lines + 2
+        while pos > 0 and newlines < target_newlines:
+            read_size = min(chunk_size, pos)
+            pos -= read_size
+            handle.seek(pos)
+            chunk = handle.read(read_size)
+            chunks.append(chunk)
+            newlines += chunk.count(b"\n")
+        data = b"".join(reversed(chunks))
+    lines = data.decode("utf-8", errors="replace").splitlines(keepends=True)
+    if len(lines) > tail_lines:
+        lines = lines[-tail_lines:]
+    return lines
+
+
 def rollout_activity(path: Path, tail_lines: int = 500) -> Dict[str, Any]:
     """Inspect the rollout tail for an unmatched tool call.
 
@@ -375,10 +401,7 @@ def rollout_activity(path: Path, tail_lines: int = 500) -> Dict[str, Any]:
     """
     if not path.exists() or path.suffix == ".zst":
         return {"available": False, "pending_tool_calls": 0, "last_type": None}
-    tail: Deque[str] = collections.deque(maxlen=tail_lines)
-    with path.open("r", encoding="utf-8", errors="replace") as handle:
-        for line in handle:
-            tail.append(line)
+    tail = _read_tail_lines(path, tail_lines=tail_lines)
     pending: Dict[str, str] = {}
     last_type = None
     last_timestamp = None
@@ -465,7 +488,7 @@ def rollout_metrics(path: Path, *, max_turns: Optional[int] = None) -> RolloutMe
                 encrypted = payload.get("encrypted_content")
                 if isinstance(encrypted, str) and encrypted:
                     metrics.reasoning_encrypted_items += 1
-                    metrics.reasoning_encrypted_bytes += len(encrypted)
+                    metrics.reasoning_encrypted_bytes += len(encrypted.encode("utf-8"))
         elif rtype == "compacted":
             history = payload.get("replacement_history")
             if not isinstance(history, list):
@@ -489,7 +512,7 @@ def rollout_metrics(path: Path, *, max_turns: Optional[int] = None) -> RolloutMe
                     window_number=payload.get("window_number"),
                     item_count=len(history),
                     item_types=item_types,
-                    serialized_bytes=len(json.dumps(history, ensure_ascii=False)),
+                    serialized_bytes=len(json.dumps(history, ensure_ascii=False).encode("utf-8")),
                     has_encrypted_reasoning=has_reasoning,
                     has_compaction_item=has_compaction,
                     summary_chars=len(summary) if isinstance(summary, str) else 0,
